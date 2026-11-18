@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nidhi's Stories – Read, Play & Learn</title>
+  <meta name="description" content="A friendly learning web app for children with illustrated story books, read-aloud, quizzes, ABCs, numbers, shapes and colors." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a href="#/" class="brand" aria-label="Home">
+      <span class="brand-icon">📚</span>
+      <span class="brand-text">Nidhi's Stories</span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="#/stories" data-nav="stories">📖 <span>Stories</span></a>
+      <a href="#/abc" data-nav="abc">🔤 <span>ABC</span></a>
+      <a href="#/numbers" data-nav="numbers">🔢 <span>Numbers</span></a>
+      <a href="#/shapes" data-nav="shapes">🔺 <span>Shapes</span></a>
+    </nav>
+    <div class="stars" title="Stars you have earned" aria-live="polite">
+      ⭐ <span id="star-count">0</span>
+    </div>
+  </header>
+
+  <main id="app" tabindex="-1"></main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <footer class="footer">
+    Made with 💛 for curious little readers · <a href="#/grownups">For grown-ups</a>
+  </footer>
+
+  <script src="js/stories.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
