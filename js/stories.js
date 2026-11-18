@@ -1,3 +1,17 @@
+/* Featured books: complete illustrated books that live in their own folder. */
+window.FEATURED_BOOKS = [
+  {
+    title: "The Ojo Treasury",
+    subtitle: "ಓಜೋ ಕೋಶ · 8 stories of Ayu and her tiny golden friend Ojo",
+    href: "ojo-treasury/index.html",
+    cover: "✨",
+    art: "👧🏽💛",
+    color: "#46307e",
+    color2: "#f4b52c",
+    tags: ["Narrated", "Healthy habits", "English & Kannada"]
+  }
+];
+
 /* Story library. Each story has pages (scene emoji + text), new words and a short quiz.
    To add a story, copy one object below and change its contents. */
 window.STORIES = [

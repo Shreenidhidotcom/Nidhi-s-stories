@@ -149,6 +149,30 @@ main { flex: 1; width: 100%; max-width: 1100px; margin: 0 auto; padding: 20px 16
 .book-status { display: flex; justify-content: space-between; margin-top: 10px; font-weight: 700; font-size: .95rem; }
 .done { color: #2f8f4e; } .new { color: var(--primary-dark); }
 
+/* ---------- Featured book ---------- */
+.featured {
+  display: grid; grid-template-columns: 220px 1fr; text-decoration: none; color: #fff;
+  background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 70%, #000));
+  border-radius: 28px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 24px; transition: transform .2s;
+}
+.featured:hover { transform: translateY(-4px); }
+.featured-art {
+  background: radial-gradient(circle at 50% 45%, var(--c2) 0, color-mix(in srgb, var(--c2) 30%, transparent) 35%, transparent 65%);
+  display: grid; place-items: center; padding: 20px; position: relative;
+}
+.fa-main { font-size: 5.5rem; animation: float 4s ease-in-out infinite; }
+.fa-sub { font-size: 2.2rem; }
+.featured-info { padding: 22px 26px; }
+.featured-info h2 { font-size: clamp(1.6rem, 4vw, 2.2rem); margin: 6px 0 2px; line-height: 1.1; }
+.featured-info p { margin: 0 0 10px; opacity: .92; }
+.featured .tag { background: rgba(255,255,255,.18); color: #fff; }
+.ribbon { display: inline-block; background: var(--c2); color: #3a2a00; font-weight: 800; border-radius: 999px; padding: 2px 12px; font-size: .9rem; }
+.featured-btn { margin-top: 14px; background: var(--c2); color: #3a2a00; box-shadow: 0 4px 0 color-mix(in srgb, var(--c2) 60%, #000); }
+@media (max-width: 720px) {
+  .featured { grid-template-columns: 1fr; }
+  .featured-art { padding: 16px 0 0; }
+}
+
 /* ---------- Reader ---------- */
 .reader-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
 .reader-head h1 { flex: 1; margin: 0; font-size: clamp(1.4rem, 3.5vw, 2rem); text-align: center; }

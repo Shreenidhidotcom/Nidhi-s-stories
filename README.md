@@ -4,6 +4,7 @@ A colourful, ad-free learning web app for children aged about 3–7: illustrated
 
 ## Features
 
+- **✨ The Ojo Treasury** (featured book, in `ojo-treasury/`): eight narrated, illustrated stories about Ayu and Ojo for a child's day, with tap-a-word reading, lift-the-flap games, a grown-ups' section and recorded narration in `ojo-treasury/audio/`. It is linked from the home page and the library, and has a **Library** button to come back.
 - **📖 Storybooks**: five original picture books with page-turn animations, swipe and arrow-key navigation, and a **🔊 Read to me** mode that narrates and turns pages on its own.
   - Highlighted vocabulary words: tap one to hear and see what it means.
   - A "The End" page with the lesson and a list of new words.
@@ -53,4 +54,7 @@ index.html      App shell and navigation
 css/style.css   All styles and animations
 js/stories.js   Story content (pages, words, quizzes)
 js/app.js       Router, storybook reader, quizzes, games, progress
+ojo-treasury/   The Ojo Treasury book (self-contained page + narration audio)
 ```
+
+> The Ojo Treasury loads its narration with `fetch`, so open the app through a web server (or GitHub Pages) rather than double-clicking `index.html` for the narration to sync.

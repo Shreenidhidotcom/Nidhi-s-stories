@@ -126,6 +126,8 @@
         </div>
       </section>
 
+      ${featuredHtml()}
+
       <section class="tiles">
         <a class="tile" href="#/stories" style="--c:#ffb347">
           <span class="tile-icon">📖</span><h2>Story Books</h2><p>${readCount} of ${STORIES.length} read</p>
@@ -142,10 +144,26 @@
       </section>`;
   }
 
+  function featuredHtml() {
+    return (window.FEATURED_BOOKS || []).map(b => `
+      <a class="featured" href="${esc(b.href)}" style="--c:${b.color};--c2:${b.color2}">
+        <div class="featured-art" aria-hidden="true"><span class="fa-main">${b.cover}</span><span class="fa-sub">${b.art}</span></div>
+        <div class="featured-info">
+          <span class="ribbon">⭐ Featured book</span>
+          <h2>${esc(b.title)}</h2>
+          <p>${esc(b.subtitle)}</p>
+          <div class="tags">${b.tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}</div>
+          <span class="btn btn-small featured-btn">Open the book →</span>
+        </div>
+      </a>`).join("");
+  }
+
   function viewStories() {
     app.innerHTML = `
       <h1 class="page-title">📖 Story Books</h1>
       <p class="subtitle">Pick a book to read. Finish it and take the quiz to earn stars!</p>
+      ${featuredHtml()}
+      <h2 class="section-title">More stories</h2>
       <div class="shelf">
         ${STORIES.map(s => {
           const best = progress.quizBest[s.id];
