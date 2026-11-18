@@ -1,4 +1,20 @@
-# 📚 Nidhi's Stories
+# 🦜 Gini's Garden / ಗಿಣಿಯ ತೋಟ
+
+An interactive learning app for children aged 4–6, guided by **Gini**, a friendly green parrot who reads every screen aloud in **English or ಕನ್ನಡ**.
+
+- **📖 Story Time**: five folk stories (The Thirsty Crow, The Lion and the Mouse, The Monkey and the Crocodile, The Honest Woodcutter, The Two Goats on the Bridge), each with a lesson and a "What would you do?" question.
+- **☀️ My Healthy Day**: eight simple Dinacharya routine cards with a moving sun, copy-me actions and Ayurveda words, plus a "Put my day in order" game.
+- **🧘 Yoga Corner**: six poses and two breathing games with an animated child, three spoken steps and a 1–5 count, ending with Shavasana ("Sleep like a starfish").
+- **🧩 Let's Play**: Memory Match, Good Habit or Not?, Story Quiz and Yoga Freeze, with stars, a sticker book and a "Shabhash!" celebration.
+- **👪 Grown-ups' Corner**: press and hold the small button for 3 seconds.
+
+It is one self-contained file, `index.html`: no libraries, fonts, images or network requests. All words are in one `T` translations object near the top of the script, so a teacher can review the Kannada. Narration uses the device's speech voices (en-IN, kn-IN); if there is no Kannada voice, Kannada text is shown without narration and the Grown-ups' Corner says so.
+
+---
+
+# 📚 Nidhi's Stories (classic app)
+
+The earlier app is still here at `classic.html`, together with **The Ojo Treasury** in `ojo-treasury/`.
 
 A colourful, ad-free learning web app for children aged about 3–7: illustrated storybooks with read-aloud narration, plus little games for letters, numbers, shapes and colours.
 
@@ -20,7 +36,7 @@ A colourful, ad-free learning web app for children aged about 3–7: illustrated
 
 Nothing to install or build. It is plain HTML, CSS and JavaScript.
 
-- Open `index.html` in a browser, **or**
+- Open `index.html` (Gini's Garden) or `classic.html` (Nidhi's Stories) in a browser, **or**
 - Serve the folder: `python3 -m http.server 8000`, then visit http://localhost:8000
 
 To publish it, enable **GitHub Pages** for the repository (Settings → Pages → deploy from branch, root folder).
@@ -50,11 +66,12 @@ Edit `js/stories.js` and add another object to the `STORIES` list:
 ## Project structure
 
 ```
-index.html      App shell and navigation
+index.html      Gini's Garden (single self-contained page)
+classic.html    Nidhi's Stories app shell and navigation
 css/style.css   All styles and animations
 js/stories.js   Story content (pages, words, quizzes)
 js/app.js       Router, storybook reader, quizzes, games, progress
 ojo-treasury/   The Ojo Treasury book (self-contained page + narration audio)
 ```
 
-> The Ojo Treasury loads its narration with `fetch`, so open the app through a web server (or GitHub Pages) rather than double-clicking `index.html` for the narration to sync.
+> The Ojo Treasury loads its narration with `fetch`, so open the app through a web server (or GitHub Pages) rather than double-clicking `classic.html` for the narration to sync.

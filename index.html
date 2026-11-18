@@ -1,39 +1,1370 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nidhi's Stories – Read, Play & Learn</title>
-  <meta name="description" content="A friendly learning web app for children with illustrated story books, read-aloud, quizzes, ABCs, numbers, shapes and colors." />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>" />
-  <link rel="stylesheet" href="css/style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gini's Garden</title>
+<meta name="description" content="Gini's Garden: moral stories, a simple Ayurveda daily routine and kid-friendly yoga for children aged 4 to 6, in English and Kannada.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A6%9C%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --turmeric:#F5B82E; --turmeric-d:#C98D12;
+  --leaf:#4CAF50; --leaf-d:#2E7D32;
+  --sky:#5BB8F0; --sky-d:#2C86C4;
+  --lotus:#F48FB1; --lotus-d:#D2648C;
+  --cream:#FFF8E7; --ink:#3B2F2F; --white:#fff;
+  --r:26px;
+  --font: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", "Varela Round", "Nunito", "Noto Sans Kannada", "Kannada Sangam MN", "Tunga", system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  font-family:var(--font); font-weight:800; color:var(--ink); background:var(--cream);
+  background-image:radial-gradient(circle at 8% 12%, #FFE9B0 0 12%, transparent 30%),radial-gradient(circle at 92% 88%, #DDF2D0 0 12%, transparent 32%);
+  display:flex; flex-direction:column; height:100dvh; overflow:hidden;
+  -webkit-tap-highlight-color:transparent; touch-action:manipulation; user-select:none; -webkit-user-select:none;
+}
+button{font-family:inherit;font-weight:800;color:inherit;cursor:pointer;-webkit-user-select:none;user-select:none}
+:focus-visible{outline:4px solid var(--sky-d);outline-offset:3px}
+
+/* ---------- top bar ---------- */
+.top{position:relative;z-index:70;background:var(--cream);display:flex;align-items:center;gap:8px;padding:8px max(10px,env(safe-area-inset-right)) 6px max(10px,env(safe-area-inset-left));padding-top:max(8px,env(safe-area-inset-top));flex:none}
+.btn{min-height:64px;min-width:64px;border:0;border-radius:22px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:1.15rem;background:var(--white);box-shadow:0 5px 0 rgba(59,47,47,.18);transition:transform .12s}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(59,47,47,.18)}
+.btn .ic{font-size:1.9rem;line-height:1}
+.home-btn{background:var(--turmeric);box-shadow:0 5px 0 var(--turmeric-d);font-size:1.25rem}
+.home-btn.here{opacity:.75}
+.brand{display:flex;align-items:center;gap:6px;font-size:1.35rem;color:var(--leaf-d);white-space:nowrap}
+.brand svg{width:40px;height:44px}
+.sp{flex:1}
+.stars{min-height:64px;display:flex;align-items:center;gap:4px;padding:0 14px;border-radius:22px;background:#FFF1C2;border:3px solid var(--turmeric);font-size:1.4rem}
+.stars.bump{animation:bump .6s}
+.sq{padding:0 12px}
+.lang{padding:0 6px;gap:0;background:#EAF6FF}
+.lang span{padding:10px 10px;border-radius:16px;font-size:1.05rem}
+.lang span.on{background:var(--sky);color:#fff}
+@media (max-width:760px){ .brand{display:none} }
+@media (max-width:560px){
+  .top .lbl{display:none} .top{gap:6px} .btn{padding:0 10px} .stars{padding:0 10px;font-size:1.2rem}
+  .lang span{padding:8px 7px;font-size:.95rem}
+}
+
+/* ---------- Gini guide ---------- */
+.guide{display:flex;align-items:center;gap:10px;padding:2px max(12px,env(safe-area-inset-right)) 6px max(12px,env(safe-area-inset-left));max-width:980px;width:100%;margin:0 auto;flex:none}
+.gini-btn{border:0;background:none;padding:0;flex:none;width:clamp(62px,11vmin,96px)}
+.gini-btn svg{width:100%;height:auto;display:block}
+.bubble{position:relative;flex:1;background:var(--white);border:4px solid var(--leaf);border-radius:24px;padding:10px 60px 10px 18px;min-height:64px;display:flex;align-items:center;box-shadow:0 4px 0 rgba(46,125,50,.25)}
+.bubble::before{content:"";position:absolute;left:-14px;top:50%;margin-top:-10px;border:10px solid transparent;border-right:14px solid var(--leaf);border-left:0}
+.bubble p{margin:0;font-size:clamp(1.1rem,3.3vmin,1.55rem);line-height:1.3}
+.replay{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;border:0;background:#E8F5E9;font-size:1.4rem}
+body.kn-silent .bubble p{font-size:clamp(1.25rem,3.8vmin,1.8rem)}
+body.kn-silent .replay{opacity:.35}
+
+/* ---------- main ---------- */
+main{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px max(12px,env(safe-area-inset-right)) calc(80px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));outline:none}
+.wrap{max-width:980px;margin:0 auto}
+.subnav{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.back{background:#F3EFE6}
+
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:820px;margin:0 auto}
+@media (orientation:landscape) and (min-width:700px){ .tiles.four{grid-template-columns:repeat(4,1fr);max-width:980px} }
+@media (orientation:landscape) and (max-height:520px){ .tiles.four{grid-template-columns:repeat(4,1fr)} .tile{aspect-ratio:1/0.8} }
+.tile{border:0;border-radius:30px;aspect-ratio:1/0.92;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:var(--c);color:#fff;font-size:clamp(1.3rem,4vmin,1.9rem);box-shadow:0 7px 0 var(--d),0 12px 22px rgba(0,0,0,.08);transition:transform .15s;position:relative;text-shadow:0 2px 0 rgba(0,0,0,.18);padding:8px}
+.tile:active{transform:translateY(5px);box-shadow:0 2px 0 var(--d)}
+.tile .art{font-size:clamp(2.6rem,11vmin,5.2rem);line-height:1.05;text-shadow:none;filter:drop-shadow(0 4px 2px rgba(0,0,0,.12))}
+.tile .art svg{width:clamp(80px,22vmin,150px);height:auto}
+.tile .badge{position:absolute;top:10px;right:12px;font-size:1.4rem;text-shadow:none}
+.tiles.small{grid-template-columns:repeat(auto-fill,minmax(min(140px,40vw),1fr));max-width:980px}
+.tiles.small .tile{font-size:clamp(1.05rem,3.2vmin,1.4rem);border-radius:24px}
+
+/* ---------- scenes ---------- */
+.scene{position:relative;width:min(100%,860px,calc((100dvh - 350px) * 1.667));min-width:min(100%,300px);aspect-ratio:5/3;margin:0 auto;border-radius:var(--r);overflow:hidden;container-type:inline-size;box-shadow:0 6px 0 rgba(0,0,0,.08),0 10px 24px rgba(0,0,0,.08);background:#CFEBFA;border:5px solid #fff}
+.scene>svg.bg{position:absolute;inset:0;width:100%;height:100%}
+.it{position:absolute;transform:translate(-50%,-50%);line-height:1;pointer-events:none}
+.it>span{display:inline-block}
+.flip{transform:scaleX(-1)}
+.gold{filter:sepia(1) saturate(5) hue-rotate(-12deg) brightness(1.15)}
+.silver{filter:grayscale(1) brightness(1.35) contrast(.9)}
+.sit{transform:scaleY(.78);transform-origin:bottom}
+.navrow{display:flex;justify-content:center;align-items:center;gap:14px;margin-top:12px}
+.arrow{min-width:110px}
+.next-btn{background:var(--leaf);color:#fff;box-shadow:0 5px 0 var(--leaf-d)}
+.dots{display:flex;gap:6px}
+.dots i{width:12px;height:12px;border-radius:50%;background:#E4D9C3}
+.dots i.on{background:var(--turmeric);transform:scale(1.25)}
+
+/* ---------- choices ---------- */
+.choices{display:grid;grid-template-columns:repeat(var(--n,2),1fr);gap:16px;max-width:760px;margin:12px auto 0}
+.choice{border:5px solid #fff;border-radius:28px;background:var(--white);min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:clamp(1.15rem,3.4vmin,1.6rem);box-shadow:0 6px 0 rgba(0,0,0,.1);padding:10px}
+.choice .em{font-size:clamp(3rem,12vmin,5.5rem);line-height:1}
+.choice.right{border-color:var(--leaf);background:#E8F7E4;animation:pop .5s}
+.nudge{animation:nudge .6s}
+.hintglow{animation:glow 1.4s ease-in-out 2}
+
+/* ---------- Ayurveda word chip ---------- */
+.aword{display:inline-flex;align-items:center;gap:8px;border:3px dashed var(--leaf);background:#F1FAEC;border-radius:18px;padding:6px 14px;min-height:56px;font-size:1.05rem}
+.aword small{font-size:.75rem;color:var(--leaf-d);display:block;text-align:left;text-transform:uppercase;letter-spacing:.04em}
+.aword b{font-size:1.15rem}
+.center{text-align:center}
+.row{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:12px}
+
+/* ---------- healthy day ---------- */
+.skybar{position:relative;height:clamp(70px,14vmin,110px);border-radius:24px;overflow:hidden;max-width:860px;margin:0 auto 12px;transition:background 1s;border:4px solid #fff}
+.skybar .sunball{position:absolute;font-size:clamp(2.2rem,8vmin,3.4rem);transform:translate(-50%,50%);transition:left 1.2s ease,bottom 1.2s ease}
+.skybar .hills{position:absolute;left:0;right:0;bottom:0;height:40%}
+.daycard{max-width:860px;margin:0 auto;background:var(--white);border-radius:30px;padding:14px;box-shadow:0 6px 0 rgba(0,0,0,.08);display:flex;flex-direction:column;align-items:center;gap:10px}
+.dayart{font-size:clamp(3rem,13vmin,6rem);line-height:1.1;display:flex;gap:.12em;justify-content:center;flex-wrap:wrap}
+.dayart span{display:inline-block}
+.dayart.act span{animation:wiggle .5s ease-in-out 4}
+.dayart.act span:nth-child(2){animation:bounce .5s ease-in-out 4}
+.copy{background:var(--lotus);color:#fff;box-shadow:0 5px 0 var(--lotus-d)}
+.slots{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:760px;margin:0 auto 16px}
+.slot{aspect-ratio:1;border:4px dashed #D9CBB0;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:clamp(1.8rem,8vmin,3.4rem);color:#C9B994;background:#FFFDF6}
+.slot.full{border-style:solid;border-color:var(--leaf);background:#EEF8E8;color:inherit;animation:pop .4s}
+.slot small{font-size:clamp(.8rem,2.6vmin,1.1rem);color:var(--ink)}
+.cards4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:760px;margin:0 auto}
+.cards4 .choice{min-height:0;aspect-ratio:1}
+.cards4 .choice.used{visibility:hidden}
+@media (max-width:520px){ .cards4{grid-template-columns:repeat(2,1fr)} }
+
+/* ---------- yoga ---------- */
+.safety{display:flex;align-items:center;justify-content:center;gap:8px;background:#FFF0F5;border:3px solid var(--lotus);border-radius:18px;padding:8px 14px;max-width:760px;margin:0 auto 12px;font-size:clamp(.95rem,2.8vmin,1.15rem)}
+.posewrap{display:flex;flex-direction:column;align-items:center;gap:10px}
+@media (orientation:landscape){ .posewrap{flex-direction:row;justify-content:center;align-items:center;gap:28px} .posewrap .ctrl{max-width:46%} }
+.stage{position:relative;width:min(84vw,calc(100dvh - 470px),400px);min-width:220px;aspect-ratio:1;background:radial-gradient(circle at 50% 40%,#FFFFFF 0,#FFF3D1 60%,#FFE6A3 100%);border-radius:50%;border:6px solid #fff;box-shadow:0 6px 0 rgba(0,0,0,.08)}
+@media (orientation:landscape){ .stage{width:min(44vw,calc(100dvh - 330px),420px)} }
+.stage svg.fig{position:absolute;inset:4%;width:92%;height:92%}
+.stage .buddy{position:absolute;right:6%;top:6%;font-size:clamp(2rem,8vmin,3.2rem)}
+.stage .buzz{animation:orbit 3s linear infinite}
+.count{position:absolute;left:2%;top:2%;width:30%;aspect-ratio:1;border-radius:50%;background:rgba(245,184,46,.92);color:#fff;display:none;align-items:center;justify-content:center;font-size:clamp(2.2rem,9vmin,4.4rem);text-shadow:0 3px 0 rgba(0,0,0,.2)}
+.count.show{display:flex;animation:pop .45s}
+.breathe{position:absolute;left:50%;top:50%;width:70%;aspect-ratio:1;border-radius:50%;border:5px solid rgba(91,184,240,.5);transform:translate(-50%,-50%) scale(.7);display:none}
+.breathe.show{display:block;animation:breathe 6s ease-in-out infinite}
+.ctrl{display:flex;flex-direction:column;align-items:center;gap:10px}
+.stepdots{display:flex;gap:8px}
+.stepdots i{width:16px;height:16px;border-radius:50%;background:#E4D9C3}
+.stepdots i.on{background:var(--leaf)}
+.mini-fig{width:clamp(80px,20vmin,130px);height:auto;background:rgba(255,255,255,.35);border-radius:50%}
+
+/* ---------- memory ---------- */
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:640px;margin:0 auto}
+.mgrid.six{max-width:720px}
+@media (orientation:landscape) and (max-height:620px){ .mgrid{max-width:min(640px,calc((100dvh - 230px) * 1.9))} .mgrid.six{grid-template-columns:repeat(6,1fr);max-width:min(860px,calc((100dvh - 230px) * 2.8))} }
+.mcard{aspect-ratio:3/4;border:0;padding:0;background:none;perspective:600px}
+.mcard .in{position:relative;display:block;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.mcard.open .in,.mcard.done .in{transform:rotateY(180deg)}
+.mcard .f,.mcard .b{position:absolute;inset:0;border-radius:18px;display:flex;align-items:center;justify-content:center;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 5px 0 rgba(0,0,0,.12)}
+.mcard .f{background:var(--leaf);background-image:radial-gradient(circle at 30% 30%,rgba(255,255,255,.25) 0 18%,transparent 19%),radial-gradient(circle at 70% 70%,rgba(255,255,255,.18) 0 14%,transparent 15%);font-size:clamp(1.6rem,6vmin,2.6rem)}
+.mcard .b{background:#fff;transform:rotateY(180deg);font-size:clamp(2.2rem,9vmin,3.6rem);border:4px solid var(--turmeric)}
+.mcard.done .b{border-color:var(--leaf);background:#EEF8E8}
+
+/* ---------- habit game ---------- */
+.bigart{font-size:clamp(4rem,18vmin,8rem);line-height:1.1;text-align:center;background:#fff;border-radius:34px;max-width:520px;margin:0 auto;padding:16px;box-shadow:0 6px 0 rgba(0,0,0,.08)}
+.thumbs{display:flex;justify-content:center;gap:24px;margin-top:16px}
+.thumb{min-width:140px;min-height:110px;border-radius:30px;font-size:1.3rem;flex-direction:column;gap:2px}
+.thumb .ic{font-size:3.4rem}
+.thumb.up{background:#E6F6E1;box-shadow:0 6px 0 var(--leaf)}
+.thumb.down{background:#E8F3FC;box-shadow:0 6px 0 var(--sky)}
+.progress{display:flex;justify-content:center;gap:6px;margin:0 0 10px}
+.progress i{width:14px;height:14px;border-radius:50%;background:#E4D9C3}
+.progress i.on{background:var(--turmeric)}
+
+/* ---------- stickers ---------- */
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:760px;margin:0 auto}
+@media (max-width:480px){ .sgrid{grid-template-columns:repeat(2,1fr)} }
+.sticker{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:clamp(.9rem,2.8vmin,1.15rem);padding:4px}
+.sticker .disc{width:100%;max-width:150px;aspect-ratio:1;border-radius:50%;background:var(--c);display:flex;align-items:center;justify-content:center;font-size:clamp(2.6rem,10vmin,4.4rem);border:6px solid #fff;box-shadow:0 6px 0 rgba(0,0,0,.12),inset 0 -8px 0 rgba(0,0,0,.1)}
+.sticker.locked .disc{background:#E9E3D6;filter:grayscale(1);opacity:.55}
+.sticker.locked .disc span{opacity:.25}
+
+/* ---------- overlays ---------- */
+#overlay:empty{display:none}
+.ov{position:fixed;inset:0;z-index:50;padding-top:96px!important;background:rgba(255,248,231,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;text-align:center;overflow:auto}
+.ov .bigini{width:clamp(110px,26vmin,190px)}
+.ov h1{font-size:clamp(2.4rem,9vmin,4.4rem);margin:0;color:var(--leaf-d)}
+.ov p{margin:0;font-size:clamp(1.2rem,3.6vmin,1.7rem)}
+.ov .newst{display:flex;align-items:center;gap:12px;background:#fff;border-radius:24px;padding:8px 18px;box-shadow:0 5px 0 rgba(0,0,0,.08)}
+.ov .newst .disc{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.4rem;background:var(--c);border:4px solid #fff;animation:spinin .8s}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:60}
+.confetti i{position:absolute;top:-30px;width:12px;height:18px;border-radius:4px;animation:fall linear forwards}
+.splash .title{font-size:clamp(2.2rem,8vmin,3.8rem);color:var(--leaf-d);margin:0}
+.splash .kn{font-size:clamp(1.6rem,6vmin,2.6rem);color:var(--lotus-d)}
+.start{background:var(--leaf);color:#fff;box-shadow:0 6px 0 var(--leaf-d);font-size:1.6rem;min-height:84px;padding:0 36px}
+
+/* ---------- grown-ups ---------- */
+.gu-btn{position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));z-index:40;border:0;border-radius:999px;padding:8px 14px;font-size:.85rem;font-weight:700;color:#6B5E57;background:conic-gradient(var(--leaf) calc(var(--p,0)*1turn),#fff 0);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.gu-btn span.in{display:block;background:#fff;border-radius:999px;padding:6px 10px}
+.gu-btn{padding:4px}
+.grown{font-weight:600;max-width:820px;margin:0 auto;background:#fff;border-radius:24px;padding:18px 22px;box-shadow:0 6px 0 rgba(0,0,0,.06);line-height:1.45}
+.grown h2{margin:.2em 0 .4em;color:var(--leaf-d)}
+.grown h3{margin:1.1em 0 .3em;color:var(--sky-d)}
+.grown ul{margin:0;padding-left:1.2em}
+.grown li{margin:.25em 0}
+.grown .note{background:#FFF4D6;border-radius:14px;padding:10px 14px;margin:10px 0}
+.grown .stick-row{display:flex;flex-wrap:wrap;gap:6px}
+.grown .stick-row span{background:#F1FAEC;border-radius:12px;padding:4px 10px}
+.reset{background:#FCE4EC;box-shadow:0 5px 0 var(--lotus-d);margin-top:12px}
+.reset.arm{background:var(--lotus);color:#fff}
+
+/* ---------- animations ---------- */
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8%)}}
+@keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-14%)}}
+@keyframes drop{0%{transform:translateY(-60%);opacity:0}30%{opacity:1}100%{transform:translateY(60%);opacity:1}}
+@keyframes run{0%{transform:translateX(-30%)}100%{transform:translateX(120%)}}
+@keyframes pop{0%{transform:scale(.7)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes nudge{0%,100%{transform:rotate(0)}20%{transform:rotate(-3deg)}40%{transform:rotate(3deg)}60%{transform:rotate(-2deg)}80%{transform:rotate(2deg)}}
+@keyframes glow{0%,100%{box-shadow:0 6px 0 rgba(0,0,0,.1)}50%{box-shadow:0 0 0 8px rgba(245,184,46,.55)}}
+@keyframes bump{0%,100%{transform:scale(1)}40%{transform:scale(1.3)}}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@keyframes spinin{from{transform:scale(0) rotate(-180deg)}to{transform:scale(1) rotate(0)}}
+@keyframes orbit{from{transform:rotate(0) translateX(-30%) rotate(0)}to{transform:rotate(360deg) translateX(-30%) rotate(-360deg)}}
+@keyframes breathe{0%,100%{transform:translate(-50%,-50%) scale(.65)}50%{transform:translate(-50%,-50%) scale(1.05)}}
+@keyframes ginibob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-3px) rotate(-2deg)}}
+@keyframes beak{0%,100%{transform:rotate(0)}50%{transform:rotate(14deg)}}
+@keyframes dance{0%,100%{transform:rotate(-6deg) translateY(0)}50%{transform:rotate(6deg) translateY(-8px)}}
+.a-bob{animation:bob 2.2s ease-in-out infinite}
+.a-wiggle{animation:wiggle 1.4s ease-in-out infinite}
+.a-drop{animation:drop 1.6s ease-in infinite}
+.a-run{animation:run 2.4s linear infinite}
+.a-hop{animation:bounce 1s ease-in-out infinite}
+.gini .body{animation:ginibob 2.6s ease-in-out infinite;transform-origin:60px 120px}
+.gini.talk .lbeak{animation:beak .28s ease-in-out infinite;transform-origin:88px 47px}
+.gini.dance{animation:dance .8s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
 </head>
 <body>
-  <header class="topbar">
-    <a href="#/" class="brand" aria-label="Home">
-      <span class="brand-icon">📚</span>
-      <span class="brand-text">Nidhi's Stories</span>
-    </a>
-    <nav class="nav" aria-label="Main">
-      <a href="#/stories" data-nav="stories">📖 <span>Stories</span></a>
-      <a href="#/abc" data-nav="abc">🔤 <span>ABC</span></a>
-      <a href="#/numbers" data-nav="numbers">🔢 <span>Numbers</span></a>
-      <a href="#/shapes" data-nav="shapes">🔺 <span>Shapes</span></a>
-    </nav>
-    <div class="stars" title="Stars you have earned" aria-live="polite">
-      ⭐ <span id="star-count">0</span>
-    </div>
-  </header>
+<header class="top">
+  <button class="btn home-btn" id="homeBtn" data-ta="home"><span class="ic">🏠</span><span class="lbl" data-t="home">Home</span></button>
+  <div class="brand" id="brand"></div>
+  <div class="sp"></div>
+  <div class="stars" id="stars" role="status" aria-live="polite"><span aria-hidden="true">⭐</span><b id="starN">0</b></div>
+  <button class="btn sq" id="stickBtn" data-ta="stickers"><span class="ic">📒</span><span class="lbl" data-t="stickers">Stickers</span></button>
+  <button class="btn sq" id="muteBtn" data-ta="sound"><span class="ic" id="muteIc">🔊</span></button>
+  <button class="btn lang" id="langBtn" aria-label="English / ಕನ್ನಡ"><span class="en" lang="en">EN</span><span class="kn" lang="kn">ಕನ್ನಡ</span></button>
+</header>
+<div class="guide">
+  <button class="gini-btn" id="giniBtn" data-ta="say_again"></button>
+  <div class="bubble"><p id="bubbleText" aria-live="polite"></p><button class="replay" id="replayBtn" data-ta="say_again">🔊</button></div>
+</div>
+<main id="main" tabindex="-1"></main>
+<button class="gu-btn" id="guBtn" data-ta="gu_hold"><span class="in">👪 <span data-t="gu_short">Grown-ups</span></span></button>
+<div id="overlay"></div>
 
-  <main id="app" tabindex="-1"></main>
+<script>
+(function () {
+"use strict";
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+/* =====================================================================
+   TRANSLATIONS — every word in the app lives here.
+   Each entry is { en: "English", kn: "ಕನ್ನಡ" }. A teacher can review
+   and correct the Kannada directly in this list.
+   ===================================================================== */
+const T = {
+  /* --- app & navigation --- */
+  app_name: { en: "Gini's Garden", kn: "ಗಿಣಿಯ ತೋಟ" },
+  home: { en: "Home", kn: "ಮನೆ" },
+  stickers: { en: "Stickers", kn: "ಸ್ಟಿಕ್ಕರ್" },
+  sound: { en: "Sound on or off", kn: "ಶಬ್ದ ಆನ್ ಅಥವಾ ಆಫ್" },
+  say_again: { en: "Say it again", kn: "ಮತ್ತೆ ಹೇಳು" },
+  back: { en: "Back", kn: "ಹಿಂದೆ" },
+  next: { en: "Next", kn: "ಮುಂದೆ" },
+  start: { en: "Start", kn: "ಶುರು" },
+  more: { en: "More", kn: "ಇನ್ನಷ್ಟು" },
+  yes: { en: "Yes", kn: "ಹೌದು" },
+  no: { en: "No", kn: "ಇಲ್ಲ" },
+  greet: { en: "Hello! I am Gini the parrot. Tap a picture to play!", kn: "ನಮಸ್ಕಾರ! ನಾನು ಗಿಣಿ. ಆಡಲು ಒಂದು ಚಿತ್ರ ಒತ್ತು!" },
+  home_prompt: { en: "What shall we do now?", kn: "ಈಗ ಏನು ಮಾಡೋಣ?" },
+  home_stories: { en: "Stories", kn: "ಕಥೆಗಳು" },
+  home_day: { en: "My Day", kn: "ನನ್ನ ದಿನ" },
+  home_yoga: { en: "Yoga", kn: "ಯೋಗ" },
+  home_play: { en: "Play", kn: "ಆಟ" },
+  ayur_word: { en: "Ayurveda word", kn: "ಆಯುರ್ವೇದ ಪದ" },
+  yoga_word: { en: "Yoga word", kn: "ಯೋಗ ಪದ" },
+  try_again: { en: "Let's try again!", kn: "ಮತ್ತೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸೋಣ!" },
+  shabhash: { en: "Shabhash!", kn: "ಶಭಾಷ್!" },
+  star_got: { en: "You got a star!", kn: "ನಿನಗೆ ಒಂದು ನಕ್ಷತ್ರ!" },
+  new_sticker: { en: "And a new sticker!", kn: "ಜೊತೆಗೆ ಹೊಸ ಸ್ಟಿಕ್ಕರ್!" },
+  n1: { en: "One", kn: "ಒಂದು" }, n2: { en: "Two", kn: "ಎರಡು" }, n3: { en: "Three", kn: "ಮೂರು" },
+  n4: { en: "Four", kn: "ನಾಲ್ಕು" }, n5: { en: "Five", kn: "ಐದು" },
 
-  <footer class="footer">
-    Made with 💛 for curious little readers · <a href="#/grownups">For grown-ups</a>
-  </footer>
+  /* --- 1. Story Time --- */
+  pick_story: { en: "Story time! Pick a story.", kn: "ಕಥೆಯ ಸಮಯ! ಒಂದು ಕಥೆ ಆರಿಸು." },
+  wwyd: { en: "What would you do?", kn: "ನೀನಾದರೆ ಏನು ಮಾಡುತ್ತೀಯ?" },
+  wise: { en: "Yes! That is a wise choice.", kn: "ಹೌದು! ಅದು ಜಾಣ ಆಯ್ಕೆ." },
 
-  <script src="js/stories.js"></script>
-  <script src="js/app.js"></script>
+  crow_title: { en: "The Thirsty Crow", kn: "ಬಾಯಾರಿದ ಕಾಗೆ" },
+  crow_lbl: { en: "Crow", kn: "ಕಾಗೆ" },
+  crow_1: { en: "A crow was very, very thirsty.", kn: "ಒಂದು ಕಾಗೆಗೆ ತುಂಬಾ ಬಾಯಾರಿಕೆ ಆಗಿತ್ತು." },
+  crow_2: { en: "It found a pot with a little water.", kn: "ಅದಕ್ಕೆ ಸ್ವಲ್ಪ ನೀರಿರುವ ಒಂದು ಮಡಕೆ ಸಿಕ್ಕಿತು." },
+  crow_3: { en: "But its beak could not reach the water.", kn: "ಆದರೆ ಅದರ ಕೊಕ್ಕು ನೀರಿಗೆ ತಲುಪಲಿಲ್ಲ." },
+  crow_4: { en: "The crow thought and thought. Pebbles!", kn: "ಕಾಗೆ ಯೋಚಿಸಿತು, ಯೋಚಿಸಿತು. ಕಲ್ಲುಗಳು!" },
+  crow_5: { en: "One by one, it dropped pebbles in the pot.", kn: "ಒಂದೊಂದಾಗಿ ಕಲ್ಲುಗಳನ್ನು ಮಡಕೆಗೆ ಹಾಕಿತು." },
+  crow_6: { en: "The water came up. The crow drank happily!", kn: "ನೀರು ಮೇಲೆ ಬಂತು. ಕಾಗೆ ಖುಷಿಯಿಂದ ಕುಡಿಯಿತು!" },
+  crow_lesson: { en: "Never give up. Keep trying!", kn: "ಎಂದಿಗೂ ಸೋಲೊಪ್ಪಬೇಡ. ಪ್ರಯತ್ನ ಮಾಡುತ್ತಲೇ ಇರು!" },
+  crow_q: { en: "Your puzzle is hard.", kn: "ನಿನ್ನ ಒಗಟು ತುಂಬಾ ಕಷ್ಟ." },
+  crow_good: { en: "Try", kn: "ಪ್ರಯತ್ನಿಸು" },
+  crow_bad: { en: "Quit", kn: "ಬಿಟ್ಟುಬಿಡು" },
+  crow_hint: { en: "Hint: The crow did not give up!", kn: "ಸುಳಿವು: ಕಾಗೆ ಸೋಲೊಪ್ಪಲಿಲ್ಲ!" },
+
+  lion_title: { en: "The Lion and the Mouse", kn: "ಸಿಂಹ ಮತ್ತು ಇಲಿ" },
+  lion_lbl: { en: "Lion", kn: "ಸಿಂಹ" },
+  lion_1: { en: "A big lion was sleeping under a tree.", kn: "ಒಂದು ದೊಡ್ಡ ಸಿಂಹ ಮರದ ಕೆಳಗೆ ಮಲಗಿತ್ತು." },
+  lion_2: { en: "A tiny mouse ran over its nose.", kn: "ಒಂದು ಪುಟ್ಟ ಇಲಿ ಅದರ ಮೂಗಿನ ಮೇಲೆ ಓಡಿತು." },
+  lion_3: { en: "“Please let me go. I will help you one day!”", kn: "“ದಯವಿಟ್ಟು ನನ್ನನ್ನು ಬಿಡು. ಒಂದು ದಿನ ನಿನಗೆ ಸಹಾಯ ಮಾಡುತ್ತೇನೆ!”" },
+  lion_4: { en: "The lion laughed and let the mouse go.", kn: "ಸಿಂಹ ನಕ್ಕು ಇಲಿಯನ್ನು ಬಿಟ್ಟಿತು." },
+  lion_5: { en: "One day, the lion was caught in a net.", kn: "ಒಂದು ದಿನ ಸಿಂಹ ಬಲೆಯಲ್ಲಿ ಸಿಕ್ಕಿಕೊಂಡಿತು." },
+  lion_6: { en: "The mouse nibbled the net. The lion was free!", kn: "ಇಲಿ ಬಲೆಯನ್ನು ಕಚ್ಚಿ ಕತ್ತರಿಸಿತು. ಸಿಂಹ ಪಾರಾಯಿತು!" },
+  lion_lesson: { en: "Be kind. Small friends matter too!", kn: "ದಯೆಯಿಂದಿರು. ಪುಟ್ಟ ಸ್ನೇಹಿತರೂ ಮುಖ್ಯ!" },
+  lion_q: { en: "A little child falls down.", kn: "ಒಂದು ಪುಟ್ಟ ಮಗು ಬಿದ್ದಿತು." },
+  lion_good: { en: "Help", kn: "ಸಹಾಯ" },
+  lion_bad: { en: "Walk away", kn: "ಹೊರಟುಹೋಗು" },
+  lion_hint: { en: "Hint: The little mouse was kind.", kn: "ಸುಳಿವು: ಪುಟ್ಟ ಇಲಿ ದಯೆ ತೋರಿತು." },
+
+  monkey_title: { en: "The Monkey and the Crocodile", kn: "ಕೋತಿ ಮತ್ತು ಮೊಸಳೆ" },
+  monkey_lbl: { en: "Monkey", kn: "ಕೋತಿ" },
+  monkey_1: { en: "A monkey lived in a jamun tree by the river.", kn: "ನದಿಯ ದಡದ ನೇರಳೆ ಮರದಲ್ಲಿ ಒಂದು ಕೋತಿ ಇತ್ತು." },
+  monkey_2: { en: "It gave sweet jamuns to its friend, the crocodile.", kn: "ಅದು ಗೆಳೆಯ ಮೊಸಳೆಗೆ ಸಿಹಿ ನೇರಳೆ ಹಣ್ಣು ಕೊಡುತ್ತಿತ್ತು." },
+  monkey_3: { en: "One day the crocodile said, “Ride on my back!”", kn: "ಒಂದು ದಿನ ಮೊಸಳೆ, “ನನ್ನ ಬೆನ್ನ ಮೇಲೆ ಬಾ!” ಎಂದಿತು." },
+  monkey_4: { en: "In the river it said, “I want your heart!”", kn: "ನದಿಯ ಮಧ್ಯೆ, “ನನಗೆ ನಿನ್ನ ಹೃದಯ ಬೇಕು!” ಎಂದಿತು." },
+  monkey_5: { en: "The monkey stayed calm. “My heart is in the tree!”", kn: "ಕೋತಿ ಶಾಂತವಾಗಿ, “ನನ್ನ ಹೃದಯ ಮರದಲ್ಲಿದೆ!” ಎಂದಿತು." },
+  monkey_6: { en: "Back at the tree, the monkey jumped up. Safe!", kn: "ಮರದ ಬಳಿ ಕೋತಿ ಹಾರಿ ಮೇಲೆ ಹೋಯಿತು. ಸುರಕ್ಷಿತ!" },
+  monkey_lesson: { en: "When there is trouble, stay calm and think.", kn: "ತೊಂದರೆ ಬಂದಾಗ ಶಾಂತವಾಗಿ ಯೋಚಿಸು." },
+  monkey_q: { en: "You feel scared.", kn: "ನಿನಗೆ ಭಯವಾಗಿದೆ." },
+  monkey_good: { en: "Breathe", kn: "ಉಸಿರಾಡು" },
+  monkey_bad: { en: "Scream", kn: "ಕಿರುಚು" },
+  monkey_hint: { en: "Hint: The monkey stayed calm.", kn: "ಸುಳಿವು: ಕೋತಿ ಶಾಂತವಾಗಿತ್ತು." },
+
+  wood_title: { en: "The Honest Woodcutter", kn: "ಪ್ರಾಮಾಣಿಕ ಮರ ಕಡಿಯುವವನು" },
+  wood_lbl: { en: "Axe", kn: "ಕೊಡಲಿ" },
+  wood_1: { en: "A woodcutter was cutting wood by a river.", kn: "ಒಬ್ಬ ಮರ ಕಡಿಯುವವನು ನದಿಯ ಬಳಿ ಕಟ್ಟಿಗೆ ಕಡಿಯುತ್ತಿದ್ದ." },
+  wood_2: { en: "Splash! His axe fell into the water.", kn: "ಡುಬುಕ್! ಅವನ ಕೊಡಲಿ ನೀರಿಗೆ ಬಿತ್ತು." },
+  wood_3: { en: "A river fairy brought a gold axe. “Is this yours?”", kn: "ಜಲದೇವತೆ ಚಿನ್ನದ ಕೊಡಲಿ ತಂದಳು. “ಇದು ನಿನ್ನದಾ?”" },
+  wood_4: { en: "“No,” he said. A silver axe? “No,” he said again.", kn: "“ಇಲ್ಲ” ಎಂದ. ಬೆಳ್ಳಿಯ ಕೊಡಲಿ? “ಇಲ್ಲ” ಎಂದ." },
+  wood_5: { en: "Then his iron axe. “Yes! That one is mine.”", kn: "ನಂತರ ಕಬ್ಬಿಣದ ಕೊಡಲಿ. “ಹೌದು! ಅದು ನನ್ನದು.”" },
+  wood_6: { en: "She was so happy, she gave him all three!", kn: "ಅವಳು ಖುಷಿಯಾಗಿ ಮೂರೂ ಕೊಡಲಿಗಳನ್ನು ಕೊಟ್ಟಳು!" },
+  wood_lesson: { en: "Always tell the truth.", kn: "ಯಾವಾಗಲೂ ಸತ್ಯವನ್ನೇ ಹೇಳು." },
+  wood_q: { en: "You broke a cup.", kn: "ನಿನ್ನಿಂದ ಒಂದು ಕಪ್ ಒಡೆಯಿತು." },
+  wood_good: { en: "Tell", kn: "ಹೇಳು" },
+  wood_bad: { en: "Hide", kn: "ಮುಚ್ಚಿಡು" },
+  wood_hint: { en: "Hint: The woodcutter told the truth.", kn: "ಸುಳಿವು: ಅವನು ಸತ್ಯ ಹೇಳಿದ." },
+
+  goats_title: { en: "The Two Goats on the Bridge", kn: "ಸೇತುವೆಯ ಮೇಲಿನ ಎರಡು ಆಡುಗಳು" },
+  goats_lbl: { en: "Goats", kn: "ಆಡುಗಳು" },
+  goats_1: { en: "A narrow bridge went over a river.", kn: "ನದಿಯ ಮೇಲೆ ಒಂದು ಕಿರಿದಾದ ಸೇತುವೆ ಇತ್ತು." },
+  goats_2: { en: "Two goats came from two sides.", kn: "ಎರಡು ಕಡೆಯಿಂದ ಎರಡು ಆಡುಗಳು ಬಂದವು." },
+  goats_3: { en: "They met in the middle. No room!", kn: "ಅವು ಮಧ್ಯದಲ್ಲಿ ಎದುರಾದವು. ಜಾಗವೇ ಇಲ್ಲ!" },
+  goats_4: { en: "“Let's not fight,” said one goat. “I will sit down.”", kn: "“ಜಗಳ ಬೇಡ, ನಾನು ಕುಳಿತುಕೊಳ್ಳುತ್ತೇನೆ” ಎಂದಿತು ಒಂದು ಆಡು." },
+  goats_5: { en: "The other goat stepped over it, carefully.", kn: "ಇನ್ನೊಂದು ಆಡು ಜಾಗರೂಕತೆಯಿಂದ ಅದರ ಮೇಲೆ ದಾಟಿತು." },
+  goats_6: { en: "Both goats crossed safely and smiled!", kn: "ಎರಡೂ ಆಡುಗಳು ಸುರಕ್ಷಿತವಾಗಿ ದಾಟಿ ನಕ್ಕವು!" },
+  goats_lesson: { en: "Share and give way. Then everyone is happy!", kn: "ಹಂಚಿಕೊಳ್ಳೋಣ, ದಾರಿ ಬಿಡೋಣ. ಆಗ ಎಲ್ಲರಿಗೂ ಖುಷಿ!" },
+  goats_q: { en: "Two friends want one swing.", kn: "ಇಬ್ಬರು ಗೆಳೆಯರಿಗೆ ಒಂದೇ ಜೋಕಾಲಿ ಬೇಕು." },
+  goats_good: { en: "Take turns", kn: "ಸರದಿ" },
+  goats_bad: { en: "Push", kn: "ತಳ್ಳು" },
+  goats_hint: { en: "Hint: The goats gave way.", kn: "ಸುಳಿವು: ಆಡುಗಳು ದಾರಿ ಬಿಟ್ಟವು." },
+
+  /* --- 2. My Healthy Day (Dinacharya) --- */
+  day_intro: { en: "Let's follow the sun through a healthy day!", kn: "ಸೂರ್ಯನ ಜೊತೆ ಆರೋಗ್ಯಕರ ದಿನ ಕಳೆಯೋಣ!" },
+  day_cards_lbl: { en: "My Day", kn: "ನನ್ನ ದಿನ" },
+  order_lbl: { en: "Order", kn: "ಕ್ರಮ" },
+  copy: { en: "Copy", kn: "ಮಾಡು" },
+  aw_dina: { en: "Dinacharya", kn: "ದಿನಚರ್ಯೆ" },
+  day1: { en: "Wake up early with the sun.", kn: "ಸೂರ್ಯನ ಜೊತೆ ಬೇಗ ಏಳು." },
+  day1_act: { en: "Stretch and yawn!", kn: "ಮೈ ಮುರಿದು ಆಕಳಿಸು!" },
+  aw1: { en: "Brahma Muhurta", kn: "ಬ್ರಾಹ್ಮೀ ಮುಹೂರ್ತ" },
+  day2: { en: "Brush your teeth and clean your tongue.", kn: "ಹಲ್ಲು ಉಜ್ಜು, ನಾಲಿಗೆ ಸ್ವಚ್ಛ ಮಾಡು." },
+  day2_act: { en: "Pretend to brush!", kn: "ಹಲ್ಲು ಉಜ್ಜುವಂತೆ ಮಾಡು!" },
+  aw2: { en: "Danta Dhavana", kn: "ದಂತಧಾವನ" },
+  day3: { en: "Wash your face and eyes with clean water.", kn: "ಶುದ್ಧ ನೀರಿನಿಂದ ಮುಖ, ಕಣ್ಣು ತೊಳೆ." },
+  day3_act: { en: "Splash, splash!", kn: "ಮುಖಕ್ಕೆ ನೀರು ಚಿಮುಕಿಸು!" },
+  aw3: { en: "Mukha Prakshalana", kn: "ಮುಖ ಪ್ರಕ್ಷಾಲನ" },
+  day4: { en: "Gentle oil massage with a grown-up, then a bath.", kn: "ದೊಡ್ಡವರ ಜೊತೆ ಮೃದು ಎಣ್ಣೆ ಮಸಾಜ್, ನಂತರ ಸ್ನಾನ." },
+  day4_act: { en: "Rub your arms gently!", kn: "ಕೈಗಳನ್ನು ಮೃದುವಾಗಿ ಉಜ್ಜು!" },
+  aw4: { en: "Abhyanga", kn: "ಅಭ್ಯಂಗ" },
+  day5: { en: "Say namaste to parents and elders.", kn: "ಅಪ್ಪ, ಅಮ್ಮ, ಹಿರಿಯರಿಗೆ ನಮಸ್ಕಾರ ಮಾಡು." },
+  day5_act: { en: "Join your hands. Namaste!", kn: "ಕೈ ಜೋಡಿಸು. ನಮಸ್ಕಾರ!" },
+  aw5: { en: "Namaskara", kn: "ನಮಸ್ಕಾರ" },
+  day6: { en: "Eat warm home food. Sit down and chew slowly.", kn: "ಬಿಸಿ ಮನೆ ಊಟ ಮಾಡು. ಕುಳಿತು ನಿಧಾನವಾಗಿ ಅಗಿ." },
+  day6_act: { en: "Chew, chew, chew!", kn: "ಅಗಿ, ಅಗಿ, ಅಗಿ!" },
+  aw6: { en: "Ahara", kn: "ಆಹಾರ" },
+  day7: { en: "Play outside in the sunshine.", kn: "ಬಿಸಿಲಿನಲ್ಲಿ ಹೊರಗೆ ಆಡು." },
+  day7_act: { en: "Jump like a frog!", kn: "ಕಪ್ಪೆಯಂತೆ ಜಿಗಿ!" },
+  aw7: { en: "Vyayama", kn: "ವ್ಯಾಯಾಮ" },
+  day8: { en: "Early dinner, then early sleep.", kn: "ಬೇಗ ರಾತ್ರಿ ಊಟ, ಬೇಗ ನಿದ್ರೆ." },
+  day8_act: { en: "Yawn and close your eyes!", kn: "ಆಕಳಿಸಿ ಕಣ್ಣು ಮುಚ್ಚು!" },
+  aw8: { en: "Nidra", kn: "ನಿದ್ರೆ" },
+  order_prompt: { en: "Put my day in order. What comes first?", kn: "ನನ್ನ ದಿನವನ್ನು ಕ್ರಮವಾಗಿ ಜೋಡಿಸು. ಮೊದಲು ಏನು?" },
+  order_next: { en: "Yes! What comes next?", kn: "ಹೌದು! ಮುಂದೆ ಏನು?" },
+  ord_wake: { en: "Wake up", kn: "ಏಳು" },
+  ord_brush: { en: "Brush", kn: "ಹಲ್ಲುಜ್ಜು" },
+  ord_eat: { en: "Eat", kn: "ಊಟ" },
+  ord_sleep: { en: "Sleep", kn: "ನಿದ್ರೆ" },
+  ord_hint0: { en: "Hint: The sun comes up. What do we do first?", kn: "ಸುಳಿವು: ಸೂರ್ಯ ಬಂದ. ಮೊದಲು ಏನು ಮಾಡುತ್ತೇವೆ?" },
+  ord_hint1: { en: "Hint: After waking up, we clean our teeth.", kn: "ಸುಳಿವು: ಎದ್ದ ಮೇಲೆ ಹಲ್ಲು ಉಜ್ಜುತ್ತೇವೆ." },
+  ord_hint2: { en: "Hint: Now we are hungry!", kn: "ಸುಳಿವು: ಈಗ ಹಸಿವಾಗಿದೆ!" },
+  ord_hint3: { en: "Hint: Night time comes last.", kn: "ಸುಳಿವು: ಕೊನೆಯಲ್ಲಿ ರಾತ್ರಿ." },
+
+  /* --- 3. Yoga Corner --- */
+  yoga_pick: { en: "Yoga time! Pick a pose.", kn: "ಯೋಗದ ಸಮಯ! ಒಂದು ಆಸನ ಆರಿಸು." },
+  safety: { en: "Practise with a grown-up nearby. Stop if anything hurts.", kn: "ದೊಡ್ಡವರು ಹತ್ತಿರ ಇರುವಾಗ ಅಭ್ಯಾಸ ಮಾಡು. ನೋವಾದರೆ ನಿಲ್ಲಿಸು." },
+  pose_ready: { en: "Ready? Tap Start!", kn: "ರೆಡಿ? ಶುರು ಒತ್ತು!" },
+  hold: { en: "Hold it! Count with me.", kn: "ಹಾಗೇ ಇರು! ನನ್ನ ಜೊತೆ ಎಣಿಸು." },
+  hold_breath: { en: "Breathe slowly. Count with me.", kn: "ನಿಧಾನವಾಗಿ ಉಸಿರಾಡು. ನನ್ನ ಜೊತೆ ಎಣಿಸು." },
+  shav_rest: { en: "Rest like a starfish. Breathe slowly.", kn: "ನಕ್ಷತ್ರ ಮೀನಿನಂತೆ ವಿಶ್ರಾಂತಿ. ನಿಧಾನವಾಗಿ ಉಸಿರಾಡು." },
+  shav_wake: { en: "Wiggle your fingers and toes. Sit up slowly.", kn: "ಬೆರಳು, ಕಾಲ್ಬೆರಳು ಆಡಿಸು. ನಿಧಾನವಾಗಿ ಎದ್ದು ಕುಳಿತುಕೋ." },
+
+  y_tada_name: { en: "Palm Tree Pose", kn: "ತಾಳೆ ಮರದ ಭಂಗಿ" },
+  y_tada_lbl: { en: "Palm Tree", kn: "ತಾಳೆ ಮರ" },
+  y_tada_word: { en: "Tadasana", kn: "ತಾಡಾಸನ" },
+  y_tada_1: { en: "Stand tall, feet together.", kn: "ಪಾದ ಜೋಡಿಸಿ ನೇರವಾಗಿ ನಿಲ್ಲು." },
+  y_tada_2: { en: "Lift your arms up high.", kn: "ಕೈಗಳನ್ನು ಮೇಲಕ್ಕೆ ಎತ್ತು." },
+  y_tada_3: { en: "Stretch up on your toes, like a palm tree!", kn: "ತುದಿಗಾಲಲ್ಲಿ ನಿಂತು ತಾಳೆ ಮರದಂತೆ ಚಾಚು!" },
+
+  y_vriksha_name: { en: "Tree Pose", kn: "ಮರದ ಭಂಗಿ" },
+  y_vriksha_lbl: { en: "Tree", kn: "ಮರ" },
+  y_vriksha_word: { en: "Vrikshasana", kn: "ವೃಕ್ಷಾಸನ" },
+  y_vriksha_1: { en: "Stand tall. Hands together at your chest.", kn: "ನೇರವಾಗಿ ನಿಲ್ಲು. ಎದೆಯ ಮುಂದೆ ಕೈ ಜೋಡಿಸು." },
+  y_vriksha_2: { en: "Put one foot on your other leg.", kn: "ಒಂದು ಪಾದವನ್ನು ಇನ್ನೊಂದು ಕಾಲಿನ ಮೇಲೆ ಇಡು." },
+  y_vriksha_3: { en: "Raise your hands like branches. Balance!", kn: "ಕೊಂಬೆಗಳಂತೆ ಕೈ ಮೇಲೆತ್ತು. ಸಮತೋಲನ!" },
+
+  y_titali_name: { en: "Butterfly Pose", kn: "ಚಿಟ್ಟೆ ಭಂಗಿ" },
+  y_titali_lbl: { en: "Butterfly", kn: "ಚಿಟ್ಟೆ" },
+  y_titali_word: { en: "Titali Asana", kn: "ತಿತಲಿ ಆಸನ" },
+  y_titali_1: { en: "Sit down. Put your feet together.", kn: "ಕುಳಿತುಕೋ. ಪಾದಗಳನ್ನು ಜೋಡಿಸು." },
+  y_titali_2: { en: "Hold your feet with your hands.", kn: "ಕೈಗಳಿಂದ ಪಾದಗಳನ್ನು ಹಿಡಿ." },
+  y_titali_3: { en: "Flap your knees like butterfly wings!", kn: "ಚಿಟ್ಟೆಯ ರೆಕ್ಕೆಯಂತೆ ಮಂಡಿ ಬಡಿ!" },
+
+  y_marjari_name: { en: "Cat Pose", kn: "ಬೆಕ್ಕಿನ ಭಂಗಿ" },
+  y_marjari_lbl: { en: "Cat", kn: "ಬೆಕ್ಕು" },
+  y_marjari_word: { en: "Marjariasana", kn: "ಮಾರ್ಜಾರಿ ಆಸನ" },
+  y_marjari_1: { en: "Come onto your hands and knees.", kn: "ಕೈ ಮತ್ತು ಮಂಡಿಗಳ ಮೇಲೆ ಬಾ." },
+  y_marjari_2: { en: "Round your back up like a cat.", kn: "ಬೆಕ್ಕಿನಂತೆ ಬೆನ್ನನ್ನು ಮೇಲಕ್ಕೆ ಬಾಗಿಸು." },
+  y_marjari_3: { en: "Dip your back and look up. Meow!", kn: "ಬೆನ್ನು ಕೆಳಗೆ ಬಗ್ಗಿಸಿ ಮೇಲೆ ನೋಡು. ಮಿಯಾಂವ್!" },
+
+  y_bhujanga_name: { en: "Snake Pose", kn: "ಹಾವಿನ ಭಂಗಿ" },
+  y_bhujanga_lbl: { en: "Snake", kn: "ಹಾವು" },
+  y_bhujanga_word: { en: "Bhujangasana", kn: "ಭುಜಂಗಾಸನ" },
+  y_bhujanga_1: { en: "Lie on your tummy.", kn: "ಹೊಟ್ಟೆಯ ಮೇಲೆ ಮಲಗು." },
+  y_bhujanga_2: { en: "Put your hands under your shoulders.", kn: "ಭುಜಗಳ ಕೆಳಗೆ ಕೈಗಳನ್ನು ಇಡು." },
+  y_bhujanga_3: { en: "Gently lift your chest. Hiss like a snake!", kn: "ನಿಧಾನವಾಗಿ ಎದೆ ಎತ್ತು. ಹಾವಿನಂತೆ ಸ್ಸ್ಸ್!" },
+
+  y_shasha_name: { en: "Rabbit Pose", kn: "ಮೊಲದ ಭಂಗಿ" },
+  y_shasha_lbl: { en: "Rabbit", kn: "ಮೊಲ" },
+  y_shasha_word: { en: "Shashankasana", kn: "ಶಶಾಂಕಾಸನ" },
+  y_shasha_1: { en: "Sit on your heels.", kn: "ಹಿಮ್ಮಡಿಗಳ ಮೇಲೆ ಕುಳಿತುಕೋ." },
+  y_shasha_2: { en: "Raise your arms up like long ears.", kn: "ಉದ್ದ ಕಿವಿಗಳಂತೆ ಕೈ ಮೇಲೆತ್ತು." },
+  y_shasha_3: { en: "Bend forward slowly. Rest like a bunny.", kn: "ನಿಧಾನವಾಗಿ ಮುಂದೆ ಬಗ್ಗು. ಮೊಲದಂತೆ ವಿಶ್ರಾಂತಿ." },
+
+  y_bhramari_name: { en: "Humming Bee Breath", kn: "ಗುಂಯ್ ಜೇನಿನ ಉಸಿರು" },
+  y_bhramari_lbl: { en: "Bee", kn: "ಜೇನು" },
+  y_bhramari_word: { en: "Bhramari", kn: "ಭ್ರಾಮರಿ" },
+  y_bhramari_1: { en: "Sit tall and close your eyes.", kn: "ನೇರವಾಗಿ ಕುಳಿತು ಕಣ್ಣು ಮುಚ್ಚು." },
+  y_bhramari_2: { en: "Gently cover your ears with your fingers.", kn: "ಬೆರಳುಗಳಿಂದ ಮೃದುವಾಗಿ ಕಿವಿ ಮುಚ್ಚು." },
+  y_bhramari_3: { en: "Breathe in. Hum out like a bee: mmmm!", kn: "ಉಸಿರು ಎಳೆ. ಜೇನಿನಂತೆ ಗುಂಯ್ ಎನ್ನು: ಮ್ಮ್ಮ್!" },
+
+  y_balloon_name: { en: "Balloon Breath", kn: "ಬಲೂನ್ ಉಸಿರು" },
+  y_balloon_lbl: { en: "Balloon", kn: "ಬಲೂನ್" },
+  y_balloon_word: { en: "Pranayama", kn: "ಪ್ರಾಣಾಯಾಮ" },
+  y_balloon_1: { en: "Sit down. Put your hands on your tummy.", kn: "ಕುಳಿತು ಹೊಟ್ಟೆಯ ಮೇಲೆ ಕೈ ಇಡು." },
+  y_balloon_2: { en: "Breathe in. Your tummy grows like a balloon!", kn: "ಉಸಿರು ಎಳೆ. ಹೊಟ್ಟೆ ಬಲೂನಿನಂತೆ ದೊಡ್ಡದಾಗುತ್ತದೆ!" },
+  y_balloon_3: { en: "Breathe out slowly. The balloon gets small.", kn: "ನಿಧಾನವಾಗಿ ಉಸಿರು ಬಿಡು. ಬಲೂನ್ ಚಿಕ್ಕದಾಗುತ್ತದೆ." },
+
+  y_shava_name: { en: "Sleep like a starfish", kn: "ನಕ್ಷತ್ರ ಮೀನಿನಂತೆ ಮಲಗು" },
+  y_shava_lbl: { en: "Starfish", kn: "ನಕ್ಷತ್ರ ಮೀನು" },
+  y_shava_word: { en: "Shavasana", kn: "ಶವಾಸನ" },
+  y_shava_1: { en: "Lie down on your back.", kn: "ಬೆನ್ನಿನ ಮೇಲೆ ಮಲಗು." },
+  y_shava_2: { en: "Spread your arms and legs like a starfish.", kn: "ನಕ್ಷತ್ರ ಮೀನಿನಂತೆ ಕೈಕಾಲು ಚಾಚು." },
+  y_shava_3: { en: "Close your eyes. Breathe slowly and rest.", kn: "ಕಣ್ಣು ಮುಚ್ಚು. ನಿಧಾನವಾಗಿ ಉಸಿರಾಡಿ ವಿಶ್ರಾಂತಿ ಪಡೆ." },
+
+  /* --- 4. Let's Play --- */
+  play_pick: { en: "Let's play! Pick a game.", kn: "ಆಟ ಆಡೋಣ! ಒಂದು ಆಟ ಆರಿಸು." },
+  g_mem: { en: "Match", kn: "ಜೋಡಿ" },
+  g_habit: { en: "Habits", kn: "ಅಭ್ಯಾಸ" },
+  g_quiz: { en: "Quiz", kn: "ಪ್ರಶ್ನೆ" },
+  g_freeze: { en: "Freeze", kn: "ಸ್ಟ್ಯಾಚ್ಯೂ" },
+  mem_level: { en: "Memory Match! Easy or more?", kn: "ಜೋಡಿ ಆಟ! ಸುಲಭ ಬೇಕಾ, ಇನ್ನಷ್ಟು ಬೇಕಾ?" },
+  easy: { en: "Easy", kn: "ಸುಲಭ" },
+  mem_go: { en: "Tap two cards. Find the pairs!", kn: "ಎರಡು ಕಾರ್ಡ್ ಒತ್ತಿ ಜೋಡಿ ಹುಡುಕು!" },
+  mem_hint: { en: "Hint: Remember where you saw it!", kn: "ಸುಳಿವು: ಎಲ್ಲಿ ನೋಡಿದೆ ನೆನಪಿಸಿಕೋ!" },
+  m_brush: { en: "Brushing teeth", kn: "ಹಲ್ಲು ಉಜ್ಜುವುದು" },
+  m_yoga: { en: "Doing yoga", kn: "ಯೋಗ ಮಾಡುವುದು" },
+  habit_q: { en: "Good habit? Thumbs up or down!", kn: "ಒಳ್ಳೆಯ ಅಭ್ಯಾಸವಾ? ಹೆಬ್ಬೆರಳು ಮೇಲೆ, ಇಲ್ಲ ಕೆಳಗೆ!" },
+  hb_hands: { en: "Washing hands", kn: "ಕೈ ತೊಳೆಯುವುದು" },
+  hb_hands_yes: { en: "Yes! Clean hands are happy hands.", kn: "ಹೌದು! ಸ್ವಚ್ಛ ಕೈ, ಖುಷಿ ಕೈ." },
+  hb_water: { en: "Drinking water", kn: "ನೀರು ಕುಡಿಯುವುದು" },
+  hb_water_yes: { en: "Yes! Water is good for us.", kn: "ಹೌದು! ನೀರು ನಮಗೆ ಒಳ್ಳೆಯದು." },
+  hb_share: { en: "Sharing toys", kn: "ಆಟಿಕೆ ಹಂಚಿಕೊಳ್ಳುವುದು" },
+  hb_share_yes: { en: "Yes! Sharing makes friends smile.", kn: "ಹೌದು! ಹಂಚಿಕೊಂಡರೆ ಗೆಳೆಯರು ನಗುತ್ತಾರೆ." },
+  hb_fruit: { en: "Eating fresh fruit", kn: "ತಾಜಾ ಹಣ್ಣು ತಿನ್ನುವುದು" },
+  hb_fruit_yes: { en: "Yes! Fruit is fresh and yummy.", kn: "ಹೌದು! ಹಣ್ಣು ತಾಜಾ, ರುಚಿ." },
+  hb_late: { en: "Sleeping very late", kn: "ತುಂಬಾ ತಡವಾಗಿ ಮಲಗುವುದು" },
+  hb_late_yes: { en: "Right! We sleep early and wake up fresh.", kn: "ಸರಿ! ಬೇಗ ಮಲಗಿದರೆ ಬೆಳಿಗ್ಗೆ ಉಲ್ಲಾಸ." },
+  hb_sweets: { en: "Too many sweets", kn: "ತುಂಬಾ ಸಿಹಿತಿಂಡಿ" },
+  hb_sweets_yes: { en: "Right! A little sweet is enough.", kn: "ಸರಿ! ಸ್ವಲ್ಪ ಸಿಹಿ ಸಾಕು." },
+  hb_phone: { en: "Phone at dinner", kn: "ಊಟದ ಹೊತ್ತಲ್ಲಿ ಫೋನ್" },
+  hb_phone_yes: { en: "Right! At dinner we talk and eat together.", kn: "ಸರಿ! ಊಟದಲ್ಲಿ ಎಲ್ಲರೂ ಮಾತಾಡುತ್ತಾ ತಿನ್ನೋಣ." },
+  hb_hint_good: { en: "Hint: Does this help us stay clean and happy?", kn: "ಸುಳಿವು: ಇದು ನಮ್ಮನ್ನು ಸ್ವಚ್ಛ, ಖುಷಿಯಾಗಿ ಇಡುತ್ತದಾ?" },
+  hb_hint_bad: { en: "Hint: Is this too much, or at the wrong time?", kn: "ಸುಳಿವು: ಇದು ಅತಿಯಾಯಿತಾ, ಇಲ್ಲ ತಪ್ಪು ಸಮಯವಾ?" },
+  quiz_right: { en: "Yes! You remember the story!", kn: "ಹೌದು! ನಿನಗೆ ಕಥೆ ನೆನಪಿದೆ!" },
+  qz_crow: { en: "What did the crow drop in the pot?", kn: "ಕಾಗೆ ಮಡಕೆಗೆ ಏನು ಹಾಕಿತು?" },
+  qz_crow_h: { en: "Hint: They were small and hard.", kn: "ಸುಳಿವು: ಅವು ಚಿಕ್ಕದಾಗಿ, ಗಟ್ಟಿಯಾಗಿದ್ದವು." },
+  qz_lion: { en: "Who helped the lion?", kn: "ಸಿಂಹಕ್ಕೆ ಯಾರು ಸಹಾಯ ಮಾಡಿದರು?" },
+  qz_lion_h: { en: "Hint: A tiny friend!", kn: "ಸುಳಿವು: ಒಂದು ಪುಟ್ಟ ಗೆಳೆಯ!" },
+  qz_monkey: { en: "Where did the monkey say its heart was?", kn: "ಕೋತಿ ತನ್ನ ಹೃದಯ ಎಲ್ಲಿದೆ ಎಂದಿತು?" },
+  qz_monkey_h: { en: "Hint: Where does the monkey live?", kn: "ಸುಳಿವು: ಕೋತಿ ಎಲ್ಲಿ ಇರುತ್ತದೆ?" },
+  qz_wood: { en: "What fell into the river?", kn: "ನದಿಗೆ ಏನು ಬಿತ್ತು?" },
+  qz_wood_h: { en: "Hint: He used it to cut wood.", kn: "ಸುಳಿವು: ಅದರಿಂದ ಕಟ್ಟಿಗೆ ಕಡಿಯುತ್ತಿದ್ದ." },
+  qz_goats: { en: "How did the goats cross the bridge?", kn: "ಆಡುಗಳು ಸೇತುವೆ ಹೇಗೆ ದಾಟಿದವು?" },
+  qz_goats_h: { en: "Hint: One goat sat down.", kn: "ಸುಳಿವು: ಒಂದು ಆಡು ಕುಳಿತುಕೊಂಡಿತು." },
+  qo_pebbles: { en: "Pebbles", kn: "ಕಲ್ಲು" }, qo_apples: { en: "Apples", kn: "ಸೇಬು" }, qo_leaves: { en: "Leaves", kn: "ಎಲೆ" },
+  qo_mouse: { en: "Mouse", kn: "ಇಲಿ" }, qo_elephant: { en: "Elephant", kn: "ಆನೆ" }, qo_monkey: { en: "Monkey", kn: "ಕೋತಿ" },
+  qo_tree: { en: "Tree", kn: "ಮರ" }, qo_river: { en: "River", kn: "ನದಿ" }, qo_house: { en: "House", kn: "ಮನೆ" },
+  qo_axe: { en: "Axe", kn: "ಕೊಡಲಿ" }, qo_shoe: { en: "Shoe", kn: "ಚಪ್ಪಲಿ" }, qo_basket: { en: "Basket", kn: "ಬುಟ್ಟಿ" },
+  qo_giveway: { en: "Gave way", kn: "ದಾರಿ ಬಿಟ್ಟು" }, qo_fight: { en: "Fought", kn: "ಜಗಳ" },
+  freeze_prompt: { en: "Copy this pose and freeze like a statue!", kn: "ಈ ಭಂಗಿ ಮಾಡಿ ಸ್ಟ್ಯಾಚ್ಯೂ ಆಗು!" },
+  did_it: { en: "Did it!", kn: "ಮಾಡಿದೆ!" },
+  freeze_good: { en: "Super statue!", kn: "ಸೂಪರ್ ಸ್ಟ್ಯಾಚ್ಯೂ!" },
+
+  /* --- sticker book --- */
+  stickers_title: { en: "My sticker book! Tap a sticker.", kn: "ನನ್ನ ಸ್ಟಿಕ್ಕರ್ ಪುಸ್ತಕ! ಒಂದು ಸ್ಟಿಕ್ಕರ್ ಒತ್ತು." },
+  locked: { en: "Keep playing to find this one!", kn: "ಇದನ್ನು ಪಡೆಯಲು ಆಡುತ್ತಾ ಇರು!" },
+  st_kind: { en: "Kindness Star", kn: "ದಯೆಯ ನಕ್ಷತ್ರ" },
+  st_honest: { en: "Honest Heart", kn: "ಪ್ರಾಮಾಣಿಕ ಹೃದಯ" },
+  st_early: { en: "Early Riser", kn: "ಬೇಗ ಏಳುವವರು" },
+  st_teeth: { en: "Clean Teeth Champ", kn: "ಸ್ವಚ್ಛ ಹಲ್ಲಿನ ಚಾಂಪಿಯನ್" },
+  st_tree: { en: "Yoga Tree", kn: "ಯೋಗ ಮರ" },
+  st_bee: { en: "Busy Bee", kn: "ಚುರುಕು ಜೇನು" },
+  st_memory: { en: "Memory Master", kn: "ನೆನಪಿನ ಜಾಣ" },
+  st_help: { en: "Helping Hand", kn: "ಸಹಾಯ ಹಸ್ತ" },
+
+  /* --- Grown-ups' Corner --- */
+  gu_short: { en: "Grown-ups", kn: "ದೊಡ್ಡವರು" },
+  gu_hold: { en: "Grown-ups: press and hold for 3 seconds", kn: "ದೊಡ್ಡವರು: 3 ಸೆಕೆಂಡ್ ಒತ್ತಿ ಹಿಡಿಯಿರಿ" },
+  gu_title: { en: "Grown-ups' Corner", kn: "ದೊಡ್ಡವರ ಮೂಲೆ" },
+  gu_welcome: { en: "Grown-ups' Corner. Here is how your child is doing.", kn: "ದೊಡ್ಡವರ ಮೂಲೆ. ನಿಮ್ಮ ಮಗುವಿನ ಪ್ರಗತಿ ಇಲ್ಲಿದೆ." },
+  gu_progress: { en: "Progress", kn: "ಪ್ರಗತಿ" },
+  gu_stars: { en: "Stars", kn: "ನಕ್ಷತ್ರಗಳು" },
+  gu_stickers: { en: "Stickers", kn: "ಸ್ಟಿಕ್ಕರ್‌ಗಳು" },
+  gu_none: { en: "None yet", kn: "ಇನ್ನೂ ಇಲ್ಲ" },
+  gu_talk: { en: "Talk about the stories at home", kn: "ಮನೆಯಲ್ಲಿ ಕಥೆಗಳ ಬಗ್ಗೆ ಮಾತಾಡಿ" },
+  gu_why: { en: "Why these daily habits?", kn: "ಈ ದಿನಚರಿಯ ಅಭ್ಯಾಸಗಳು ಯಾಕೆ?" },
+  gu_safety: { en: "Yoga safety", kn: "ಯೋಗ ಸುರಕ್ಷತೆ" },
+  gu_about: { en: "About this app", kn: "ಈ ಆ್ಯಪ್ ಬಗ್ಗೆ" },
+  gu_privacy: { en: "No sign-in, ads or data collection. Progress is saved only on this device.", kn: "ಲಾಗಿನ್, ಜಾಹೀರಾತು, ಮಾಹಿತಿ ಸಂಗ್ರಹ ಇಲ್ಲ. ಪ್ರಗತಿ ಈ ಸಾಧನದಲ್ಲಿ ಮಾತ್ರ ಉಳಿಯುತ್ತದೆ." },
+  gu_content: { en: "Ayurveda here means simple daily habits only. There are no medicines, herbs or health claims.", kn: "ಇಲ್ಲಿ ಆಯುರ್ವೇದ ಎಂದರೆ ಸರಳ ದಿನಚರಿ ಮಾತ್ರ. ಔಷಧಿ, ಗಿಡಮೂಲಿಕೆ ಅಥವಾ ಆರೋಗ್ಯ ಹೇಳಿಕೆಗಳಿಲ್ಲ." },
+  gu_novoice: { en: "No Kannada voice was found on this device, so Kannada text is shown without narration. You can add a Kannada voice in the device's language or speech settings.", kn: "ಈ ಸಾಧನದಲ್ಲಿ ಕನ್ನಡ ಧ್ವನಿ ಸಿಗಲಿಲ್ಲ. ಆದ್ದರಿಂದ ಕನ್ನಡ ಪಠ್ಯ ಮಾತ್ರ ತೋರಿಸಲಾಗುತ್ತದೆ. ಸಾಧನದ ಭಾಷೆ ಅಥವಾ ಧ್ವನಿ ಸೆಟ್ಟಿಂಗ್‌ನಲ್ಲಿ ಕನ್ನಡ ಧ್ವನಿ ಸೇರಿಸಬಹುದು." },
+  gu_nospeech: { en: "This browser cannot read aloud. Please read the words to your child.", kn: "ಈ ಬ್ರೌಸರ್ ಓದಿ ಹೇಳುವುದಿಲ್ಲ. ದಯವಿಟ್ಟು ಮಗುವಿಗೆ ನೀವೇ ಓದಿ ಹೇಳಿ." },
+  gu_reset: { en: "Reset progress", kn: "ಪ್ರಗತಿ ಅಳಿಸಿ" },
+  gu_reset_confirm: { en: "Tap again to reset", kn: "ಅಳಿಸಲು ಮತ್ತೆ ಒತ್ತಿ" },
+  gu_reset_done: { en: "Progress has been reset.", kn: "ಪ್ರಗತಿ ಅಳಿಸಲಾಗಿದೆ." },
+  talk_crow: { en: "When did you keep trying until you could do something?", kn: "ಬಿಡದೆ ಪ್ರಯತ್ನಿಸಿ ನೀನು ಏನನ್ನು ಮಾಡಲು ಕಲಿತೆ?" },
+  talk_lion: { en: "How can you help someone smaller than you?", kn: "ನಿನಗಿಂತ ಚಿಕ್ಕವರಿಗೆ ನೀನು ಹೇಗೆ ಸಹಾಯ ಮಾಡಬಹುದು?" },
+  talk_monkey: { en: "What can you do when you feel scared?", kn: "ಭಯವಾದಾಗ ನೀನು ಏನು ಮಾಡಬಹುದು?" },
+  talk_wood: { en: "Why is it good to tell the truth, even when it is hard?", kn: "ಕಷ್ಟವಾದರೂ ಸತ್ಯ ಹೇಳುವುದು ಯಾಕೆ ಒಳ್ಳೆಯದು?" },
+  talk_goats: { en: "When did you take turns or let someone go first?", kn: "ನೀನು ಯಾವಾಗ ಸರದಿ ಕಾದೆ, ಅಥವಾ ಬೇರೆಯವರಿಗೆ ಮೊದಲು ಬಿಟ್ಟೆ?" },
+  why1: { en: "Mornings are calm and fresh; an early start makes the day unhurried.", kn: "ಬೆಳಗು ಶಾಂತ ಮತ್ತು ತಾಜಾ; ಬೇಗ ಎದ್ದರೆ ದಿನ ಆತುರವಿಲ್ಲದೆ ಸಾಗುತ್ತದೆ." },
+  why2: { en: "Clean teeth and tongue keep the mouth fresh.", kn: "ಹಲ್ಲು, ನಾಲಿಗೆ ಸ್ವಚ್ಛವಾಗಿದ್ದರೆ ಬಾಯಿ ತಾಜಾ ಇರುತ್ತದೆ." },
+  why3: { en: "Cool, clean water is a simple way to wake up and feel fresh.", kn: "ತಣ್ಣನೆಯ ಶುದ್ಧ ನೀರು ಎಚ್ಚರಗೊಳ್ಳಲು, ತಾಜಾ ಅನಿಸಲು ಸುಲಭ ದಾರಿ." },
+  why4: { en: "A gentle massage is calm, loving time together; a bath keeps the body clean.", kn: "ಮೃದು ಮಸಾಜ್ ಪ್ರೀತಿಯ, ಶಾಂತ ಸಮಯ; ಸ್ನಾನ ದೇಹವನ್ನು ಸ್ವಚ್ಛವಾಗಿಡುತ್ತದೆ." },
+  why5: { en: "Greeting elders teaches respect and warmth.", kn: "ಹಿರಿಯರಿಗೆ ನಮಸ್ಕಾರ ಗೌರವ ಮತ್ತು ಪ್ರೀತಿಯನ್ನು ಕಲಿಸುತ್ತದೆ." },
+  why6: { en: "Sitting down and chewing slowly helps children notice and enjoy their food.", kn: "ಕುಳಿತು ನಿಧಾನವಾಗಿ ಅಗಿದು ತಿಂದರೆ ಮಕ್ಕಳು ಊಟವನ್ನು ಗಮನಿಸಿ ಆನಂದಿಸುತ್ತಾರೆ." },
+  why7: { en: "Outdoor play is active, joyful and full of discovery.", kn: "ಹೊರಗಿನ ಆಟ ಚಟುವಟಿಕೆ, ಖುಷಿ ಮತ್ತು ಹೊಸ ಕಲಿಕೆ ತುಂಬಿದೆ." },
+  why8: { en: "A regular, early bedtime helps children wake up fresh.", kn: "ನಿಯಮಿತವಾಗಿ ಬೇಗ ಮಲಗಿದರೆ ಮಕ್ಕಳು ಬೆಳಿಗ್ಗೆ ಉಲ್ಲಾಸದಿಂದ ಏಳುತ್ತಾರೆ." },
+  sf1: { en: "A grown-up should stay nearby during yoga.", kn: "ಯೋಗ ಮಾಡುವಾಗ ದೊಡ್ಡವರು ಹತ್ತಿರ ಇರಬೇಕು." },
+  sf2: { en: "Use a soft mat or carpet with space all around.", kn: "ಸುತ್ತ ಜಾಗವಿರುವ ಮೃದು ಚಾಪೆ ಅಥವಾ ಕಾರ್ಪೆಟ್ ಬಳಸಿ." },
+  sf3: { en: "Move slowly and never force a stretch.", kn: "ನಿಧಾನವಾಗಿ ಮಾಡಿ; ಬಲವಂತವಾಗಿ ಚಾಚಬೇಡಿ." },
+  sf4: { en: "Stop if anything hurts or the child feels dizzy or tired.", kn: "ನೋವು, ತಲೆಸುತ್ತು ಅಥವಾ ಸುಸ್ತಾದರೆ ನಿಲ್ಲಿಸಿ." },
+  sf5: { en: "Breathe gently through the nose; never hold the breath.", kn: "ಮೂಗಿನಿಂದ ಮೃದುವಾಗಿ ಉಸಿರಾಡಿ; ಉಸಿರು ಕಟ್ಟಬೇಡಿ." },
+  sf6: { en: "Wait a while after a big meal before doing yoga.", kn: "ಹೊಟ್ಟೆ ತುಂಬಾ ಊಟದ ನಂತರ ಸ್ವಲ್ಪ ಸಮಯ ಬಿಟ್ಟು ಯೋಗ ಮಾಡಿ." }
+};
+
+/* ===================== small helpers ===================== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const RM = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+/* ===================== storage (never breaks the app) ===================== */
+const mem = {};
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("gini-" + k); return v == null ? (k in mem ? mem[k] : d) : JSON.parse(v); } catch (e) { return k in mem ? mem[k] : d; } },
+  set(k, v) { mem[k] = v; try { localStorage.setItem("gini-" + k, JSON.stringify(v)); } catch (e) { /* storage unavailable: keep in memory */ } }
+};
+let prog = store.get("progress", null);
+if (!prog || typeof prog !== "object") prog = {};
+prog.stars = Number(prog.stars) || 0;
+prog.stickers = Array.isArray(prog.stickers) ? prog.stickers : [];
+const saveProg = () => store.set("progress", prog);
+
+let lang = store.get("lang", "en") === "kn" ? "kn" : "en";
+let muted = !!store.get("muted", false);
+const t = k => (T[k] ? (T[k][lang] || T[k].en) : k);
+const tx = (k, tag = "span", cls = "") => `<${tag}${cls ? ` class="${cls}"` : ""} data-t="${k}">${esc(t(k))}</${tag}>`;
+
+/* ===================== sound (soft Web Audio chimes) ===================== */
+let actx = null;
+function ac() {
+  if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; } }
+  if (actx && actx.state === "suspended") actx.resume().catch(() => {});
+  return actx;
+}
+function tone(freq, start, dur, vol = 0.07, type = "sine", attack = 0.015) {
+  if (muted) return;
+  const c = ac(); if (!c) return;
+  try {
+    const o = c.createOscillator(), g = c.createGain(), t0 = c.currentTime + start;
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0 + dur + 0.05);
+  } catch (e) {}
+}
+const SFX = {
+  tap() { tone(880, 0, 0.18, 0.04); },
+  good() { [784, 988, 1175].forEach((f, i) => tone(f, i * 0.09, 0.55, 0.06, "triangle")); },
+  gentle() { tone(523, 0, 0.4, 0.04); tone(659, 0.16, 0.5, 0.04); },
+  tick(i) { tone([523, 587, 659, 784, 880][i % 5], 0, 0.7, 0.05); },
+  fanfare() { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.12, 0.8, 0.06, "triangle")); tone(1319, 0.52, 1.3, 0.04); }
+};
+let calmTimer = null;
+function calmStart() {
+  calmStop();
+  const notes = [262, 294, 330, 392, 440, 523, 587];
+  const play = () => { tone(notes[Math.floor(Math.random() * notes.length)], 0, 3.4, 0.045, "sine", 0.7); tone(131, 0, 3.6, 0.02, "sine", 1); };
+  play(); calmTimer = setInterval(play, 1900);
+}
+function calmStop() { if (calmTimer) clearInterval(calmTimer); calmTimer = null; }
+
+/* ===================== narration (speech synthesis) ===================== */
+const canSpeak = "speechSynthesis" in window && typeof SpeechSynthesisUtterance !== "undefined";
+let voices = [];
+function loadVoices() { try { voices = speechSynthesis.getVoices() || []; } catch (e) { voices = []; } updateSilent(); }
+function voiceFor(l) {
+  if (l === "kn") return voices.find(v => /^kn/i.test(v.lang)) || null;
+  return voices.find(v => /^en[-_]IN/i.test(v.lang)) || voices.find(v => /^en[-_]GB/i.test(v.lang)) || voices.find(v => /^en/i.test(v.lang)) || null;
+}
+const hasKn = () => !!voiceFor("kn");
+function updateSilent() { document.body.classList.toggle("kn-silent", lang === "kn" && (!canSpeak || !hasKn())); }
+if (canSpeak) {
+  loadVoices();
+  try { speechSynthesis.addEventListener ? speechSynthesis.addEventListener("voiceschanged", loadVoices) : (speechSynthesis.onvoiceschanged = loadVoices); } catch (e) {}
+}
+function giniTalk(on) { $$(".gini").forEach(g => g.classList.toggle("talk", on)); }
+function speak(text) {
+  if (!canSpeak || muted) return;
+  try {
+    speechSynthesis.cancel();
+    const v = voiceFor(lang);
+    if (lang === "kn" && !v) return;            // no Kannada voice: text only
+    const u = new SpeechSynthesisUtterance(text.replace(/[“”"]/g, ""));
+    u.lang = lang === "kn" ? "kn-IN" : "en-IN";
+    if (v) u.voice = v;
+    u.rate = lang === "kn" ? 0.85 : 0.9; u.pitch = 1.15;
+    u.onstart = () => giniTalk(true);
+    u.onend = u.onerror = () => giniTalk(false);
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+function hush() { if (canSpeak) { try { speechSynthesis.cancel(); } catch (e) {} } giniTalk(false); }
+
+/* Gini's speech bubble: always shows (and says) what is on screen. */
+let curSay = [];
+function say(keys) {
+  curSay = Array.isArray(keys) ? keys : [keys];
+  const dot = (k, i) => (i < curSay.length - 1 && !/[.!?”]$/.test(t(k)) ? "." : "");
+  $("#bubbleText").innerHTML = curSay.map((k, i) => tx(k) + dot(k, i)).join(" ");
+  speak(curSay.map((k, i) => t(k) + dot(k, i)).join(" "));
+}
+const resay = () => { if (curSay.length) say(curSay); };
+
+/* ===================== art: Gini the parrot ===================== */
+function gini(cls = "") {
+  return `<svg class="gini ${cls}" viewBox="0 0 120 140" aria-hidden="true"><g class="body">
+    <path d="M50 96 L28 138 L40 137 L58 100Z" fill="#2E8B57"/><path d="M55 98 L46 139 L55 138 L62 100Z" fill="#3AA6A0"/>
+    <ellipse cx="62" cy="80" rx="27" ry="34" fill="#4CBB47"/>
+    <ellipse cx="70" cy="88" rx="15" ry="24" fill="#A8E06A"/>
+    <path d="M44 64 Q36 100 58 114 Q72 92 62 62Z" fill="#2F9A3A"/><path d="M48 74 Q46 92 56 104" stroke="#256F2C" stroke-width="2" fill="none"/>
+    <path d="M56 114 l-4 10 M60 114 l0 10 M66 113 l4 10" stroke="#E08A2E" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="70" cy="40" r="23" fill="#4CBB47"/>
+    <path d="M58 20 Q62 8 72 14 Q66 14 64 22Z" fill="#4CBB47"/>
+    <path d="M50 54 Q70 70 92 52" stroke="#F48FB1" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M51 51 Q70 64 90 49" stroke="#1F3B24" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path class="lbeak" d="M86 46 Q96 48 94 56 Q88 54 85 50Z" fill="#B71C1C"/>
+    <path d="M85 30 Q106 32 99 52 Q95 44 86 46Z" fill="#E53935"/>
+    <circle cx="76" cy="34" r="6.5" fill="#fff"/><circle cx="78" cy="34" r="3.6" fill="#222"/><circle cx="79.2" cy="32.6" r="1.2" fill="#fff"/>
+    <circle cx="66" cy="44" r="4" fill="#F48FB1" opacity=".55"/>
+  </g></svg>`;
+}
+
+/* ===================== art: story scenes ===================== */
+function bg(type) {
+  const sky = `<defs><linearGradient id="g-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9ED8F7"/><stop offset="1" stop-color="#FFF4D6"/></linearGradient></defs><rect width="400" height="240" fill="url(#g-sky)"/>`;
+  const cloud = (x, y) => `<g fill="#fff" opacity=".9"><ellipse cx="${x}" cy="${y}" rx="22" ry="11"/><ellipse cx="${x + 18}" cy="${y - 6}" rx="16" ry="11"/><ellipse cx="${x + 34}" cy="${y}" rx="18" ry="10"/></g>`;
+  const tree = (x, y, s = 1, c = "#3F9B45") => `<g transform="translate(${x} ${y}) scale(${s})"><rect x="-6" y="0" width="12" height="46" rx="4" fill="#8D5A2B"/><circle cx="0" cy="-8" r="26" fill="${c}"/><circle cx="-20" cy="4" r="18" fill="${c}"/><circle cx="20" cy="4" r="18" fill="${c}"/></g>`;
+  const palm = (x, y) => `<g transform="translate(${x} ${y})"><path d="M0 0 Q-6 -40 4 -80" stroke="#9C6B3A" stroke-width="9" fill="none" stroke-linecap="round"/><g fill="#3C9A3C"><path d="M4 -80 Q30 -92 48 -74 Q26 -80 4 -78Z"/><path d="M4 -80 Q-22 -94 -42 -76 Q-20 -82 4 -78Z"/><path d="M4 -80 Q24 -66 30 -46 Q16 -66 4 -76Z"/><path d="M4 -80 Q-14 -66 -22 -48 Q-8 -68 4 -76Z"/></g></g>`;
+  if (type === "village") return sky + `<circle cx="340" cy="44" r="26" fill="#FFC93A"/>` + cloud(60, 40) + cloud(200, 30) +
+    `<path d="M0 160 Q80 120 170 150 T400 140 V240 H0Z" fill="#B9DE8A"/><rect y="176" width="400" height="64" fill="#E9C27A"/>` +
+    `<g transform="translate(36 112)"><rect x="0" y="22" width="76" height="52" rx="4" fill="#D79B65"/><path d="M-10 26 L38 -8 L86 26Z" fill="#9C6B3A"/><rect x="28" y="44" width="20" height="30" rx="3" fill="#7A4A25"/><rect x="58" y="36" width="12" height="12" fill="#FFE8A6"/></g>` + palm(352, 182);
+  if (type === "forest") return sky + `<circle cx="70" cy="44" r="22" fill="#FFD54F"/>` + cloud(250, 34) +
+    `<path d="M0 150 Q100 110 200 140 T400 130 V240 H0Z" fill="#7CBF5A"/><rect y="182" width="400" height="58" fill="#9BCB61"/>` +
+    tree(40, 140, 1.1, "#2F7D32") + tree(330, 136, 1.25, "#38923C") + tree(380, 150, .8, "#2F7D32");
+  if (type === "river") return sky + `<circle cx="340" cy="40" r="22" fill="#FFD54F"/>` + cloud(170, 34) +
+    `<rect y="130" width="400" height="110" fill="#9CCC65"/><path d="M0 172 Q100 160 200 174 T400 170 V240 H0Z" fill="#4FC3F7"/><path d="M20 196 q20 -6 40 0 M140 210 q20 -6 40 0 M280 200 q20 -6 40 0" stroke="#fff" stroke-width="3" fill="none" opacity=".7" stroke-linecap="round"/>` +
+    `<g transform="translate(70 70)"><rect x="-8" y="10" width="16" height="70" rx="5" fill="#7A4A25"/><circle cx="0" cy="0" r="40" fill="#2E7D32"/><circle cx="-30" cy="16" r="24" fill="#388E3C"/><circle cx="30" cy="16" r="24" fill="#388E3C"/><g fill="#6A1B9A"><circle cx="-14" cy="6" r="4"/><circle cx="12" cy="-10" r="4"/><circle cx="22" cy="14" r="4"/><circle cx="-26" cy="24" r="4"/></g></g>`;
+  if (type === "bridge") return sky + `<circle cx="60" cy="40" r="22" fill="#FFD54F"/>` + cloud(260, 36) +
+    `<path d="M0 240 V120 Q40 112 70 128 L70 240Z" fill="#8BC34A"/><path d="M400 240 V120 Q360 112 330 128 L330 240Z" fill="#8BC34A"/>` +
+    `<rect x="70" y="196" width="260" height="44" fill="#4FC3F7"/><path d="M90 214 q20 -6 40 0 M220 220 q20 -6 40 0" stroke="#fff" stroke-width="3" fill="none" opacity=".7" stroke-linecap="round"/>` +
+    `<rect x="40" y="140" width="320" height="12" rx="3" fill="#A1683A"/><g stroke="#7A4A25" stroke-width="2">${Array.from({ length: 16 }, (_, i) => `<line x1="${50 + i * 20}" y1="140" x2="${50 + i * 20}" y2="152"/>`).join("")}</g>` +
+    `<path d="M40 126 L360 126" stroke="#7A4A25" stroke-width="3"/>${Array.from({ length: 9 }, (_, i) => `<line x1="${40 + i * 40}" y1="126" x2="${40 + i * 40}" y2="142" stroke="#7A4A25" stroke-width="3"/>`).join("")}`;
+  return sky;
+}
+// item: [emoji, x%, y%, size (cqw), classes]
+function scene(type, items, extra = "") {
+  return `<div class="scene"><svg class="bg" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${bg(type)}</svg>` +
+    items.map(([e, x, y, s, c = ""]) => {
+      const anim = (c.match(/a-\w+/g) || []).join(" ");
+      const look = c.replace(/a-\w+/g, "").trim();
+      return `<span class="it" style="left:${x}%;top:${y}%;font-size:${(s * 0.6).toFixed(1)}vw;font-size:${s}cqw"><span class="${anim}"><span class="${look}">${e}</span></span></span>`;
+    }).join("") + extra + `</div>`;
+}
+
+/* ===================== story data ===================== */
+const CROW = "🐦‍⬛";
+const STORIES = [
+  { id: "crow", cover: "🐦‍⬛🏺", color: "#5BB8F0", dark: "#2C86C4", bg: "village", good: "🧩💪", bad: "🧩💤", panels: [
+    [[CROW, 42, 42, 17, "a-bob"], ["☀️", 82, 18, 11], ["💭", 58, 22, 8]],
+    [[CROW, 32, 46, 14], ["🏺", 62, 64, 20]],
+    [["🏺", 56, 64, 22], [CROW, 52, 30, 14, "a-wiggle"], ["💧", 56, 74, 6]],
+    [[CROW, 30, 46, 14], ["💡", 30, 18, 9, "a-bob"], ["🪨", 60, 80, 8], ["🪨", 69, 82, 7], ["🪨", 77, 79, 8]],
+    [["🏺", 56, 64, 22], [CROW, 48, 26, 14], ["🪨", 56, 42, 7, "a-drop"]],
+    [["🏺", 56, 64, 22], [CROW, 54, 34, 15, "a-bob"], ["💦", 66, 40, 8], ["✨", 34, 24, 8]]
+  ] },
+  { id: "lion", cover: "🦁🐭", color: "#F5B82E", dark: "#C98D12", bg: "forest", sticker: "kind", good: "🤲🏽", bad: "🚶🏾", panels: [
+    [["🦁", 50, 64, 24], ["💤", 66, 36, 10, "a-bob"]],
+    [["🦁", 44, 64, 23], ["🐭", 58, 46, 9, "a-wiggle"]],
+    [["🦁", 38, 60, 23], ["🐭", 66, 60, 10], ["🙏", 74, 42, 7]],
+    [["🦁", 38, 60, 23, "a-bob"], ["🐭", 70, 74, 9, "flip a-run"]],
+    [["🦁", 50, 62, 23], ["🕸️", 50, 58, 32], ["😟", 72, 30, 8]],
+    [["🦁", 40, 60, 23, "a-bob"], ["🐭", 68, 68, 10, "a-wiggle"], ["🎉", 74, 30, 10]]
+  ] },
+  { id: "monkey", cover: "🐒🐊", color: "#4CAF50", dark: "#2E7D32", bg: "river", good: "😮‍💨", bad: "😱", panels: [
+    [["🐒", 20, 30, 13, "a-bob"], ["🫐", 32, 22, 5]],
+    [["🐒", 22, 30, 12], ["🫐", 40, 52, 6, "a-drop"], ["🐊", 62, 78, 20]],
+    [["🐊", 52, 78, 22], ["🐒", 28, 40, 12], ["💬", 70, 52, 9]],
+    [["🐊", 56, 78, 22], ["🐒", 56, 60, 11, "a-wiggle"], ["❤️", 76, 46, 7]],
+    [["🐊", 56, 78, 22], ["🐒", 56, 60, 11], ["💭", 34, 32, 11], ["❤️", 34, 31, 5]],
+    [["🐒", 20, 22, 13, "a-bob"], ["🐊", 64, 80, 20], ["✨", 34, 16, 8]]
+  ] },
+  { id: "wood", cover: "🪓💧", color: "#F48FB1", dark: "#D2648C", bg: "river", sticker: "honest", good: "🗣️", bad: "🙈", panels: [
+    [["🧔🏾‍♂️", 34, 58, 20], ["🪓", 47, 54, 10, "a-wiggle"], ["🪵", 62, 64, 10]],
+    [["🧔🏾‍♂️", 28, 58, 19], ["🪓", 56, 76, 9, "a-drop"], ["💦", 58, 82, 9]],
+    [["🧚🏽‍♀️", 56, 50, 19, "a-bob"], ["🪓", 74, 46, 11, "gold"], ["🧔🏾‍♂️", 22, 60, 17]],
+    [["🧚🏽‍♀️", 56, 50, 19], ["🪓", 74, 46, 11, "silver"], ["🧔🏾‍♂️", 22, 60, 17], ["✋🏾", 36, 46, 7]],
+    [["🧚🏽‍♀️", 56, 50, 19], ["🪓", 74, 46, 11], ["🧔🏾‍♂️", 22, 60, 17, "a-bob"]],
+    [["🧔🏾‍♂️", 26, 60, 19, "a-bob"], ["🪓", 50, 48, 10, "gold"], ["🪓", 62, 48, 10, "silver"], ["🪓", 74, 48, 10], ["✨", 62, 26, 9]]
+  ] },
+  { id: "goats", cover: "🐐🐐", color: "#A1887F", dark: "#6D4C41", bg: "bridge", sticker: "kind", good: "🤝", bad: "😠", panels: [
+    [["🐦", 70, 24, 6, "a-bob"], ["🌼", 8, 52, 6], ["🌼", 92, 52, 6]],
+    [["🐐", 10, 46, 13, "flip"], ["🐐", 90, 46, 13]],
+    [["🐐", 42, 50, 13, "flip"], ["🐐", 58, 50, 13], ["❓", 50, 24, 8, "a-bob"]],
+    [["🐐", 44, 54, 12, "flip sit"], ["🐐", 62, 50, 13], ["💬", 34, 30, 8]],
+    [["🐐", 46, 54, 12, "flip sit"], ["🐐", 48, 36, 13, "a-hop"]],
+    [["🐐", 90, 46, 13, "flip"], ["🐐", 10, 46, 13], ["💛", 50, 26, 10, "a-bob"]]
+  ] }
+];
+
+/* ===================== healthy day data ===================== */
+const DAY = [
+  { art: ["🐓", "🙆🏽‍♀️", "🌅"], sky: "linear-gradient(#FFB199,#FFE29F)" },
+  { art: ["🪥", "👦🏻", "👅"], sky: "linear-gradient(#FFD8A8,#FFF3C4)" },
+  { art: ["🚰", "👧🏿", "💦"], sky: "linear-gradient(#A8DCFA,#E8F7FF)" },
+  { art: ["🫙", "👵🏽", "👦🏾", "🛁"], sky: "linear-gradient(#8FD0F8,#DDF2FF)" },
+  { art: ["🙏🏽", "👴🏻", "👩🏽"], sky: "linear-gradient(#7CC6F5,#D6EFFF)" },
+  { art: ["🍛", "🧒🏻", "🍚"], sky: "linear-gradient(#7CC6F5,#E6F6FF)" },
+  { art: ["⚽", "👧🏾", "🌳"], sky: "linear-gradient(#FFC48A,#FFE7B8)" },
+  { art: ["🍲", "😴", "🌙"], sky: "linear-gradient(#1F2A5C,#4B3F8C)" }
+];
+const ORDER = [{ e: "🌅", k: "ord_wake" }, { e: "🪥", k: "ord_brush" }, { e: "🍛", k: "ord_eat" }, { e: "😴", k: "ord_sleep" }];
+
+/* ===================== yoga data + child figure ===================== */
+const KIDS = [
+  { skin: "#8D5524", hair: "#1A1110", shirt: "#F5B82E", pants: "#2C86C4", girl: true },
+  { skin: "#C68642", hair: "#2B1A10", shirt: "#4CAF50", pants: "#6D4C41", girl: false },
+  { skin: "#E0AC69", hair: "#3B2416", shirt: "#F48FB1", pants: "#5C6BC0", girl: true },
+  { skin: "#5C3A21", hair: "#0D0D0D", shirt: "#5BB8F0", pants: "#2E7D32", girl: false }
+];
+const S = { h: [100, 38], n: [100, 58], p: [100, 112], le: [86, 84], lh: [82, 108], re: [114, 84], rh: [118, 108], lk: [94, 148], lf: [92, 182], rk: [106, 148], rf: [108, 182] };
+const W = (base, o) => Object.assign({}, base, o);
+const SEAT = { h: [100, 78], n: [100, 98], p: [100, 150], lk: [66, 162], lf: [112, 172], rk: [134, 162], rf: [88, 172] };
+const VR_LEGS = { lk: [97, 148], lf: [97, 182], rk: [128, 130], rf: [101, 142] };
+const CAT = { n: [68, 108], p: [132, 108], le: [66, 140], lh: [66, 174], re: [71, 140], rh: [71, 174], lk: [131, 174], lf: [170, 176], rk: [135, 174], rf: [174, 176] };
+const SNK = { p: [122, 166], lk: [150, 170], lf: [178, 170], rk: [152, 172], rf: [180, 172] };
+const RAB = { p: [124, 150], lk: [80, 174], lf: [128, 178], rk: [82, 175], rf: [130, 179] };
+const POSES = [
+  { id: "tada", buddy: "🌴", period: 3600, A: S, B: W(S, { h: [100, 32], n: [100, 52], p: [100, 108], le: [92, 30], lh: [96, 6], re: [108, 30], rh: [104, 6], lk: [95, 144], lf: [94, 176], rk: [105, 144], rf: [106, 176] }) },
+  { id: "vriksha", buddy: "🌳", period: 4000, sticker: "tree", A: W(S, Object.assign({ le: [84, 86], lh: [99, 78], re: [116, 86], rh: [101, 78] }, VR_LEGS)), B: W(S, Object.assign({ le: [88, 30], lh: [99, 8], re: [112, 30], rh: [101, 8] }, VR_LEGS)) },
+  { id: "titali", buddy: "🦋", period: 1000, A: { h: [100, 78], n: [100, 98], p: [100, 150], le: [82, 122], lh: [95, 164], re: [118, 122], rh: [105, 164], lk: [60, 142], lf: [95, 168], rk: [140, 142], rf: [105, 168] }, B: { h: [100, 78], n: [100, 98], p: [100, 150], le: [82, 124], lh: [95, 164], re: [118, 124], rh: [105, 164], lk: [56, 164], lf: [95, 168], rk: [144, 164], rf: [105, 168] } },
+  { id: "marjari", buddy: "🐱", period: 3600, A: W(CAT, { m: [100, 124], h: [50, 92] }), B: W(CAT, { m: [100, 86], h: [56, 124] }) },
+  { id: "bhujanga", buddy: "🐍", period: 4000, A: W(SNK, { h: [54, 160], n: [74, 164], m: [98, 166], le: [80, 176], lh: [92, 177], re: [82, 177], rh: [94, 178] }), B: W(SNK, { h: [60, 106], n: [76, 126], m: [102, 156], le: [82, 152], lh: [80, 175], re: [85, 153], rh: [84, 176] }) },
+  { id: "shasha", buddy: "🐰", period: 4400, A: W(RAB, { h: [108, 64], n: [116, 84], m: [119, 118], le: [112, 58], lh: [108, 32], re: [116, 58], rh: [112, 32] }), B: W(RAB, { h: [50, 160], n: [72, 148], m: [100, 132], le: [52, 164], lh: [30, 176], re: [54, 166], rh: [32, 178] }) },
+  { id: "bhramari", buddy: "🐝", period: 2400, sticker: "bee", breath: true, closed: true, A: W(SEAT, { le: [70, 100], lh: [86, 78], re: [130, 100], rh: [114, 78] }), B: W(SEAT, { h: [100, 80], le: [68, 96], lh: [86, 80], re: [132, 96], rh: [114, 80] }) },
+  { id: "balloon", buddy: "🎈", period: 6000, breath: true, A: W(SEAT, { le: [78, 118], lh: [93, 132], re: [122, 118], rh: [107, 132], b: 4, bc: [100, 130] }), B: W(SEAT, { le: [74, 118], lh: [90, 134], re: [126, 118], rh: [110, 134], b: 22, bc: [100, 130] }) },
+  { id: "shava", buddy: "⭐", period: 6000, closed: true, rest: true, A: { h: [100, 34], n: [100, 54], p: [100, 116], le: [70, 68], lh: [46, 86], re: [130, 68], rh: [154, 86], lk: [84, 150], lf: [72, 182], rk: [116, 150], rf: [128, 182] }, B: { h: [100, 34], n: [100, 54], p: [100, 116], le: [68, 64], lh: [42, 78], re: [132, 64], rh: [158, 78], lk: [80, 150], lf: [64, 180], rk: [120, 150], rf: [136, 180] } }
+];
+
+function figure(kid, closed, cls = "fig") {
+  const hair = `<path d="M-15 -1 A15 15 0 0 1 15 -1 Q8 -9 0 -8 Q-8 -9 -15 -1Z" fill="${kid.hair}"/>` +
+    (kid.girl ? `<circle cx="-14" cy="5" r="6" fill="${kid.hair}"/><circle cx="14" cy="5" r="6" fill="${kid.hair}"/><circle cx="9" cy="-12" r="3.5" fill="#FFD54F"/>` : "");
+  const eyes = closed
+    ? `<path d="M-8 2 Q-5 5 -2 2 M2 2 Q5 5 8 2" stroke="#2B2B2B" stroke-width="1.8" fill="none" stroke-linecap="round"/>`
+    : `<circle cx="-5" cy="2" r="2" fill="#2B2B2B"/><circle cx="5" cy="2" r="2" fill="#2B2B2B"/>`;
+  return `<svg class="${cls}" viewBox="0 0 200 200" aria-hidden="true">
+    <rect x="22" y="183" width="156" height="9" rx="4.5" fill="#F48FB1" opacity=".55"/>
+    <g stroke="${kid.pants}" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" fill="none"><path class="ll"/><path class="rl"/></g>
+    <path class="torso" stroke="${kid.shirt}" stroke-width="26" stroke-linecap="round" fill="none"/>
+    <circle class="belly" r="0" fill="#F48FB1" stroke="#fff" stroke-width="2.5" opacity=".9"/>
+    <g stroke="${kid.skin}" stroke-linecap="round" stroke-linejoin="round" fill="none"><path class="nk" stroke-width="9"/><path class="la" stroke-width="10"/><path class="ra" stroke-width="10"/></g>
+    <g class="hd"><circle r="15" fill="${kid.skin}"/>${hair}${eyes}<circle cx="-9" cy="8" r="2.6" fill="#F48FB1" opacity=".6"/><circle cx="9" cy="8" r="2.6" fill="#F48FB1" opacity=".6"/><path d="M-5 8 Q0 12 5 8" stroke="#6D2E22" stroke-width="1.8" fill="none" stroke-linecap="round"/></g>
+  </svg>`;
+}
+const P2 = a => a[0].toFixed(1) + " " + a[1].toFixed(1);
+function setFrame(svg, f) {
+  const n = f.n, p = f.p, mid = [(n[0] + p[0]) / 2, (n[1] + p[1]) / 2], m = f.m || mid;
+  const c = [2 * m[0] - mid[0], 2 * m[1] - mid[1]];
+  const sh = [n[0] + (p[0] - n[0]) * 0.12, n[1] + (p[1] - n[1]) * 0.12];
+  const q = s => svg.querySelector(s);
+  q(".torso").setAttribute("d", `M${P2(n)} Q${P2(c)} ${P2(p)}`);
+  q(".ll").setAttribute("d", `M${P2(p)} L${P2(f.lk)} L${P2(f.lf)}`);
+  q(".rl").setAttribute("d", `M${P2(p)} L${P2(f.rk)} L${P2(f.rf)}`);
+  q(".la").setAttribute("d", `M${P2(sh)} L${P2(f.le)} L${P2(f.lh)}`);
+  q(".ra").setAttribute("d", `M${P2(sh)} L${P2(f.re)} L${P2(f.rh)}`);
+  q(".nk").setAttribute("d", `M${P2(n)} L${P2(f.h)}`);
+  q(".hd").setAttribute("transform", `translate(${P2(f.h)})`);
+  const b = q(".belly"), bc = f.bc || mid;
+  b.setAttribute("cx", bc[0]); b.setAttribute("cy", bc[1]); b.setAttribute("r", (f.b || 0).toFixed(1));
+}
+function mixFrame(A, B, k) {
+  const o = {};
+  new Set([...Object.keys(A), ...Object.keys(B)]).forEach(key => {
+    const a = key in A ? A[key] : B[key], b = key in B ? B[key] : A[key];
+    o[key] = Array.isArray(a) ? [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k] : a + (b - a) * k;
+  });
+  return o;
+}
+let anims = [];
+function animate(svg, pose) {
+  setFrame(svg, pose.B);
+  if (RM) return () => {};
+  let raf = 0; const t0 = performance.now();
+  const loop = now => { const ph = (1 - Math.cos(((now - t0) / pose.period) * 2 * Math.PI)) / 2; setFrame(svg, mixFrame(pose.A, pose.B, ph)); raf = requestAnimationFrame(loop); };
+  raf = requestAnimationFrame(loop);
+  const stop = () => cancelAnimationFrame(raf);
+  anims.push(stop);
+  return stop;
+}
+
+/* ===================== stickers ===================== */
+const STICKERS = [
+  { id: "kind", e: "🌟", k: "st_kind", c: "#F5B82E" },
+  { id: "honest", e: "💖", k: "st_honest", c: "#F48FB1" },
+  { id: "early", e: "🌅", k: "st_early", c: "#FFB74D" },
+  { id: "teeth", e: "🦷", k: "st_teeth", c: "#5BB8F0" },
+  { id: "tree", e: "🌳", k: "st_tree", c: "#4CAF50" },
+  { id: "bee", e: "🐝", k: "st_bee", c: "#FFD54F" },
+  { id: "memory", e: "🧠", k: "st_memory", c: "#BA68C8" },
+  { id: "help", e: "🤝", k: "st_help", c: "#4DB6AC" }
+];
+
+/* ===================== screen manager ===================== */
+const main = $("#main"), overlay = $("#overlay");
+let timers = [], current = "home";
+const later = (fn, ms) => { const id = setTimeout(fn, ms); timers.push(id); return id; };
+function cleanup() {
+  timers.forEach(clearTimeout); timers = [];
+  anims.forEach(s => s()); anims = [];
+  calmStop(); overlay.innerHTML = "";
+}
+function go(name, arg) {
+  cleanup(); current = name;
+  main.innerHTML = "";
+  SCREENS[name](arg);
+  main.scrollTop = 0;
+  $("#homeBtn").classList.toggle("here", name === "home");
+  try { main.focus({ preventScroll: true }); } catch (e) {}
+}
+const backBtn = to => `<div class="subnav"><button class="btn back" data-go="${to}"><span class="ic">⬅️</span>${tx("back", "span", "lbl2")}</button></div>`;
+function wireBack() { $$("[data-go]", main).forEach(b => b.addEventListener("click", () => { SFX.tap(); go(b.dataset.go); })); }
+const tile = (art, key, c, d, extra = "", attrs = "") => `<button class="tile" style="--c:${c};--d:${d}" ${attrs} data-ta="${key}"><span class="art" aria-hidden="true">${art}</span>${tx(key)}${extra}</button>`;
+function nudge(el) { el.classList.remove("nudge"); void el.offsetWidth; el.classList.add("nudge"); }
+const ayurChip = (key, label = "ayur_word") => `<button class="aword" data-word="${key}"><span><small data-t="${label}">${esc(t(label))}</small><b data-t="${key}">${esc(t(key))}</b></span><span aria-hidden="true">🔊</span></button>`;
+function wireChips(root = main) { $$(".aword", root).forEach(b => b.addEventListener("click", () => { SFX.tap(); speak(t(b.dataset.word)); })); }
+
+/* ===================== celebration ===================== */
+function celebrate(opts) {
+  prog.stars += 1;
+  let fresh = null;
+  if (opts.sticker && !prog.stickers.includes(opts.sticker)) { prog.stickers.push(opts.sticker); fresh = STICKERS.find(s => s.id === opts.sticker); }
+  saveProg(); updateStars(true); SFX.fanfare(); hush();
+  const st = fresh ? `<div class="newst"><span class="disc" style="--c:${fresh.c}">${fresh.e}</span>${tx(fresh.k)}</div>` : "";
+  overlay.innerHTML = `<div class="ov" role="dialog" aria-modal="true">${gini("bigini dance")}<h1 data-t="shabhash">${esc(t("shabhash"))}</h1>
+    <p>⭐ ${tx(fresh ? "new_sticker" : "star_got")}</p>${st}
+    <div class="row"><button class="btn home-btn" id="cHome"><span class="ic">🏠</span>${tx("home")}</button>
+    ${opts.next ? `<button class="btn next-btn" id="cNext"><span class="ic">➡️</span>${tx(opts.nextKey || "next")}</button>` : ""}</div></div>`;
+  if (!RM) {
+    const box = document.createElement("div"); box.className = "confetti";
+    const cols = ["#F5B82E", "#4CAF50", "#5BB8F0", "#F48FB1", "#FFFFFF"];
+    for (let i = 0; i < 44; i++) {
+      const c = document.createElement("i");
+      c.style.left = Math.random() * 100 + "vw"; c.style.background = cols[i % cols.length];
+      c.style.animationDuration = 1.8 + Math.random() * 1.6 + "s"; c.style.animationDelay = Math.random() * 0.6 + "s";
+      if (i % 3 === 0) c.style.borderRadius = "50%";
+      box.appendChild(c);
+    }
+    overlay.firstChild.appendChild(box);
+  }
+  const keys = ["shabhash", fresh ? "new_sticker" : "star_got"];
+  curSay = keys; $("#bubbleText").innerHTML = keys.map(k => tx(k)).join(" ");
+  later(() => speak(keys.map(t).join(" ") + (fresh ? " " + t(fresh.k) : "")), 350);
+  $("#cHome").addEventListener("click", () => { SFX.tap(); go("home"); });
+  if (opts.next) $("#cNext").addEventListener("click", () => { SFX.tap(); opts.next(); });
+  try { $("#cNext", overlay) ? $("#cNext").focus() : $("#cHome").focus(); } catch (e) {}
+}
+function updateStars(bump) {
+  $("#starN").textContent = prog.stars;
+  if (bump) { const s = $("#stars"); s.classList.remove("bump"); void s.offsetWidth; s.classList.add("bump"); }
+}
+
+/* ===================== screens ===================== */
+const SCREENS = {};
+
+SCREENS.home = () => {
+  main.innerHTML = `<div class="wrap"><div class="tiles four">
+    ${tile("📖🦁", "home_stories", "#F5B82E", "#C98D12", "", 'data-to="stories"')}
+    ${tile("☀️🪥", "home_day", "#5BB8F0", "#2C86C4", "", 'data-to="day"')}
+    ${tile(figure(KIDS[0], false, "mini-fig home-fig"), "home_yoga", "#4CAF50", "#2E7D32", "", 'data-to="yoga"')}
+    ${tile("🧩🎈", "home_play", "#F48FB1", "#D2648C", "", 'data-to="play"')}
+  </div></div>`;
+  setFrame($(".home-fig", main), POSES[1].B);
+  $$("[data-to]", main).forEach(b => b.addEventListener("click", () => { SFX.tap(); go(b.dataset.to); }));
+  say(SCREENS.home.greeted ? "home_prompt" : "greet");
+  SCREENS.home.greeted = true;
+};
+
+SCREENS.stories = () => {
+  main.innerHTML = `<div class="wrap">${backBtn("home")}<div class="tiles small">` +
+    STORIES.map((s, i) => tile(s.cover, s.id + "_lbl", s.color, s.dark, prog["done_" + s.id] ? `<span class="badge">⭐</span>` : "", `data-i="${i}"`)).join("") +
+    `</div></div>`;
+  wireBack();
+  $$("[data-i]", main).forEach(b => b.addEventListener("click", () => { SFX.tap(); go("story", +b.dataset.i); }));
+  say("pick_story");
+};
+
+SCREENS.story = idx => {
+  const s = STORIES[idx]; let i = 0;
+  main.innerHTML = `<div class="wrap">${backBtn("stories")}<div id="stage"></div><div id="nav"></div></div>`;
+  wireBack();
+  const stage = $("#stage"), nav = $("#nav");
+  function panel() {
+    stage.innerHTML = scene(s.bg, s.panels[i]);
+    nav.innerHTML = `<div class="navrow"><button class="btn arrow" id="pv" ${i === 0 ? "disabled style=opacity:.4" : ""}><span class="ic">⬅️</span>${tx("back")}</button>
+      <div class="dots">${s.panels.map((_, k) => `<i class="${k === i ? "on" : ""}"></i>`).join("")}</div>
+      <button class="btn arrow next-btn" id="nx">${tx("next")}<span class="ic">➡️</span></button></div>`;
+    $(".scene", stage).addEventListener("click", resay);
+    $("#pv").addEventListener("click", () => { if (i > 0) { SFX.tap(); i--; panel(); } });
+    $("#nx").addEventListener("click", () => { SFX.tap(); if (i < s.panels.length - 1) { i++; panel(); } else lesson(); });
+    say(i === 0 ? [s.id + "_title", s.id + "_1"] : [s.id + "_" + (i + 1)]);
+  }
+  function lesson() {
+    stage.innerHTML = scene(s.bg, [["✨", 30, 30, 10, "a-bob"], ["✨", 72, 26, 8, "a-bob"]], `<div class="it" style="left:50%;top:56%;width:34cqw">${gini("dance")}</div>`);
+    nav.innerHTML = `<div class="navrow"><button class="btn arrow next-btn" id="nx">${tx("next")}<span class="ic">➡️</span></button></div>`;
+    $("#nx").addEventListener("click", () => { SFX.tap(); wwyd(); });
+    $(".scene", stage).addEventListener("click", resay);
+    say(s.id + "_lesson");
+  }
+  function wwyd() {
+    const opts = shuffle([{ e: s.good, k: s.id + "_good", ok: true }, { e: s.bad, k: s.id + "_bad", ok: false }]);
+    stage.innerHTML = `<div class="choices">${opts.map((o, k) => `<button class="choice" data-k="${k}"><span class="em" aria-hidden="true">${o.e}</span>${tx(o.k)}</button>`).join("")}</div>`;
+    nav.innerHTML = "";
+    let done = false;
+    $$(".choice", stage).forEach(b => b.addEventListener("click", () => {
+      if (done) return;
+      const o = opts[+b.dataset.k];
+      if (o.ok) {
+        done = true; b.classList.add("right"); SFX.good(); say("wise");
+        prog["done_" + s.id] = true; saveProg();
+        later(() => celebrate({ sticker: s.sticker, next: () => go("stories"), nextKey: "more" }), 1800);
+      } else {
+        SFX.gentle(); nudge(b); say(["try_again", s.id + "_hint"]);
+        const r = $$(".choice", stage).find(x => opts[+x.dataset.k].ok); r.classList.remove("hintglow"); void r.offsetWidth; r.classList.add("hintglow");
+      }
+    }));
+    say(["wwyd", s.id + "_q"]);
+  }
+  panel();
+};
+
+SCREENS.day = () => {
+  main.innerHTML = `<div class="wrap">${backBtn("home")}<div class="tiles">
+    ${tile("☀️🌙", "day_cards_lbl", "#5BB8F0", "#2C86C4", "", 'data-to="dayCards"')}
+    ${tile("1️⃣2️⃣3️⃣", "order_lbl", "#F5B82E", "#C98D12", "", 'data-to="order"')}
+  </div><div class="row">${ayurChip("aw_dina")}</div></div>`;
+  wireBack(); wireChips();
+  $$("[data-to]", main).forEach(b => b.addEventListener("click", () => { SFX.tap(); go(b.dataset.to); }));
+  say("day_intro");
+};
+
+SCREENS.dayCards = () => {
+  let i = 0;
+  main.innerHTML = `<div class="wrap">${backBtn("day")}
+    <div class="skybar" id="sky"><span class="sunball" id="sun">☀️</span>
+      <svg class="hills" viewBox="0 0 400 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0 40 V22 Q60 4 130 20 T260 16 T400 20 V40Z" fill="#8BC34A"/></svg></div>
+    <div class="daycard"><div class="dayart" id="art"></div>
+      <div class="row" style="margin:0"><button class="btn copy" id="copy"><span class="ic">🤸</span>${tx("copy")}</button><span id="chip"></span></div></div>
+    <div class="navrow"><button class="btn arrow" id="pv"><span class="ic">⬅️</span>${tx("back")}</button>
+      <div class="dots" id="dots"></div>
+      <button class="btn arrow next-btn" id="nx">${tx("next")}<span class="ic">➡️</span></button></div></div>`;
+  wireBack();
+  function card() {
+    const d = DAY[i], p = i / 7;
+    $("#sky").style.background = d.sky;
+    const sun = $("#sun");
+    sun.textContent = i === 7 ? "🌙" : "☀️";
+    sun.style.left = 6 + p * 88 + "%";
+    sun.style.bottom = (i === 7 ? 45 : 18 + Math.sin(p * Math.PI) * 52) + "%";
+    $("#art").className = "dayart";
+    $("#art").innerHTML = d.art.map(e => `<span>${e}</span>`).join("");
+    $("#chip").innerHTML = ayurChip("aw" + (i + 1));
+    wireChips($("#chip"));
+    $("#dots").innerHTML = DAY.map((_, k) => `<i class="${k === i ? "on" : ""}"></i>`).join("");
+    $("#pv").style.opacity = i === 0 ? ".4" : "1";
+    say("day" + (i + 1));
+  }
+  $("#copy").addEventListener("click", () => {
+    SFX.tap(); const a = $("#art"); a.classList.remove("act"); void a.offsetWidth; a.classList.add("act");
+    say("day" + (i + 1) + "_act");
+  });
+  $("#art").addEventListener("click", resay);
+  $("#pv").addEventListener("click", () => { if (i > 0) { SFX.tap(); i--; card(); } });
+  $("#nx").addEventListener("click", () => {
+    SFX.tap();
+    if (i < 7) { i++; card(); } else celebrate({ sticker: "early", next: () => go("order") });
+  });
+  card();
+};
+
+SCREENS.order = () => {
+  let next = 0, done = false;
+  const cards = shuffle(ORDER.map((o, k) => Object.assign({ idx: k }, o)));
+  main.innerHTML = `<div class="wrap">${backBtn("day")}
+    <div class="slots">${ORDER.map((_, k) => `<div class="slot" id="slot${k}">${k + 1}</div>`).join("")}</div>
+    <div class="cards4">${cards.map((c, k) => `<button class="choice" data-k="${k}"><span class="em" aria-hidden="true">${c.e}</span>${tx(c.k)}</button>`).join("")}</div></div>`;
+  wireBack();
+  $$(".cards4 .choice", main).forEach(b => b.addEventListener("click", () => {
+    if (done) return;
+    const c = cards[+b.dataset.k];
+    if (c.idx === next) {
+      SFX.good(); b.classList.add("used");
+      const s = $("#slot" + next); s.classList.add("full"); s.innerHTML = `<span>${c.e}</span>${tx(c.k, "small")}`;
+      next++;
+      if (next === 4) { done = true; say(c.k); later(() => celebrate({ sticker: "teeth", next: () => go("day") }), 1300); }
+      else say([c.k, "order_next"]);
+    } else { SFX.gentle(); nudge(b); say(["try_again", "ord_hint" + next]); }
+  }));
+  say("order_prompt");
+};
+
+SCREENS.yoga = () => {
+  main.innerHTML = `<div class="wrap">${backBtn("home")}<div class="safety">🤝 ${tx("safety")}</div><div class="tiles small">` +
+    POSES.map((p, i) => tile(figure(KIDS[i % 4], !!p.closed, "mini-fig"), "y_" + p.id + "_lbl", ["#4CAF50", "#5BB8F0", "#F48FB1", "#F5B82E"][i % 4], ["#2E7D32", "#2C86C4", "#D2648C", "#C98D12"][i % 4], `<span class="badge">${p.buddy}</span>`, `data-i="${i}"`)).join("") +
+    `</div></div>`;
+  wireBack();
+  $$(".mini-fig", main).forEach((svg, i) => setFrame(svg, POSES[i].B));
+  $$("[data-i]", main).forEach(b => b.addEventListener("click", () => { SFX.tap(); go("pose", +b.dataset.i); }));
+  say("yoga_pick");
+};
+
+SCREENS.pose = idx => {
+  const P = POSES[idx], kid = KIDS[idx % 4], base = "y_" + P.id;
+  main.innerHTML = `<div class="wrap">${backBtn("yoga")}<div class="safety">🤝 ${tx("safety")}</div>
+    <div class="posewrap"><div class="stage" id="stage">${figure(kid, !!P.closed)}<span class="buddy ${P.id === "bhramari" ? "buzz" : "a-bob"}">${P.buddy}</span><div class="breathe" id="br"></div><div class="count" id="cnt"></div></div>
+    <div class="ctrl"><div class="row" style="margin:0">${ayurChip(base + "_word", "yoga_word")}</div>
+      <div class="stepdots" id="sd"><i></i><i></i><i></i></div>
+      <div class="row" style="margin:0" id="btns"></div></div></div></div>`;
+  wireBack(); wireChips();
+  const svg = $("#stage svg.fig"); setFrame(svg, P.B);
+  let stopAnim = null;
+  const play = () => { if (!stopAnim) stopAnim = animate(svg, P); };
+  const freeze = () => { if (stopAnim) { stopAnim(); stopAnim = null; } setFrame(svg, P.B); };
+  const btns = $("#btns"), dots = $$("#sd i");
+  const setBtn = (html, fn) => { btns.innerHTML = html; const b = btns.querySelector("button"); if (b) b.addEventListener("click", () => { SFX.tap(); fn(); }); };
+  $("#stage").addEventListener("click", resay);
+  let step = -1;
+  function intro() {
+    play();
+    setBtn(`<button class="btn next-btn start"><span class="ic">▶️</span>${tx("start")}</button>`, () => steps(0));
+    say([base + "_name", "pose_ready"]);
+  }
+  function steps(s) {
+    step = s; dots.forEach((d, k) => d.classList.toggle("on", k <= s));
+    play(); say(base + "_" + (s + 1));
+    setBtn(`<button class="btn next-btn"><span class="ic">➡️</span>${tx("next")}</button>`, advance);
+    timers.forEach(clearTimeout); timers = [];
+    later(advance, 6000);
+  }
+  function advance() { timers.forEach(clearTimeout); timers = []; if (step < 2) steps(step + 1); else P.rest ? rest() : hold(); }
+  function hold() {
+    freeze(); btns.innerHTML = "";
+    if (P.breath) { play(); $("#br").classList.add("show"); }
+    say(P.breath ? "hold_breath" : "hold");
+    const cnt = $("#cnt");
+    for (let k = 1; k <= 5; k++) later(() => {
+      cnt.textContent = k; cnt.classList.remove("show"); void cnt.offsetWidth; cnt.classList.add("show");
+      SFX.tick(k - 1); curSay = ["n" + k]; $("#bubbleText").innerHTML = tx("n" + k); speak(t("n" + k));
+    }, 2600 + (k - 1) * (P.breath ? 2000 : 1500));
+    later(() => { cnt.classList.remove("show"); finish(); }, 2600 + 5 * (P.breath ? 2000 : 1500) + 300);
+  }
+  function rest() {
+    btns.innerHTML = ""; play(); $("#br").classList.add("show"); calmStart(); say("shav_rest");
+    later(() => { calmStop(); say("shav_wake"); }, 20000);
+    later(finish, 25000);
+    setBtn(`<button class="btn next-btn"><span class="ic">➡️</span>${tx("next")}</button>`, () => { calmStop(); timers.forEach(clearTimeout); timers = []; finish(); });
+  }
+  function finish() {
+    freeze();
+    const isLast = idx === POSES.length - 1;
+    celebrate({ sticker: P.sticker, next: () => go(isLast ? "yoga" : "pose", isLast ? undefined : idx + 1), nextKey: isLast ? "more" : "next" });
+  }
+  intro();
+};
+
+SCREENS.play = () => {
+  main.innerHTML = `<div class="wrap">${backBtn("home")}<div class="tiles four">
+    ${tile("🃏🧠", "g_mem", "#BA68C8", "#8E44AD", "", 'data-to="memory"')}
+    ${tile("👍👎", "g_habit", "#4CAF50", "#2E7D32", "", 'data-to="habit"')}
+    ${tile("❓📖", "g_quiz", "#F5B82E", "#C98D12", "", 'data-to="quiz"')}
+    ${tile("🧊🧘🏾", "g_freeze", "#5BB8F0", "#2C86C4", "", 'data-to="freeze"')}
+  </div></div>`;
+  wireBack();
+  $$("[data-to]", main).forEach(b => b.addEventListener("click", () => { SFX.tap(); go(b.dataset.to); }));
+  say("play_pick");
+};
+
+const MEM = [{ e: "🧼", k: "hb_hands" }, { e: "💧", k: "hb_water" }, { e: "🍎", k: "hb_fruit" }, { e: "🪥", k: "m_brush" }, { e: "🤝", k: "hb_share" }, { e: "🧘🏽", k: "m_yoga" }];
+SCREENS.memory = () => {
+  main.innerHTML = `<div class="wrap">${backBtn("play")}<div class="tiles">
+    ${tile("🃏🃏", "easy", "#4CAF50", "#2E7D32", "", 'data-n="4"')}
+    ${tile("🃏🃏🃏", "more", "#BA68C8", "#8E44AD", "", 'data-n="6"')}</div></div>`;
+  wireBack();
+  $$("[data-n]", main).forEach(b => b.addEventListener("click", () => { SFX.tap(); memGame(+b.dataset.n); }));
+  say("mem_level");
+};
+function memGame(pairs) {
+  const deck = shuffle(MEM.slice(0, pairs).flatMap(m => [m, m]));
+  main.scrollTop = 0;
+  main.innerHTML = `<div class="wrap">${backBtn("memory")}<div class="mgrid ${pairs === 6 ? "six" : ""}">` +
+    deck.map((m, k) => `<button class="mcard" data-k="${k}" aria-label="?"><span class="in"><span class="f" aria-hidden="true">🦜</span><span class="b" aria-hidden="true">${m.e}</span></span></button>`).join("") + `</div></div>`;
+  wireBack();
+  let open = [], lock = false, found = 0, misses = 0;
+  $$(".mcard", main).forEach(c => c.addEventListener("click", () => {
+    if (lock || c.classList.contains("open") || c.classList.contains("done")) return;
+    SFX.tap(); c.classList.add("open"); open.push(c);
+    if (open.length < 2) return;
+    const [a, b] = open, ma = deck[+a.dataset.k], mb = deck[+b.dataset.k];
+    if (ma === mb) {
+      a.classList.add("done"); b.classList.add("done"); open = []; found++;
+      SFX.good(); say(ma.k);
+      if (found === pairs) later(() => celebrate({ sticker: "memory", next: () => go("play"), nextKey: "more" }), 1300);
+    } else {
+      lock = true; misses++;
+      if (misses % 3 === 0) say(["try_again", "mem_hint"]);
+      later(() => { a.classList.remove("open"); b.classList.remove("open"); open = []; lock = false; }, 1000);
+    }
+  }));
+  say("mem_go");
+}
+
+const HABITS = [
+  { k: "hb_hands", e: "🧼🙌🏽", good: true }, { k: "hb_water", e: "🥛💧", good: true }, { k: "hb_share", e: "👧🏻🧸👦🏿", good: true },
+  { k: "hb_fruit", e: "🍎🍌🍇", good: true }, { k: "hb_late", e: "🌙📺🥱", good: false }, { k: "hb_sweets", e: "🍬🍭🍫🍩", good: false },
+  { k: "hb_phone", e: "📱🍛", good: false }
+];
+SCREENS.habit = () => {
+  const list = shuffle(HABITS); let i = 0, locked = false;
+  main.innerHTML = `<div class="wrap">${backBtn("play")}<div class="progress" id="pg"></div><div class="bigart" id="art"></div>
+    <div class="thumbs"><button class="btn thumb up" data-v="1"><span class="ic">👍</span>${tx("yes")}</button><button class="btn thumb down" data-v="0"><span class="ic">👎</span>${tx("no")}</button></div></div>`;
+  wireBack();
+  function show() {
+    locked = false;
+    $("#pg").innerHTML = list.map((_, k) => `<i class="${k <= i ? "on" : ""}"></i>`).join("");
+    const a = $("#art"); a.textContent = list[i].e; a.style.animation = "none"; void a.offsetWidth; a.style.animation = "";
+    say([list[i].k, "habit_q"]);
+  }
+  $("#art").addEventListener("click", resay);
+  $$(".thumb", main).forEach(b => b.addEventListener("click", () => {
+    if (locked) return;
+    const h = list[i], pickGood = b.dataset.v === "1";
+    if (pickGood === h.good) {
+      locked = true; SFX.good(); say(h.k + "_yes");
+      later(() => { i++; if (i < list.length) show(); else celebrate({ sticker: "help", next: () => go("play"), nextKey: "more" }); }, 2600);
+    } else { SFX.gentle(); nudge(b); say(["try_again", h.good ? "hb_hint_good" : "hb_hint_bad"]); }
+  }));
+  show();
+};
+
+const QUIZ = [
+  { q: "qz_crow", h: "qz_crow_h", o: [["🪨", "qo_pebbles", 1], ["🍎", "qo_apples"], ["🍃", "qo_leaves"]] },
+  { q: "qz_lion", h: "qz_lion_h", o: [["🐭", "qo_mouse", 1], ["🐘", "qo_elephant"], ["🐒", "qo_monkey"]] },
+  { q: "qz_monkey", h: "qz_monkey_h", o: [["🌳", "qo_tree", 1], ["🌊", "qo_river"], ["🏠", "qo_house"]] },
+  { q: "qz_wood", h: "qz_wood_h", o: [["🪓", "qo_axe", 1], ["🩴", "qo_shoe"], ["🧺", "qo_basket"]] },
+  { q: "qz_goats", h: "qz_goats_h", o: [["🤝", "qo_giveway", 1], ["💥", "qo_fight"]] }
+];
+SCREENS.quiz = () => {
+  let i = 0;
+  main.innerHTML = `<div class="wrap">${backBtn("play")}<div class="progress" id="pg"></div><div id="qa"></div></div>`;
+  wireBack();
+  function show() {
+    const Q = QUIZ[i], opts = shuffle(Q.o); let done = false;
+    $("#pg").innerHTML = QUIZ.map((_, k) => `<i class="${k <= i ? "on" : ""}"></i>`).join("");
+    $("#qa").innerHTML = `<div class="choices" style="--n:${opts.length}">${opts.map((o, k) => `<button class="choice" data-k="${k}"><span class="em" aria-hidden="true">${o[0]}</span>${tx(o[1])}</button>`).join("")}</div>`;
+    $$("#qa .choice").forEach(b => b.addEventListener("click", () => {
+      if (done) return;
+      const o = opts[+b.dataset.k];
+      if (o[2]) {
+        done = true; b.classList.add("right"); SFX.good(); say("quiz_right");
+        later(() => { i++; if (i < QUIZ.length) show(); else celebrate({ next: () => go("play"), nextKey: "more" }); }, 1900);
+      } else { SFX.gentle(); nudge(b); say(["try_again", Q.h]); }
+    }));
+    say(Q.q);
+  }
+  show();
+};
+
+SCREENS.freeze = () => {
+  const order = shuffle(POSES.slice(0, 6)).slice(0, 4); let i = 0;
+  main.innerHTML = `<div class="wrap">${backBtn("play")}<div class="progress" id="pg"></div>
+    <div class="posewrap"><div class="stage" id="stage"></div>
+    <div class="ctrl"><button class="btn next-btn start" id="did"><span class="ic">✋</span>${tx("did_it")}</button></div></div></div>`;
+  wireBack();
+  let stop = null, locked = false;
+  function show() {
+    locked = false;
+    const P = order[i], kid = KIDS[(i + 1) % 4];
+    $("#pg").innerHTML = order.map((_, k) => `<i class="${k <= i ? "on" : ""}"></i>`).join("");
+    $("#stage").innerHTML = figure(kid, !!P.closed) + `<span class="buddy a-bob">${P.buddy}</span>`;
+    if (stop) stop();
+    stop = animate($("#stage svg.fig"), P);
+    say(["y_" + P.id + "_name", "freeze_prompt"]);
+  }
+  $("#stage").addEventListener("click", resay);
+  $("#did").addEventListener("click", () => {
+    if (locked) return; locked = true;
+    if (stop) { stop(); stop = null; }
+    setFrame($("#stage svg.fig"), order[i].B);
+    SFX.good(); say("freeze_good");
+    later(() => { i++; if (i < order.length) show(); else celebrate({ next: () => go("play"), nextKey: "more" }); }, 1800);
+  });
+  show();
+};
+
+SCREENS.stickers = () => {
+  main.innerHTML = `<div class="wrap">${backBtn("home")}<div class="sgrid">` +
+    STICKERS.map(s => { const got = prog.stickers.includes(s.id); return `<button class="sticker ${got ? "" : "locked"}" data-s="${s.id}"><span class="disc" style="--c:${s.c}"><span>${got ? s.e : "?"}</span></span>${got ? tx(s.k) : `<span>&nbsp;</span>`}</button>`; }).join("") +
+    `</div></div>`;
+  wireBack();
+  $$(".sticker", main).forEach(b => b.addEventListener("click", () => {
+    const s = STICKERS.find(x => x.id === b.dataset.s);
+    SFX.tap(); say(prog.stickers.includes(s.id) ? s.k : "locked");
+  }));
+  say("stickers_title");
+};
+
+SCREENS.grown = () => {
+  const silentKn = !canSpeak || !hasKn();
+  const got = STICKERS.filter(s => prog.stickers.includes(s.id));
+  main.innerHTML = `<div class="wrap">${backBtn("home")}<section class="grown">
+    ${tx("gu_title", "h2")}
+    ${tx("gu_progress", "h3")}
+    <p>⭐ ${tx("gu_stars")}: <b>${prog.stars}</b> · 📒 ${tx("gu_stickers")}: <b>${got.length} / ${STICKERS.length}</b></p>
+    <div class="stick-row">${got.length ? got.map(s => `<span>${s.e} ${tx(s.k)}</span>`).join("") : tx("gu_none")}</div>
+    ${tx("gu_talk", "h3")}
+    <ul>${STORIES.map(s => `<li><b data-t="${s.id}_title">${esc(t(s.id + "_title"))}</b>: ${tx("talk_" + s.id)}</li>`).join("")}</ul>
+    ${tx("gu_why", "h3")}
+    <ul>${DAY.map((_, k) => `<li><b data-t="day${k + 1}">${esc(t("day" + (k + 1)))}</b> ${tx("why" + (k + 1))}</li>`).join("")}</ul>
+    ${tx("gu_safety", "h3")}
+    <ul>${["sf1", "sf2", "sf3", "sf4", "sf5", "sf6"].map(k => `<li>${tx(k)}</li>`).join("")}</ul>
+    ${tx("gu_about", "h3")}
+    ${!canSpeak ? `<p class="note">🔇 ${tx("gu_nospeech")}</p>` : silentKn ? `<p class="note">🗣️ ${tx("gu_novoice")}</p>` : ""}
+    <p>${tx("gu_privacy")}</p><p>${tx("gu_content")}</p>
+    <button class="btn reset" id="reset"><span class="ic">♻️</span><span id="resetLbl" data-t="gu_reset">${esc(t("gu_reset"))}</span></button>
+  </section></div>`;
+  wireBack();
+  let armed = false;
+  $("#reset").addEventListener("click", () => {
+    const b = $("#reset"), l = $("#resetLbl");
+    if (!armed) { armed = true; b.classList.add("arm"); l.dataset.t = "gu_reset_confirm"; l.textContent = t("gu_reset_confirm"); later(() => { armed = false; b.classList.remove("arm"); l.dataset.t = "gu_reset"; l.textContent = t("gu_reset"); }, 5000); return; }
+    prog = { stars: 0, stickers: [] }; saveProg(); updateStars(); say("gu_reset_done"); go("grown"); say("gu_reset_done");
+  });
+  say("gu_welcome");
+};
+
+/* ===================== top bar & global controls ===================== */
+function applyLang() {
+  document.documentElement.lang = lang === "kn" ? "kn" : "en";
+  $$("[data-t]").forEach(el => { el.textContent = t(el.dataset.t); });
+  $$("[data-ta]").forEach(el => el.setAttribute("aria-label", t(el.dataset.ta)));
+  $("#langBtn .en").classList.toggle("on", lang === "en");
+  $("#langBtn .kn").classList.toggle("on", lang === "kn");
+  document.title = t("app_name");
+  updateSilent();
+}
+function applyMute() {
+  $("#muteIc").textContent = muted ? "🔇" : "🔊";
+  $("#muteBtn").setAttribute("aria-pressed", String(muted));
+}
+$("#brand").innerHTML = gini() + tx("app_name");
+$("#giniBtn").innerHTML = gini();
+$("#homeBtn").addEventListener("click", () => { SFX.tap(); go("home"); });
+$("#stickBtn").addEventListener("click", () => { SFX.tap(); go("stickers"); });
+$("#giniBtn").addEventListener("click", resay);
+$("#replayBtn").addEventListener("click", resay);
+$("#langBtn").addEventListener("click", () => { lang = lang === "en" ? "kn" : "en"; store.set("lang", lang); SFX.tap(); applyLang(); resay(); });
+$("#muteBtn").addEventListener("click", () => {
+  muted = !muted; store.set("muted", muted); applyMute();
+  if (muted) { hush(); calmStop(); } else { SFX.tap(); resay(); }
+});
+
+/* Grown-ups button: press and hold for 3 seconds. */
+(function () {
+  const btn = $("#guBtn"); let start = 0, raf = 0;
+  const tick = now => {
+    const p = Math.min(1, (now - start) / 3000); btn.style.setProperty("--p", p);
+    if (p >= 1) { stop(); SFX.good(); go("grown"); return; }
+    raf = requestAnimationFrame(tick);
+  };
+  const begin = e => { if (e) e.preventDefault(); if (raf) return; start = performance.now(); raf = requestAnimationFrame(tick); };
+  const stop = () => { cancelAnimationFrame(raf); raf = 0; btn.style.setProperty("--p", 0); };
+  btn.addEventListener("pointerdown", begin);
+  ["pointerup", "pointerleave", "pointercancel"].forEach(ev => btn.addEventListener(ev, stop));
+  btn.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && !e.repeat) begin(e); });
+  btn.addEventListener("keyup", stop);
+  btn.addEventListener("contextmenu", e => e.preventDefault());
+  btn.addEventListener("click", e => { if (!raf) say("gu_hold"); });
+})();
+
+/* ===================== start ===================== */
+applyLang(); applyMute(); updateStars();
+main.innerHTML = "";
+overlay.innerHTML = `<div class="ov splash">${gini("bigini")}<h1 class="title">Gini's Garden</h1><div class="kn" lang="kn">ಗಿಣಿಯ ತೋಟ</div>
+  <button class="btn start" id="go"><span class="ic">▶️</span>${tx("start")}</button></div>`;
+$("#bubbleText").innerHTML = tx("greet");
+curSay = ["greet"];
+$("#go").addEventListener("click", () => { ac(); SFX.good(); overlay.innerHTML = ""; go("home"); });
+})();
+</script>
 </body>
 </html>
