@@ -42,6 +42,27 @@ Ojo's lines, the tasks and the game content are drafts: send them through panel 
 
 **Adding the Veda tier later:** add Veda's stories and content, set `active: true` for `veda` in `TIERS`, and give it its own trail. Children aged 8–12 currently use Ojo's stories, and Parent Corner tells their parent that their stories are coming soon.
 
+## Voice
+
+The app uses the narrator's own recorded voice wherever it can:
+
+1. **Recordings of the app's own lines** (`audio/voice/`, listed in `js/voice-files.js`).
+2. **Lines from The Ojo Treasury narration**, cut from the story recordings using the book's timings (`STORY_AUDIO` in `js/content.js`):
+   - the story title when a Trail stop opens
+   - a story line at the start of each game and on each Do screen
+   - Ojo's own line from the story when a game is finished, and "And Ojo shone gold and bright" for celebrations
+3. **The device's voice** for any line not yet recorded.
+
+To record the app's own lines, follow `RECORDING-SCRIPT.md` (one audio file per section, a two-second pause after each line), then run:
+
+```
+python3 tools/add-recordings.py <folder with A1, A2 ... B5 audio files>
+```
+
+It cuts each section into single lines, checks the count matches the script, and updates `js/voice-files.js`. If the content changes, rebuild the script first with `node tools/make-recording-script.js`.
+
+If a story is re-recorded or re-synced in the book, copy its new timings from `NARR` in `ojo-treasury/index.html` to `STORY_AUDIO` in `js/content.js`.
+
 ## Privacy
 
 - Profiles and progress are stored in the browser's `localStorage` on this device only. Nothing is sent to a server.
@@ -53,9 +74,12 @@ Ojo's lines, the tasks and the game content are drafts: send them through panel 
 ```
 index.html       App shell: top bar, bottom tab bar, Ojo artwork
 css/style.css    All styles and animations
-js/content.js    Trail, games, tasks, Ojo's lines, avatar parts, shop
-js/app.js        Profiles, parent check, router, trail, games, rewards, Parent Corner
+js/content.js    Trail, games, tasks, Ojo's lines, story voice lines, avatar parts, shop
+js/voice-files.js  Recordings of the app's own lines (filled by tools/add-recordings.py)
+js/app.js        Profiles, parent check, voice, router, trail, games, rewards, Parent Corner
 ojo-treasury/    The Ojo Treasury book (self-contained page + narration audio)
+tools/           Recording script builder and recording cutter
+RECORDING-SCRIPT.md  Lines to record for the app, in sections
 ```
 
 The book saves the drops of light a child collects under `ojo-drops:<child id>`; the app reads these to tick each stop's Listen step. Progress from the earlier version of the app (stars and book drops) is moved into the first child's profile automatically.

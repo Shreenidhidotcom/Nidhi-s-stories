@@ -12,32 +12,71 @@ window.TIERS = [
 /* Drops earned for each step */
 window.DROP_VALUES = { listen: 2, play: 3, do: 5, replay: 1, learning: 1, chest: 5 };
 
+/* Your recorded narration from The Ojo Treasury, reused in the app.
+   `t` lists the start time (seconds) of each spoken line: line 0 is the title, then the story's lines in order.
+   Copied from NARR in ojo-treasury/index.html. If a story is re-recorded or re-synced, copy its new `t` here too. */
+window.STORY_AUDIO = {
+  1: { src: "ojo-treasury/audio/story-1-v2.mp3", t: [0.00, 4.40, 8.86, 13.97, 19.77, 22.57, 30.20, 31.61, 35.05, 38.40, 42.72, 52.21, 54.77, 64.05, 68.70, 71.44, 73.91, 76.39, 80.00, 83.48, 86.30, 88.51, 92.52, 94.76, 97.83, 101.45, 106.07, 109.20, 111.94, 115.97, 124.16, 126.66, 130.07] },
+  2: { src: "ojo-treasury/audio/story-2.mp3", t: [0.00, 4.24, 8.41, 10.35, 15.25, 16.54, 26.66, 28.91, 33.42, 40.33, 42.87, 48.37, 55.76, 64.92, 72.38, 76.24, 82.42] },
+  3: { src: "ojo-treasury/audio/story-3.mp3", t: [0.00, 4.84, 10.30, 13.83, 18.78, 21.18, 25.44, 29.86, 33.18, 36.28, 41.84, 46.54, 51.16, 54.00, 58.51, 64.18, 69.14] },
+  4: { src: "ojo-treasury/audio/story-4.mp3", t: [0.00, 4.55, 8.54, 11.32, 13.07, 15.46, 17.20, 20.14, 24.69, 29.93, 32.67, 36.78, 40.05, 44.85, 48.10, 51.83, 55.31, 64.17, 67.92, 71.93] },
+  5: { src: "ojo-treasury/audio/story-5.mp3", t: [0.00, 4.12, 8.24, 13.49, 17.58, 20.12, 22.77, 24.96, 26.96, 37.62, 43.24, 50.89, 54.82, 60.65, 63.19, 66.08, 74.89, 78.79] },
+  6: { src: "ojo-treasury/audio/story-6.mp3", t: [0.00, 4.56, 9.55, 13.26, 17.44, 19.66, 22.26, 24.20, 28.83, 35.58, 40.70, 44.11, 50.57, 54.87, 57.73, 66.47, 69.27, 73.98, 80.74, 85.07] },
+  7: { src: "ojo-treasury/audio/story-7.mp3", t: [0.00, 5.21, 8.45, 14.87, 18.44, 23.23, 26.43, 30.40, 33.93, 35.74, 37.66, 45.29, 47.90, 51.59, 55.66, 58.79, 61.73, 71.21] },
+  8: { src: "ojo-treasury/audio/story-8.mp3", t: [0.00, 4.09, 8.82, 15.28, 19.06, 23.32, 28.23, 38.94, 42.75, 45.23, 53.29, 56.53, 64.06, 67.24, 72.00, 80.25, 82.26, 86.99] }
+};
+
+/* Celebrations use these narrator lines from the stories */
+window.CELEBRATE_VOICE = [
+  { n: 8, u: 16, text: "And Ojo shone gold and bright." },
+  { n: 5, u: 16, text: "And Ojo shone bright." },
+  { n: 1, u: 26, text: "At once, Ojo shone bright again." }
+];
+
 /* The eight stops of Ojo's Treasure Trail, in the order of The Ojo Treasury.
-   `n` is the story's position in the book (its link is ojo-treasury/index.html#story-n). */
+   `n` is the story's position in the book (its link is ojo-treasury/index.html#story-n).
+   `voice` picks lines from that story's recording (u = line number in STORY_AUDIO; v = last line, if more than one). */
 window.TRAIL = [
   { n: 1, title: "The Little Light in Me", hook: "Who lives in your heart?", icon: "🪔", color: "#46307e",
     game: "glow", task: "Put your hand on your heart and feel Ojo go thum, thum. Then give someone you love a big hug.",
+    voice: { title: { u: 0 }, intro: { u: 10, text: "That is your heart. Inside your heart there is a tiny house. And inside the tiny house lives a tiny light." },
+      done: { u: 26, text: "At once, Ojo shone bright again." }, story: { u: 8, v: 9, text: "Press here. What can you feel? Thum. Thum. Thum." } },
     sticker: { id: "light", e: "🪔", name: "Little Light" } },
   { n: 2, title: "Up with the Birds", hook: "Wake up with the birds", icon: "🐦", color: "#e98a2c",
     game: "morning", task: "Wake up with the birds tomorrow and say good morning to the sun.",
+    voice: { title: { u: 0 }, intro: { u: 1, text: "Very early in the morning, Ojo woke Ayu up." },
+      done: { u: 15, text: "Because you woke up early, with the birds. That makes me happy!" }, story: { u: 10, text: "The air is cool and fresh. And your mind is fresh too." } },
     sticker: { id: "early", e: "🐦", name: "Early Riser" } },
   { n: 3, title: "Brush, Brush, Brush!", hook: "Fuzzy teeth? Brush them!", icon: "🪥", color: "#2d9cdb",
     game: "teeth", task: "Brush your teeth in the morning and at night, with a grown-up watching.",
+    voice: { title: { u: 0 }, intro: { u: 5, text: "Brush up. Brush down. Brush round and round." },
+      done: { u: 15, text: "Clean teeth and a clean tongue make a happy mouth!" }, story: { u: 9, text: "Now clean your tongue. Gently, from the back to the front." } },
     sticker: { id: "brush", e: "🪥", name: "Brushing Star" } },
   { n: 4, title: "Five Friends Live in Me", hook: "Eyes, ears, nose, tongue and skin", icon: "👂", color: "#27ae60",
     game: "senses", task: "Close your eyes and tell a grown-up three sounds you can hear.",
+    voice: { title: { u: 0 }, done: { u: 16, text: "Yes! Eyes, ears, nose, tongue and skin. Every day, they tell you all about the world." },
+      story: { u: 17, v: 18, text: "I will take good care of my five friends. And they will take good care of you." } },
     sticker: { id: "senses", e: "🖐️", name: "Five Friends" } },
   { n: 5, title: "Look at Your Plate", hook: "Why rice turns sweet", icon: "🍚", color: "#d35400",
     game: "plate", task: "Chew your rice slowly, slowly, until it starts to taste sweet.",
+    voice: { title: { u: 0 }, intro: { u: 7, text: "Look at your plate." },
+      done: { u: 12, text: "Yes. When you chew slowly, rice turns sweet. It always does." }, story: { u: 10, text: "She took a little rice in her hand. She chewed it slowly. Chew, chew, chew." } },
     sticker: { id: "plate", e: "🍚", name: "Slow Chewer" } },
   { n: 6, title: "The Broken Blue Cup", hook: "Telling the truth", icon: "💙", color: "#2f5fb3",
     game: "truth", task: "If something breaks or goes wrong today, tell a grown-up the truth.",
+    voice: { title: { u: 0 }, intro: { u: 11, text: "No, I am not cross. But when you don't tell the truth, I can't shine." },
+      done: { u: 18, text: "Telling the truth makes me shine!" }, story: { u: 16, text: "Thank you for telling me the truth, Ayu. Come, let's clean it up together." } },
     sticker: { id: "truth", e: "💙", name: "Truth Teller" } },
   { n: 7, title: "The Sun Sleeps, So Do I", hook: "Ojo grows at night", icon: "🌙", color: "#34307a",
     game: "bedtime", task: "Lights out at the same time tonight, right after your bedtime story.",
+    voice: { title: { u: 0 }, intro: { u: 1, text: "The sun went down behind the tamarind tree." },
+      done: { u: 10, text: "Yes! When you sleep, your body grows a little bit. And I grow a little bit brighter. Every night!" }, story: { u: 14, v: 15, text: "Okay, Ojo. Let's grow. And Ayu fell fast asleep." } },
     sticker: { id: "sleep", e: "🌙", name: "Sleepy Star" } },
   { n: 8, title: "Thank You, Tummy", hook: "Leave a little space", icon: "🙏", color: "#b0466e",
     game: "tummy", task: "Stop eating when your tummy feels comfy, and say \"Thank you, tummy!\"",
+    voice: { title: { u: 0 }, intro: { u: 13, text: "Eat until you are almost full. Always leave a little space." },
+      done: { u: 16, text: "And Ojo shone gold and bright." }, yay: { u: 15, text: "Thank you, tummy!" },
+      story: { u: 14, text: "The next day, Ayu ate her lunch slowly. When her tummy felt almost full, she stopped. She patted her tummy." } },
     sticker: { id: "tummy", e: "🙏", name: "Happy Tummy" } }
 ];
 
@@ -106,7 +145,8 @@ window.LEARNING_GAMES = [
   { route: "shapes", icon: "🔺", title: "Shapes & Colors", note: "Look and tap", color: "#8ee08e" }
 ];
 
-/* Ojo's lines. {name} becomes the child's name. Every line must read well without the name too.
+/* Ojo's lines. {name} becomes the child's name on screen; recordings say "my friend" instead.
+   Every line must read well without the name too.
    Draft text: send through panel review and add Kannada versions before release. */
 window.GUIDE = {
   firstMeet: ["Hello {name}! I am Ojo, the little light inside you.", "Ayu and I are so happy you are here!"],
@@ -114,7 +154,6 @@ window.GUIDE = {
   afternoon: ["Hello {name}! Shall we find a drop of light?", "Good afternoon! Ready for a story?", "Hello again, {name}!"],
   evening: ["Good evening, {name}! Story time soon?", "The sun is going to sleep. Shall we read?", "Hello {name}! A little play before bed?"],
   returnAfterBreak: ["I missed you, {name}! Your garden waited for you.", "Welcome back! Your flowers are still blooming."],
-  next: ["Next stop: {title}!", "Shall we try {title}?"],
   correct: ["Yes! Well done!", "You did it, {name}!", "That's right!", "Wonderful!"],
   wrong: ["Hmm, let's look again.", "Nearly! Try once more.", "Good try! Look closely."],
   gameDone: ["You played so well, {name}!", "I am glowing brighter!", "Hooray! That was fun!"],
@@ -122,7 +161,23 @@ window.GUIDE = {
   taskPending: ["When you've done it, a grown-up can tick it for you.", "I can't wait to hear how it went!"],
   chest: ["A treasure chest! You played on three days this week."],
   sessionEnd: ["Great playing, {name}! Now let's try it for real.", "Let's go and do it for real now. Bye for now, {name}!"],
-  allDone: ["My treasure is full! Eight drops of light. Thank you, {name}!"]
+  allDone: ["My treasure is full! Eight drops of light. Thank you, {name}!"],
+  welcome: ["Hello! I am Ojo. Ask a grown-up to set up the app for you."],
+  bookDrop: ["You found a drop of light in the story!"],
+  taskDone: ["Well done, {name}! You did it for real."],
+  taskDoneToday: ["Well done! You did it today."],
+  newSticker: ["You earned a new sticker!"],
+  garden: ["Look at your garden! Flowers never wilt here."],
+  gardenEmpty: ["Play today and your first flower will bloom!"],
+  needDrops: ["Keep playing to collect more drops!"],
+  sortHint: ["Hmm, does that help? Try another!"],
+  seqHint: ["Hmm, what comes next?"],
+  seqGlow: ["What comes next? Look at the glowing one!"],
+  teethClean: ["That one is already sparkly!"],
+  tummyComfy: ["Ayu's tummy feels comfy. Leave a little space!"],
+  tummyFull: ["Oops, too full! Let's try again and leave a little space."],
+  tummyHungry: ["Ayu is still a little hungry. One more bite?"],
+  pairMatch: ["A pair!", "Match!"]
 };
 
 /* Avatar parts. Skin, hair and eyes are always free; some outfits and accessories come from the shop. */

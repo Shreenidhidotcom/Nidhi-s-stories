@@ -111,56 +111,143 @@
     setTimeout(() => box.remove(), 2600);
   }
 
-  /* ---------- Voice (device text-to-speech) ---------- */
+  /* ================= Voice =================
+     For every line the app plays, in this order: a recording of that exact line (VOICE_FILES),
+     a line from the story narration of The Ojo Treasury (STORY_AUDIO), then the device's own voice. */
+  const STORY_AUDIO = window.STORY_AUDIO || {}, CELEBRATE_VOICE = window.CELEBRATE_VOICE || [], VOICE_FILES = window.VOICE_FILES || {};
   const canSpeak = "speechSynthesis" in window;
-  let voice = null;
+  const EMOJI = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}️‍]/gu;
+  let ttsVoice = null;
   function chooseVoice() {
     if (!canSpeak) return;
     const voices = speechSynthesis.getVoices();
-    voice = voices.find(v => /en[-_]IN/i.test(v.lang)) || voices.find(v => /en[-_](GB|US)/i.test(v.lang) && /female|samantha|google/i.test(v.name))
+    ttsVoice = voices.find(v => /en[-_]IN/i.test(v.lang)) || voices.find(v => /en[-_](GB|US)/i.test(v.lang) && /female|samantha|google/i.test(v.name))
       || voices.find(v => /^en/i.test(v.lang)) || null;
   }
   if (canSpeak) { chooseVoice(); speechSynthesis.onvoiceschanged = chooseVoice; }
-  function speak(text, onEnd) {
-    if (!canSpeak || settings.mute) { if (onEnd) onEnd(); return; }
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, ""));
-    if (voice) u.voice = voice;
-    u.rate = 0.9; u.pitch = 1.1;
-    if (onEnd) u.onend = onEnd;
+
+  const player = new Audio();
+  player.preload = "auto";
+  let vToken = 0, vTimer = null;
+  function stopSpeaking() {
+    vToken++; clearTimeout(vTimer);
+    player.ontimeupdate = player.onended = player.onerror = null;
+    try { player.pause(); } catch (e) { /* ignore */ }
+    if (canSpeak) speechSynthesis.cancel();
+  }
+  /* Phones only allow sound after a tap: unlock the player on the first touch. */
+  document.addEventListener("pointerdown", () => {
+    if (player.dataset.src) return;
+    player.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=";
+    player.play().then(() => { if (!player.dataset.src) player.pause(); }).catch(() => { /* ignore */ });
+  }, { once: true, capture: true });
+
+  function clipOf(c) {
+    const a = c && STORY_AUDIO[c.n];
+    if (!a || a.t[c.u] == null) return null;
+    const end = a.t[(c.v == null ? c.u : c.v) + 1];
+    return { src: a.src, from: a.t[c.u], to: end == null ? Infinity : end };
+  }
+  function ttsSay(text, done) {
+    if (!canSpeak || !text) { done(); return; }
+    let over = false;
+    const end = () => { if (!over) { over = true; clearTimeout(guard); done(); } };
+    const u = new SpeechSynthesisUtterance(String(text).replace(EMOJI, ""));
+    if (ttsVoice) u.voice = ttsVoice;
+    u.rate = 0.9; u.pitch = 1.1; u.onend = end; u.onerror = end;
+    const guard = setTimeout(end, 1500 + String(text).length * 90);
     speechSynthesis.speak(u);
   }
-  function stopSpeaking() { if (canSpeak) speechSynthesis.cancel(); }
-  /* Under 6, Ojo speaks every instruction; from 6, text shows and the child taps Ojo to hear it. */
+  function playOne(item, done) {
+    const tok = vToken;
+    let over = false;
+    const quiet = () => { clearTimeout(vTimer); player.ontimeupdate = player.onended = player.onerror = null; };
+    const end = () => { if (over) return; over = true; quiet(); if (tok === vToken) done(); };
+    const fallback = () => { if (over) return; quiet(); if (tok === vToken && item.text) ttsSay(item.text, end); else end(); };
+    const file = item.id && VOICE_FILES[item.id];
+    const c = file ? { src: file, from: 0, to: Infinity } : item.clip ? clipOf(item.clip) : null;
+    if (!c) { ttsSay(item.text, end); return; }
+    const stopAtEnd = () => { if (tok !== vToken) return; player.pause(); end(); };
+    const start = () => {
+      if (tok !== vToken) return;
+      player.ontimeupdate = () => { if (tok === vToken && player.currentTime >= c.to - 0.03) stopAtEnd(); };
+      player.onended = () => { if (tok === vToken) end(); };
+      player.play().then(() => {
+        if (tok === vToken && isFinite(c.to)) { clearTimeout(vTimer); vTimer = setTimeout(stopAtEnd, Math.max(0, (c.to - player.currentTime) * 1000 - 40)); }
+      }).catch(fallback);
+    };
+    const seek = () => {
+      if (tok !== vToken) return;
+      if (Math.abs(player.currentTime - c.from) > 0.05) { player.addEventListener("seeked", start, { once: true }); player.currentTime = c.from; }
+      else start();
+    };
+    player.onerror = () => { if (tok === vToken) fallback(); };
+    if (player.dataset.src !== c.src) {
+      player.dataset.src = c.src; player.src = c.src;
+      player.addEventListener("loadedmetadata", seek, { once: true });
+      player.load();
+    } else if (player.readyState >= 1) seek();
+    else player.addEventListener("loadedmetadata", seek, { once: true });
+  }
+  /* Play lines one after another. Each line: { text, id?, clip? }. Resolves when the last line ends. */
+  function voice(...items) {
+    stopSpeaking();
+    return new Promise(resolve => {
+      if (settings.mute) { resolve(); return; }
+      const list = items.flat().filter(x => x && (x.text || x.clip));
+      const tok = vToken;
+      let i = 0;
+      const next = () => { if (tok === vToken && i < list.length) playOne(list[i++], next); else resolve(); };
+      next();
+    });
+  }
+  function speak(text) { voice({ text }); }
+  /* Lines from the stories always play. Other lines play by themselves under age 6; from 6, the child taps Ojo to hear them. */
   const autoTalk = () => !settings.mute && (active() ? active().age : 5) < 6;
-  function say(text) { if (autoTalk()) speak(text); }
+  function say(...items) {
+    const list = items.flat().filter(x => x && (x.clip || autoTalk()));
+    return list.length && !settings.mute ? voice(list) : Promise.resolve();
+  }
+  const storyLine = (stop, key) => { const c = stop && stop.voice && stop.voice[key]; return c ? { text: c.text || stop.title, clip: { n: stop.n, u: c.u, v: c.v } } : null; };
+  const cheerLine = () => { const c = pick(CELEBRATE_VOICE); return c ? { text: c.text, clip: { n: c.n, u: c.u } } : null; };
 
   /* ---------- Ojo's lines ---------- */
-  function line(moment, vars = {}) {
-    let s = pick(GUIDE[moment] || [""]);
+  function line(moment) {
+    const arr = GUIDE[moment] || [""], i = Math.floor(Math.random() * arr.length);
     const name = active() ? active().name : "";
-    s = name ? s.replace(/\{name\}/g, name) : s.replace(/,\s*\{name\}/g, "").replace(/\s*\{name\}/g, "");
-    Object.keys(vars).forEach(k => { s = s.replace(new RegExp("\\{" + k + "\\}", "g"), vars[k]); });
-    return s;
+    const text = name ? arr[i].replace(/\{name\}/g, name) : arr[i].replace(/,\s*\{name\}/g, "").replace(/\s*\{name\}/g, "");
+    return { text, id: `ojo.${moment}.${i + 1}` };
   }
   function ojoSvg(cls = "") { return `<svg class="ojo-svg ${cls}" viewBox="0 0 100 115" aria-hidden="true"><use href="#ojo"/></svg>`; }
   function dropSvg(cls = "") { return `<svg class="drop-svg ${cls}" viewBox="0 0 24 30" aria-hidden="true"><use href="#drop"/></svg>`; }
-  function guideHtml(text, id = "guide") {
-    return `<div class="guide" id="${id}">
+  function guideHtml(ln) {
+    return `<div class="guide" id="guide">
         <button class="guide-ojo" type="button" aria-label="Hear Ojo say it again">${ojoSvg()}</button>
-        <div class="guide-bubble"><span class="guide-text">${esc(text)}</span>${canSpeak && !settings.mute ? `<span class="guide-hear" aria-hidden="true">🔊</span>` : ""}</div>
+        <div class="guide-bubble"><span class="guide-text">${esc(ln ? ln.text : "")}</span>${!settings.mute ? `<span class="guide-hear" aria-hidden="true">🔊</span>` : ""}</div>
       </div>`;
   }
-  function bindGuide(root, text, id = "guide") {
-    const g = root.querySelector("#" + id);
+  function bindGuide(root, ln, opts = {}) {
+    const g = root.querySelector("#guide");
     if (!g) return;
-    g.addEventListener("click", () => { speak(g.querySelector(".guide-text").textContent); g.classList.remove("hop"); void g.offsetWidth; g.classList.add("hop"); });
-    if (text) say(text);
+    g._ln = ln;
+    g.addEventListener("click", () => { if (g._ln) voice(g._ln); g.classList.remove("hop"); void g.offsetWidth; g.classList.add("hop"); });
+    if (ln && !opts.silent) say(ln);
   }
-  function setGuide(root, text, id = "guide") {
-    const t = root.querySelector("#" + id + " .guide-text");
-    if (t) { t.textContent = text; say(text); }
+  function quietGuide(root, ln) {
+    const g = root.querySelector("#guide");
+    if (g && ln) { g.querySelector(".guide-text").textContent = ln.text; g._ln = ln; }
   }
+  function setGuide(root, ln) {
+    const g = root.querySelector("#guide");
+    if (!g || !ln) return;
+    g.querySelector(".guide-text").textContent = ln.text;
+    g._ln = ln;
+    say(ln);
+  }
+  function echoHtml(ln) {
+    return ln ? `<p class="story-echo"><button class="icon-btn echo-play" type="button" aria-label="Hear it from the story">🔊</button><span>“${esc(ln.text)}”</span></p>` : "";
+  }
+  function bindEcho(root, ln) { const b = root.querySelector(".echo-play"); if (b && ln) b.addEventListener("click", () => voice(ln)); }
 
   /* ================= Avatar (layered SVG) ================= */
   let clipN = 0;
@@ -294,20 +381,25 @@
     const el = document.getElementById("drops-pill");
     el.classList.remove("bounce"); void el.offsetWidth; el.classList.add("bounce");
   }
-  function celebrate(n, text, then) {
-    const msg = text || line("gameDone");
+  function celebrate(n, ln, then, extraHtml = "") {
+    const msg = ln || line("gameDone");
     confetti();
     const scrim = modal(`
       <div class="celebrate" role="dialog" aria-modal="true" aria-label="Well done">
         <div class="cel-ojo">${ojoSvg("dance")}</div>
-        <p class="cel-text">${esc(msg)}</p>
+        <p class="cel-text">${esc(msg.text)}</p>
+        ${extraHtml}
         ${n > 0 ? `<div class="cel-drops">${dropSvg()}<b>+${n}</b><span>Ojas drop${n > 1 ? "s" : ""}</span></div>` : ""}
         <button class="btn btn-big autofocus" data-close type="button">Yay!</button>
       </div>`, { onClose: then });
-    say(msg);
+    const spoken = msg.clip ? say(msg.lead, msg) : say(cheerLine(), msg);
     bumpDrops();
-    const t = setTimeout(() => { if (layer.contains(scrim)) closeModal(); }, settings.calm ? 2200 : 3200);
-    scrim.addEventListener("click", () => clearTimeout(t), { once: true });
+    /* Close by itself once the voice has finished (at least ~3 seconds); a tap keeps it open. */
+    let held = false;
+    scrim.addEventListener("click", () => { held = true; }, { once: true });
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    Promise.race([Promise.all([wait(settings.calm ? 2200 : 3200), spoken.then(() => wait(700))]), wait(15000)])
+      .then(() => { if (!held && layer.contains(scrim)) closeModal(); });
   }
 
   /* Gentle session limit: after the set minutes, Ojo sends the child off to try the habit for real. */
@@ -328,7 +420,7 @@
       <div class="sheet session-end locked" role="dialog" aria-modal="true" aria-labelledby="se-h">
         ${ojoSvg("big")}
         <h2 id="se-h">Time to try it with Ojo!</h2>
-        <p>${esc(msg)}</p>
+        <p>${esc(msg.text)}</p>
         <div class="task-mini"><span>${todo.sticker.e}</span><p>${esc(todo.task)}</p></div>
         <button class="btn btn-ghost" id="se-more" type="button">Grown-up: play a little more 🔒</button>
       </div>`, { full: true, locked: true });
@@ -388,7 +480,7 @@
         <p class="welcome-ask">🙋 Ask a grown-up to set up the app for you.</p>
         <button class="btn btn-big" id="start" type="button">Grown-up: set up 🔒</button>
       </section>`;
-    say("Hello! I am Ojo. Ask a grown-up to set up the app for you.");
+    say(line("welcome"));
     document.getElementById("start").addEventListener("click", () => parentGate(() => go("#/setup")));
   }
 
@@ -490,7 +582,7 @@
 
   function viewMeet() {
     const p = active(); if (!p) { go("#/who"); return; }
-    const lines = GUIDE.firstMeet.map(l => l.replace(/\{name\}/g, p.name));
+    const lines = GUIDE.firstMeet.map((l, i) => ({ text: l.replace(/\{name\}/g, p.name), id: `ojo.firstMeet.${i + 1}` }));
     app.innerHTML = `
       <section class="meet">
         <div class="meet-stage">${avatarSvg(p.avatar, "avatar big")}${ojoSvg("buddy float")}</div>
@@ -529,6 +621,7 @@
     const lastDay = prog.days.length ? prog.days[prog.days.length - 1] : null;
     const h = new Date().getHours();
     const greet = lastDay && daysApart(lastDay, dayKey()) >= 3 ? line("returnAfterBreak") : line(h < 12 ? "morning" : h < 17 ? "afternoon" : "evening");
+    const doneLn = line("allDone");
     const lights = TRAIL.filter(s => stopState(prog, s.n).listen).length;
     const complete = s => { const st = stopState(prog, s.n); return st.listen && st.play && st.done; };
     const nextStop = TRAIL.find(s => !complete(s));
@@ -540,7 +633,7 @@
 
     app.innerHTML = `
       <section class="trail-head">
-        ${guideHtml(allDone ? line("allDone") : greet)}
+        ${guideHtml(allDone ? doneLn : greet)}
         <div class="lights" aria-label="${lights} of 8 drops of light found">
           <div class="lights-row">${TRAIL.map(s => dropSvg(stopState(prog, s.n).listen ? "lit" : "")).join("")}</div>
           <p>${lights === 8 ? "Ojo is full of light!" : `${lights} of 8 drops of light`}</p>
@@ -561,10 +654,10 @@
         }).join("")}
         ${allDone ? `<div class="trail-end" style="top:${TRAIL.length * ROW}px">🏆 Ojo's treasure is full!<br><button class="btn btn-small" id="cert" type="button">Print certificate</button></div>` : ""}
       </div>`;
-    bindGuide(app, allDone ? null : greet);
+    bindGuide(app, allDone ? doneLn : greet, { silent: !!gained });
     app.querySelectorAll(".stop").forEach(b => b.addEventListener("click", () => openStop(+b.dataset.n)));
     const cert = document.getElementById("cert"); if (cert) cert.addEventListener("click", printCertificate);
-    if (gained) later(() => celebrate(gained, "You found a drop of light in the story!"), 400);
+    if (gained) later(() => celebrate(gained, line("bookDrop")), 400);
     else if (!allDone) later(() => { const el = app.querySelector(".stop.next"); if (el && el.getBoundingClientRect().top > innerHeight - 120) el.scrollIntoView({ behavior: settings.calm ? "auto" : "smooth", block: "center" }); }, 500);
   }
 
@@ -585,6 +678,7 @@
         <button class="btn btn-ghost" data-close type="button">Close</button>
       </div>`);
     scrim.querySelectorAll("a.step").forEach(a => a.addEventListener("click", () => { onModalClose = null; }));
+    say(storyLine(s, "title"));
   }
 
   function printCertificate() {
@@ -625,25 +719,31 @@
     const n = parseInt(key, 10);
     const stop = TRAIL.find(s => s.n === n);
     const gameKey = stop ? stop.game : key;
-    const game = GAMES[gameKey];
-    if (!game) { go("#/games"); return; }
+    if (!GAMES[gameKey]) { go("#/games"); return; }
+    const game = Object.assign({ key: gameKey }, GAMES[gameKey]);
     const back = stop ? "#/" : "#/games";
+    const promptLn = { text: game.prompt || "", id: `game.${gameKey}.prompt` };
+    const intro = storyLine(stop, "intro");
     app.innerHTML = `
       <div class="play-head">
         <a class="btn btn-small btn-ghost" href="${back}">← ${stop ? "Trail" : "Games"}</a>
         <h1>${esc(game.title)}</h1>
       </div>
-      ${guideHtml(game.prompt || "")}
+      ${echoHtml(intro)}
+      ${guideHtml(promptLn)}
       <div class="game" id="game-box"></div>`;
-    bindGuide(app, game.prompt);
+    bindGuide(app, promptLn, { silent: true });
+    bindEcho(app, intro);
     const box = document.getElementById("game-box");
     const engines = { sort: gameSort, sequence: gameSequence, choose: gameChoose, scrub: gameScrub, tummy: gameTummy, pairs: gamePairs };
     const win = () => later(() => finishGame(gameKey, stop, box), 700);
-    engines[game.type](box, game, isSmall(), win);
+    engines[game.type](box, game, isSmall(), win, stop);
+    if (game.type !== "choose") say(intro, promptLn);
+    else if (intro) say(intro);
   }
 
-  function praise() { const t = line("correct"); setGuide(app, t); }
-  function hint(text) { setGuide(app, text || line("wrong")); }
+  function praise() { setGuide(app, line("correct")); }
+  function hint(ln) { setGuide(app, ln || line("wrong")); }
 
   function finishGame(gameKey, stop, box) {
     let earned = 0;
@@ -651,11 +751,11 @@
     else if (prog.played[gameKey] !== dayKey()) { prog.played[gameKey] = dayKey(); earned = addDrops(DV.replay); }
     else markActive();
     saveProg();
-    const msg = line("gameDone");
+    const msg = storyLine(stop, "done") || line("gameDone");
     box.innerHTML = `
       <div class="center game-done">
         <div class="game-cover">🏆</div>
-        <h2>${esc(msg)}</h2>
+        <h2>${esc(msg.text)}</h2>
         ${earned ? `<p class="earned">${dropSvg()} +${earned} Ojas drop${earned > 1 ? "s" : ""}</p>` : `<p class="earned">You've already collected today's drops for this game.</p>`}
         <div class="row">
           ${stop ? `<a class="btn btn-big" href="#/do/${stop.n}">🌟 Now try it for real</a>` : ""}
@@ -663,13 +763,14 @@
         </div>
       </div>`;
     box.querySelector(".again").addEventListener("click", router);
-    if (earned) celebrate(earned, msg, () => { if (stop) setGuide(app, line("taskInvite")); });
-    else setGuide(app, msg);
+    const lead = storyLine(stop, "yay");
+    if (earned) celebrate(earned, Object.assign({ lead }, msg), () => { if (stop) setGuide(app, line("taskInvite")); });
+    else { quietGuide(app, msg); say(lead, msg); }
   }
 
   /* Tap everything that is right */
   function gameSort(box, game, small, win) {
-    let items = game.items;
+    let items = game.items.map((it, k) => Object.assign({ k }, it));
     if (small) items = [...items.filter(i => i.ok).slice(0, 3), ...items.filter(i => !i.ok).slice(0, game.small - 3)];
     items = shuffle(items);
     const need = items.filter(i => i.ok).length;
@@ -682,17 +783,17 @@
       if (it.ok) {
         b.classList.add("right"); found++;
         box.querySelector("#counter").textContent = `${found} of ${need} found`;
-        if (found === need) { praise(); win(); } else speak(it.l);
+        if (found === need) { praise(); win(); } else voice({ text: it.l, id: `game.${game.key}.item.${it.k + 1}` });
       } else {
         b.classList.remove("wrong"); void b.offsetWidth; b.classList.add("wrong");
-        hint(`Hmm, does ${it.l.toLowerCase()} help? Try another!`);
+        hint(line("sortHint"));
       }
     }));
   }
 
   /* Tap the pictures in the right order */
   function gameSequence(box, game, small, win) {
-    const steps = small ? game.steps.filter(s => s.core) : game.steps;
+    const steps = game.steps.map((st, k) => Object.assign({ k }, st)).filter(st => !small || st.core);
     const order = shuffle(steps.map((_, k) => k));
     let next = 0, misses = 0;
     box.innerHTML = `
@@ -707,12 +808,11 @@
         b.classList.add("used"); b.disabled = true;
         next++; misses = 0;
         box.querySelectorAll(".card-btn.glow").forEach(x => x.classList.remove("glow"));
-        speak(steps[k].l);
-        if (next === steps.length) { praise(); win(); }
+        if (next === steps.length) { praise(); win(); } else voice({ text: steps[k].l, id: `game.${game.key}.step.${steps[k].k + 1}` });
       } else {
         misses++;
         b.classList.remove("wrong"); void b.offsetWidth; b.classList.add("wrong");
-        hint(misses >= 2 ? `What comes next? Look at the glowing one!` : "Hmm, what comes next?");
+        hint(line(misses >= 2 ? "seqGlow" : "seqHint"));
         if (misses >= 2) { const c = box.querySelector(`.card-btn[data-k="${next}"]`); if (c) c.classList.add("glow"); }
       }
     }));
@@ -728,9 +828,11 @@
       box.innerHTML = `
         <div class="game-round">Question ${i + 1} of ${rounds.length}</div>
         <div class="prompt-emoji">${r.e}</div>
-        <p class="q">${esc(r.q)} ${canSpeak ? `<button class="icon-btn" id="hear" type="button" aria-label="Hear the question">🔊</button>` : ""}</p>
+        <p class="q">${esc(r.q)} <button class="icon-btn" id="hear" type="button" aria-label="Hear the question">🔊</button></p>
         <div class="options">${opts.map(x => `<button class="option" data-k="${x.k}" type="button">${esc(x.o)}</button>`).join("")}</div>`;
-      const ask = () => speak(r.q + " " + r.options.map(o => o.replace(/^[\p{Extended_Pictographic}\uFE0F\u200D]+\s*/u, "")).join(", or "));
+      const qLn = { text: r.q, id: `game.${game.key}.q${i + 1}` };
+      const optLns = r.options.map((o, k) => ({ text: o.replace(EMOJI, "").trim(), id: `game.${game.key}.q${i + 1}.opt${k + 1}` }));
+      const ask = () => voice(qLn, optLns);
       if (autoTalk()) ask();
       const hear = box.querySelector("#hear"); if (hear) hear.addEventListener("click", ask);
       let done = false;
@@ -753,7 +855,7 @@
     box.innerHTML = `<p class="counter" id="counter">${left} fuzzy spots left</p>
       <div class="mouth">${[...Array(12).keys()].map(k => `<button class="tooth ${fuzzy.has(k) ? "fuzzy" : ""} ${k < 6 ? "top" : "bottom"}" data-k="${k}" type="button" aria-label="${fuzzy.has(k) ? "Fuzzy tooth" : "Clean tooth"}"></button>`).join("")}</div>`;
     box.querySelectorAll(".tooth").forEach(b => b.addEventListener("click", () => {
-      if (!b.classList.contains("fuzzy")) { setGuide(app, "That one is already sparkly!"); return; }
+      if (!b.classList.contains("fuzzy")) { setGuide(app, line("teethClean")); return; }
       b.classList.remove("fuzzy"); b.classList.add("sparkle"); b.setAttribute("aria-label", "Clean tooth");
       left--;
       box.querySelector("#counter").textContent = left ? `${left} fuzzy spot${left > 1 ? "s" : ""} left` : "All sparkly!";
@@ -762,7 +864,7 @@
   }
 
   /* Stop eating when the tummy feels comfy */
-  function gameTummy(box, game, small, win) {
+  function gameTummy(box, game, small, win, stop) {
     const max = game.bites.length, comfy = game.comfy;
     let level = 0, locked = false;
     function render() {
@@ -781,17 +883,17 @@
         level++;
         if (level > comfy) {
           locked = true; render();
-          setGuide(app, "Oops, too full! Let's try again and leave a little space.");
+          setGuide(app, line("tummyFull"));
           later(() => { level = 0; locked = false; render(); }, 1800);
           return;
         }
         render();
-        if (level === comfy) setGuide(app, "Ayu's tummy feels comfy. Leave a little space!");
+        if (level === comfy) setGuide(app, line("tummyComfy"));
       }));
       box.querySelector("#tummy-done").addEventListener("click", () => {
         if (locked) return;
-        if (level < comfy) { hint("Ayu is still a little hungry. One more bite?"); return; }
-        locked = true; setGuide(app, "Thank you, tummy!"); win();
+        if (level < comfy) { hint(line("tummyHungry")); return; }
+        locked = true; quietGuide(app, storyLine(stop, "yay") || { text: "Thank you, tummy!" }); win();
       });
     }
     render();
@@ -811,7 +913,7 @@
       const [a, c] = open; open = [];
       if (deck[+a.dataset.k] === deck[+c.dataset.k]) {
         a.classList.add("got"); c.classList.add("got"); matched++;
-        if (matched === faces.length) { praise(); win(); } else speak(pick(["A pair!", "Match!", "Yes!"]));
+        if (matched === faces.length) { praise(); win(); } else voice(line("pairMatch"));
       } else {
         busy = true;
         later(() => { a.classList.remove("up"); c.classList.remove("up"); a.setAttribute("aria-label", "Hidden card"); c.setAttribute("aria-label", "Hidden card"); busy = false; }, 900);
@@ -826,14 +928,17 @@
     const t = dayKey(), habit = prog.habits[n] || { count: 0, last: null };
     const doneToday = habit.last === t, pending = !!prog.pending[n] && !doneToday;
     const got = !!prog.stickers[s.sticker.id];
-    const g = doneToday ? `Well done! You did it today.` : pending ? line("taskPending") : line("taskInvite");
+    const g = doneToday ? line("taskDoneToday") : pending ? line("taskPending") : line("taskInvite");
+    const fromStory = storyLine(s, "story");
+    const taskLn = { text: s.task, id: `task.${n}` };
     app.innerHTML = `
       <div class="play-head"><a class="btn btn-small btn-ghost" href="#/">← Trail</a><h1>Try it today</h1></div>
       ${guideHtml(g)}
+      ${echoHtml(fromStory)}
       <section class="task-card" style="--c:${s.color}">
         <div class="task-sticker">${s.sticker.e}</div>
         <p class="task-text">${esc(s.task)}</p>
-        ${canSpeak ? `<button class="icon-btn" id="hear-task" type="button" aria-label="Hear the task">🔊</button>` : ""}
+        <button class="icon-btn" id="hear-task" type="button" aria-label="Hear the task">🔊</button>
         <div class="task-status">
           ${doneToday ? `<p class="ok">✅ Done today!</p>`
             : pending ? `<p class="wait">⏳ Waiting for a grown-up's tick</p>`
@@ -845,16 +950,20 @@
           <div class="dots3">${[0, 1, 2].map(k => `<span class="${k < Math.min(habit.count, 3) ? "on" : ""}"></span>`).join("")}</div>
         </div>
       </section>`;
-    bindGuide(app, g);
-    const hear = document.getElementById("hear-task"); if (hear) hear.addEventListener("click", () => speak(s.task));
+    bindGuide(app, g, { silent: true });
+    bindEcho(app, fromStory);
+    say(fromStory, doneToday ? g : taskLn);
+    document.getElementById("hear-task").addEventListener("click", () => voice(taskLn));
     const will = document.getElementById("will-do");
     if (will) will.addEventListener("click", () => { prog.pending[n] = t; saveProg(); router(); });
     const tick = document.getElementById("tick-now");
     if (tick) tick.addEventListener("click", () => parentGate(() => {
       const r = confirmTask(activeId, n);
-      if (r) celebrate(r.earned, r.sticker ? `New sticker: ${r.sticker.name}!` : `Well done, ${active().name}!`, router);
+      if (r) celebrate(r.earned, line(r.sticker ? "newSticker" : "taskDone"), router, r.sticker ? stickerHtml(r.sticker) : "");
     }));
   }
+
+  function stickerHtml(st) { return `<div class="cel-sticker"><span>${st.e}</span><b>${esc(st.name)}</b></div>`; }
 
   /* A grown-up confirms the habit was done. Drops once a day per habit; sticker after three days. */
   function confirmTask(childId, n) {
@@ -879,7 +988,7 @@
     const wk = weekKey(), weekDays = prog.days.filter(d => weekKey(new Date(d + "T12:00:00")) === wk).length;
     const chestReady = weekDays >= 3 && !prog.chests[wk];
     const plants = prog.plants.map(id => PLANTS.find(p => p.id === id)).filter(Boolean);
-    const g = prog.days.length ? `Your garden has ${prog.days.length} flower${prog.days.length > 1 ? "s" : ""}. Flowers never wilt here!` : "Play today and your first flower will bloom!";
+    const g = line(prog.days.length ? "garden" : "gardenEmpty");
     app.innerHTML = `
       <h1 class="page-title">🌼 My Garden</h1>
       ${guideHtml(g)}
@@ -906,7 +1015,7 @@
       if (st) prog.stickers[st.id] = dayKey();
       const earned = addDrops(DV.chest);
       saveProg();
-      celebrate(earned, st ? `${line("chest")} You got the ${st.name} sticker!` : line("chest"), router);
+      celebrate(earned, line("chest"), router, st ? stickerHtml(st) : "");
     });
   }
 
@@ -950,7 +1059,7 @@
     }));
     app.querySelectorAll("[data-buy]").forEach(b => b.addEventListener("click", () => {
       const it = items.find(x => x.id === b.dataset.buy);
-      if (prog.drops < it.price) { toast(`You need ${it.price - prog.drops} more drops. Keep playing!`); speak("Keep playing to collect more drops!"); return; }
+      if (prog.drops < it.price) { toast(`You need ${it.price - prog.drops} more drops. Keep playing!`); voice(line("needDrops")); return; }
       const scrim = modal(`
         <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="buy-h">
           <h2 id="buy-h">Get ${esc(it.name)}?</h2>
@@ -1285,7 +1394,7 @@
         body.innerHTML = `
           <div class="game center">
             <div class="game-cover">🏆</div>
-            <h2>${esc(line("gameDone"))}</h2>
+            <h2>${esc(line("gameDone").text)}</h2>
             <p class="earned">${earned ? `${dropSvg()} +${earned} Ojas drop` : "You've already collected today's drop for this game."}</p>
             <button class="btn btn-big again" type="button">🔁 Play again</button>
           </div>`;
@@ -1316,7 +1425,7 @@
           round++; later(next, 1200);
         } else {
           b.classList.add("wrong"); b.disabled = true;
-          const t = line("wrong"); fb.textContent = "🤔 " + t; speak(t);
+          const t = line("wrong"); fb.textContent = "🤔 " + t.text; voice(t);
         }
       }));
     }
