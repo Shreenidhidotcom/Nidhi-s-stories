@@ -7,14 +7,15 @@ A gentle, ad-free learning web app for children aged about 3–7, built around *
 - **Child profiles (set up by a parent).** Behind a parent check, a grown-up enters the child's first name or nickname, age and (optionally) gender. Up to three children can share one device. Everything is saved on the device only.
 - **The child's own character.** A layered avatar (skin, hair, hair colour, eyes, clothes, extras). Gender only sets the starting look; every look is open to every child.
 - **Ojo as guide.** Ojo greets the child by name, changes the greeting with the time of day, gives hints, and cheers. Under age 6 every instruction is spoken; from 6, the child taps Ojo to hear it.
-- **A menu of every part of the app.** The bottom bar has Ayu & Ojo, Stories, Trail, Games and Menu. The Menu lists everything: for children, Meet Ayu and Ojo, Stories, Treasure Trail, Games, My golden drops and Me; for grown-ups, the readings for grown-ups, About the author and Parent Corner.
+- **Home.** A scene that changes with the time of day (morning, afternoon, evening, night) with Ayu and Ojo, and Ojo greeting the child by name. One big play button for today's next step (listen, play or do), the eight drops of light found so far, and big picture tiles for Stories, Trail, Games, My drops, Ayu & Ojo and Me. Modelled on the best apps for this age: one clear next step, characters on the home screen, pictures before words.
+- **A menu of every part of the app.** The bottom bar has Home, Stories, Trail, Games and Menu, with drawn icons. The Menu lists everything: for children, Meet Ayu and Ojo, Stories, Treasure Trail, Games, My golden drops and Me; for grown-ups, the readings for grown-ups, About the author and Parent Corner.
 - **Meet Ayu and Ojo.** Who they are and why they matter, in short, plain sentences with a 🔊 Listen button, Ayu's family, and a fold for grown-ups explaining the names (Āyu, ojas, the eight drops). New children see it straight after Ojo first says hello.
 - **Stories.** The eight stories of The Ojo Treasury, each opening the book at that story, with the golden drop the child has found in each. The book's back button returns to where the child came from.
 - **For grown-ups** (behind the parent check). How the app works, what Ayu and Ojo mean, and for each story the practice, its Ayurveda name, the author's note and something to try together; a link to the book's guide on reading by age, feeding myths and when to see a doctor.
 - **About the author.** Dr Shreenidhi Kalmath's photo, role, note to readers and work. Her name also appears on Meet Ayu and Ojo, Stories, For grown-ups and the Menu.
 - **Plain words first.** Children's screens use plain words (Ojo, a little light, golden drops). Ayurveda terms appear only in the grown-ups' pages, including in the book, where Ojo's glow and the five gates are named in English and Kannada.
 - **Sounds.** A soft tap for every button, a bright chime for a right answer and a gentle low tone for "try again", and a sparkle when drops are earned. Made by the browser, with no audio files; a grown-up can turn them off in Parent Corner.
-- **Ojo's Treasure Trail.** Eight stops, one per story. Each stop has three steps:
+- **Ojo's Treasure Trail** (`#/trail`). Eight stops, one per story. Each stop has three steps:
   - 🎧 **Listen**: the story in The Ojo Treasury (2 drops)
   - 🎮 **Play**: a game about the story (3 drops)
   - 🌟 **Do**: a real-life habit, confirmed by a grown-up in Parent Corner (5 drops)

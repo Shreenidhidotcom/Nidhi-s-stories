@@ -30,6 +30,39 @@
       <circle cx="32" cy="83" r="4.4" fill="#f27a7a" opacity=".38"/><circle cx="68" cy="83" r="4.4" fill="#f27a7a" opacity=".38"/>
       <path d="M45,86 Q50,90.5 55,86" fill="none" stroke="#2a1830" stroke-width="2.4" stroke-linecap="round"/>
     </symbol>
+    <!-- App icons: home, book, map, game, menu, jar -->
+    <symbol id="i-home" viewBox="0 0 48 48">
+      <path d="M10 21v19a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V21L24 9Z" fill="#ffd166"/>
+      <path d="M4 23 24 6l20 17" fill="none" stroke="#ff7043" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="19.5" y="28" width="9" height="14" rx="3" fill="#a0612f"/>
+      <rect x="30.5" y="24" width="6" height="6" rx="1.5" fill="#7fd0ff"/>
+    </symbol>
+    <symbol id="i-book" viewBox="0 0 48 48">
+      <path d="M4 11c7-3 13-2 20 3v27c-7-5-13-6-20-3Z" fill="#fff" stroke="#5b8def" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M44 11c-7-3-13-2-20 3v27c7-5 13-6 20-3Z" fill="#fff" stroke="#5b8def" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M9 19c4-1 7-1 11 1M9 25c4-1 7-1 11 1M28 20c4-2 7-2 11-1M28 26c4-2 7-2 11-1" stroke="#b8c9f5" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M34 9c1.6 2.6 3.5 4.3 3.5 6.3a3.5 3.5 0 0 1-7 0c0-2 1.9-3.7 3.5-6.3Z" fill="#f6b52c"/>
+    </symbol>
+    <symbol id="i-map" viewBox="0 0 48 48">
+      <path d="M5 12l12-4 14 4 12-4v28l-12 4-14-4-12 4Z" fill="#9be3a6" stroke="#4fae63" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M17 8v28M31 12v28" stroke="#4fae63" stroke-width="2" opacity=".55"/>
+      <path d="M9 32c5-1 6-8 11-8s6 6 11 3" fill="none" stroke="#ef476f" stroke-width="2.6" stroke-dasharray="3 3.4" stroke-linecap="round"/>
+      <path d="M36 12.5a5.5 5.5 0 0 1 5.5 5.5c0 4.4-5.5 10-5.5 10s-5.5-5.6-5.5-10a5.5 5.5 0 0 1 5.5-5.5Z" fill="#ef476f"/><circle cx="36" cy="18" r="2.1" fill="#fff"/>
+    </symbol>
+    <symbol id="i-game" viewBox="0 0 48 48">
+      <path d="M14 14h20c6 0 10 5 10 12 0 6-3 10-7 10-3 0-5-2-7-5H18c-2 3-4 5-7 5-4 0-7-4-7-10 0-7 4-12 10-12Z" fill="#8e7cf0" stroke="#6a57d6" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M14 21v8M10 25h8" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="32" cy="22" r="2.8" fill="#ffd166"/><circle cx="37.5" cy="27.5" r="2.8" fill="#ef476f"/>
+    </symbol>
+    <symbol id="i-grid" viewBox="0 0 48 48">
+      <rect x="6" y="6" width="16" height="16" rx="5" fill="#ff8c42"/><rect x="26" y="6" width="16" height="16" rx="5" fill="#5b8def"/>
+      <rect x="6" y="26" width="16" height="16" rx="5" fill="#7fd08d"/><rect x="26" y="26" width="16" height="16" rx="5" fill="#ffd166"/>
+    </symbol>
+    <symbol id="i-jar" viewBox="0 0 48 48">
+      <rect x="13" y="4" width="22" height="7" rx="3" fill="#e2a63b"/>
+      <path d="M12 12h24c3 0 5 3 5 7v16c0 5-4 8-9 8H16c-5 0-9-3-9-8V19c0-4 2-7 5-7Z" fill="#e3f2ff" stroke="#9cc3e6" stroke-width="2.5"/>
+      <path d="M17 26c1.8 2.8 3.6 4.6 3.6 6.6a3.6 3.6 0 0 1-7.2 0c0-2 1.8-3.8 3.6-6.6ZM29 24c1.8 2.8 3.6 4.6 3.6 6.6a3.6 3.6 0 0 1-7.2 0c0-2 1.8-3.8 3.6-6.6ZM23.5 32c1.8 2.8 3.6 4.6 3.6 6.6a3.6 3.6 0 0 1-7.2 0c0-2 1.8-3.8 3.6-6.6Z" fill="#f6b52c"/>
+    </symbol>
     <symbol id="drop" viewBox="0 0 24 30">
       <path d="M12 2C15 8 21 13 21 19.5A9 9 0 0 1 3 19.5C3 13 9 8 12 2Z" fill="#f6b52c" stroke="#d98a10" stroke-width="1.4"/>
       <path d="M8.5 18.5a4 4 0 0 0 3 4.5" fill="none" stroke="#fff6cf" stroke-width="2" stroke-linecap="round"/>
@@ -37,7 +70,7 @@
   </svg>
 
   <header class="topbar" id="topbar">
-    <a href="#/" class="brand" aria-label="Ojo's Treasure Trail, home">
+    <a href="#/" class="brand" aria-label="Home">
       <svg class="brand-ojo" viewBox="0 0 100 115" aria-hidden="true"><use href="#ojo"/></svg>
       <span class="brand-text">Nidhi's Stories</span>
     </a>
@@ -54,11 +87,11 @@
   <main id="app" tabindex="-1"></main>
 
   <nav class="tabbar" id="tabbar" aria-label="Main">
-    <a href="#/intro" data-nav="intro"><span class="tb-icon"><svg viewBox="0 0 100 115" aria-hidden="true"><use href="#ojo"/></svg></span><span>Ayu &amp; Ojo</span></a>
-    <a href="#/stories" data-nav="stories"><span class="tb-icon">📖</span><span>Stories</span></a>
-    <a href="#/" data-nav="trail"><span class="tb-icon">🗺️</span><span>Trail</span></a>
-    <a href="#/games" data-nav="games"><span class="tb-icon">🎮</span><span>Games</span></a>
-    <a href="#/menu" data-nav="menu"><span class="tb-icon">☰</span><span>Menu</span></a>
+    <a href="#/" data-nav="home"><span class="tb-icon"><svg viewBox="0 0 48 48" aria-hidden="true"><use href="#i-home"/></svg></span><span>Home</span></a>
+    <a href="#/stories" data-nav="stories"><span class="tb-icon"><svg viewBox="0 0 48 48" aria-hidden="true"><use href="#i-book"/></svg></span><span>Stories</span></a>
+    <a href="#/trail" data-nav="trail"><span class="tb-icon"><svg viewBox="0 0 48 48" aria-hidden="true"><use href="#i-map"/></svg></span><span>Trail</span></a>
+    <a href="#/games" data-nav="games"><span class="tb-icon"><svg viewBox="0 0 48 48" aria-hidden="true"><use href="#i-game"/></svg></span><span>Games</span></a>
+    <a href="#/menu" data-nav="menu"><span class="tb-icon"><svg viewBox="0 0 48 48" aria-hidden="true"><use href="#i-grid"/></svg></span><span>Menu</span></a>
   </nav>
 
   <div id="layer"></div>

@@ -494,13 +494,13 @@
   document.getElementById("lock-btn").addEventListener("click", () => parentGate(() => { location.hash = "#/parents"; }));
 
   const routes = {
-    "": viewTrail, welcome: viewWelcome, setup: viewSetup, avatar: viewAvatar, meet: viewMeet, who: viewWho,
+    "": viewHome, trail: viewTrail, welcome: viewWelcome, setup: viewSetup, avatar: viewAvatar, meet: viewMeet, who: viewWho,
     play: viewPlay, do: viewDo, games: viewGames, drops: viewDrops, garden: viewDrops, me: viewMe, parents: viewParents,
     abc: viewAbc, numbers: viewNumbers, shapes: viewShapes,
     intro: viewIntro, stories: viewStories, grown: viewGrown, author: viewAuthor, menu: viewMenu
   };
-  const TAB_OF = { "": "trail", play: "games", do: "trail", games: "games", abc: "games", numbers: "games", shapes: "games",
-    intro: "intro", stories: "stories", menu: "menu", drops: "menu", garden: "menu", me: "menu", avatar: "menu", grown: "menu", author: "menu" };
+  const TAB_OF = { "": "home", trail: "trail", play: "games", do: "trail", games: "games", abc: "games", numbers: "games", shapes: "games",
+    intro: "home", stories: "stories", menu: "menu", drops: "menu", garden: "menu", me: "menu", avatar: "menu", grown: "menu", author: "menu" };
   let currentView = "";
   let viewId = 0, cleanups = [];
   function later(fn, ms) { const id = viewId; setTimeout(() => { if (id === viewId) fn(); }, ms); }
@@ -515,7 +515,7 @@
     if (!profiles.length && name !== "setup") name = "welcome";
     else if (profiles.length && !active() && !["who", "setup", "parents"].includes(name)) name = "who";
     currentView = name;
-    document.body.dataset.view = name || "trail";
+    document.body.dataset.view = name || "home";
     document.querySelectorAll("[data-nav]").forEach(a => a.classList.toggle("active", a.dataset.nav === TAB_OF[name]));
     routes[name](parts.slice(1));
     app.focus({ preventScroll: true });
@@ -671,6 +671,92 @@
     if (add) add.addEventListener("click", () => parentGate(() => go("#/setup")));
   }
 
+  /* ================= Home =================
+     Like the best apps for this age: one big button for today's next step (Khan Academy Kids' play button,
+     Duolingo ABC's path), a friendly scene with the characters, and big picture tiles for everything else. */
+  const icon = (id, cls = "") => `<svg class="ic ${cls}" viewBox="0 0 48 48" aria-hidden="true"><use href="#${id}"/></svg>`;
+  function timeOfDay(h = new Date().getHours()) { return h < 5 ? "night" : h < 12 ? "morning" : h < 17 ? "afternoon" : h < 20 ? "evening" : "night"; }
+  function greeting() {
+    const lastDay = prog.days.length ? prog.days[prog.days.length - 1] : null;
+    const h = new Date().getHours();
+    return lastDay && daysApart(lastDay, dayKey()) >= 3 ? line("returnAfterBreak") : line(h < 12 ? "morning" : h < 17 ? "afternoon" : "evening");
+  }
+  /* The next thing to do: the first step not yet done, skipping habits that wait for a grown-up's tick. */
+  function nextStep() {
+    for (const s of TRAIL) {
+      const st = stopState(prog, s.n);
+      if (!st.listen) return { s, k: "listen", href: `ojo-treasury/index.html#story-${s.n}`, verb: "Listen to the story", ic: "🎧" };
+      if (!st.play) return { s, k: "play", href: `#/play/${s.n}`, verb: `Play ${GAMES[s.game].title}`, ic: "🎮" };
+      if (!st.done && !prog.pending[s.n]) return { s, k: "do", href: `#/do/${s.n}`, verb: "Try it for real", ic: "🌟" };
+    }
+    return null;
+  }
+  function heroScene(tod) {
+    const night = tod === "night", eve = tod === "evening";
+    const sky = night ? `<circle cx="330" cy="46" r="20" fill="#fff6d6"/><circle cx="339" cy="40" r="18" fill="#2b2466"/>${[[40, 30], [90, 60], [150, 24], [210, 52], [260, 20], [380, 80], [300, 92]].map(([x, y]) => `<circle class="twinkle" cx="${x}" cy="${y}" r="2" fill="#fff"/>`).join("")}`
+      : `<circle cx="${eve ? 80 : 335}" cy="${eve ? 118 : 50}" r="${eve ? 30 : 26}" fill="${eve ? "#ffb35c" : "#ffd45c"}"/><circle cx="${eve ? 80 : 335}" cy="${eve ? 118 : 50}" r="${eve ? 44 : 40}" fill="${eve ? "#ffb35c" : "#ffd45c"}" opacity=".25"/>`;
+    const cloud = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><g class="cloud" fill="#fff" opacity="${night ? .18 : .9}"><ellipse cx="0" cy="0" rx="26" ry="13"/><ellipse cx="18" cy="-8" rx="17" ry="13"/><ellipse cx="-16" cy="-4" rx="13" ry="10"/></g></g>`;
+    return `<svg class="hero-scene" viewBox="0 0 400 240" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      ${sky}${cloud(120, 46, 1)}${cloud(250, 78, .75)}
+      <path d="M0 168 Q 95 124 195 158 T 400 146 V240 H0Z" fill="${night ? "#2f6b4a" : "#a9df92"}"/>
+      <path d="M0 200 Q 120 164 232 196 T 400 186 V240 H0Z" fill="${night ? "#245a3c" : "#7fca6b"}"/>
+      <g transform="translate(338 168)"><rect x="-6" y="-46" width="12" height="52" rx="5" fill="#8a5a33"/>
+        <circle cx="-24" cy="-56" r="22" fill="${night ? "#2d6b43" : "#5fae55"}"/><circle cx="6" cy="-70" r="27" fill="${night ? "#337a4c" : "#6cbd5f"}"/><circle cx="30" cy="-50" r="20" fill="${night ? "#2d6b43" : "#5fae55"}"/></g>
+    </svg>`;
+  }
+  function viewHome() {
+    const p = active();
+    const gained = syncBook();
+    const tod = timeOfDay(), g = greeting(), nx = nextStep();
+    const lights = TRAIL.filter(s => stopState(prog, s.n).listen).length;
+    const anyPending = TRAIL.some(s => prog.pending[s.n] && !stopState(prog, s.n).done);
+    const stepPips = s => { const st = stopState(prog, s.n); return [["listen", "🎧"], ["play", "🎮"], ["done", "🌟"]].map(([k, e]) => `<i class="${st[k] ? "on" : ""} ${nx && nx.s.n === s.n && (k === nx.k || (k === "done" && nx.k === "do")) ? "now" : ""}">${e}</i>`).join(""); };
+    const tiles = [
+      ["#/stories", icon("i-book", "big"), "Stories", "#e7efff"],
+      ["#/trail", icon("i-map", "big"), "Trail", "#e3f7e6"],
+      ["#/games", icon("i-game", "big"), "Games", "#efeaff"],
+      ["#/drops", icon("i-jar", "big"), "My drops", "#fff3d1", prog.earned || 0],
+      ["#/intro", ojoSvg("tile-ojo"), "Ayu & Ojo", "#ffe9df"],
+      ["#/me", avatarSvg(p.avatar, "avatar tile-av"), "Me", "#fde7f1"]
+    ];
+    app.innerHTML = `
+      <section class="home">
+        <div class="hero sky-${tod}">
+          ${heroScene(tod)}
+          <img class="hero-ayu" src="images/ayu.svg" alt="Ayu waving" width="200" height="300">
+          <button class="hero-ojo" type="button" aria-label="Hear Ojo">${ojoSvg("float")}</button>
+          <button class="hero-bubble" type="button"><span>${esc(g.text)}</span><b aria-hidden="true">🔊</b></button>
+        </div>
+        ${nx ? `<a class="play-card" href="${nx.href}" style="--c:${nx.s.color}">
+            <span class="pc-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5Z" fill="#fff"/></svg></span>
+            <span class="pc-txt"><small>Today's adventure</small><b>${esc(nx.s.title)}</b><span>${nx.ic} ${esc(nx.verb)}</span></span>
+            <span class="pc-icon" aria-hidden="true">${nx.s.icon}</span>
+            <span class="pc-pips" aria-hidden="true">${stepPips(nx.s)}</span>
+          </a>`
+        : `<a class="play-card done" href="#/trail" style="--c:#f4b52c">
+            <span class="pc-play" aria-hidden="true">🏆</span>
+            <span class="pc-txt"><small>${anyPending ? "Almost there" : "Treasure Trail"}</small><b>${anyPending ? "Waiting for a grown-up's tick" : "Ojo's treasure is full!"}</b><span>${anyPending ? "Ask a grown-up to tick your habit" : "Play any story or game again"}</span></span>
+          </a>`}
+        <div class="home-lights" role="img" aria-label="${lights} of 8 drops of light found in the stories">
+          <span class="hl-row">${TRAIL.map(s => dropSvg(stopState(prog, s.n).listen ? "lit" : "")).join("")}</span>
+          <span class="hl-txt">${lights === 8 ? "Ojo is full of light!" : `${lights} of 8 drops of light`}</span>
+        </div>
+        <h2 class="home-h">Explore</h2>
+        <div class="explore">
+          ${tiles.map(([h, ic, t, bg, badge]) => `<a class="ex-tile" href="${h}" style="--bg:${bg}"><span class="ex-ic">${ic}${badge !== undefined ? `<em class="ex-badge">${badge}</em>` : ""}</span><b>${esc(t)}</b></a>`).join("")}
+        </div>
+        <div class="home-foot">
+          ${authorLine()}
+          <a class="grown-chip" href="#/grown">📚 For grown-ups 🔒</a>
+        </div>
+      </section>`;
+    const hear = () => voice(g);
+    app.querySelector(".hero-ojo").addEventListener("click", hear);
+    app.querySelector(".hero-bubble").addEventListener("click", hear);
+    if (gained) later(() => celebrate(gained, line("bookDrop")), 400);
+    else say(g);
+  }
+
   /* ================= Treasure Trail ================= */
   const OFFSETS = [0, 0.67, 1, 0.67, 0, -0.67, -1, -0.67];
   const ROW = 132;
@@ -780,7 +866,7 @@
     const gameKey = stop ? stop.game : key;
     if (!GAMES[gameKey]) { go("#/games"); return; }
     const game = Object.assign({ key: gameKey }, GAMES[gameKey]);
-    const back = stop ? "#/" : "#/games";
+    const back = stop ? "#/trail" : "#/games";
     const promptLn = { text: game.prompt || "", id: `game.${gameKey}.prompt` };
     const intro = storyLine(stop, "intro");
     app.innerHTML = `
@@ -988,7 +1074,7 @@
   /* ================= Do: the real-life habit ================= */
   function viewDo([key]) {
     const n = parseInt(key, 10), s = TRAIL.find(x => x.n === n);
-    if (!s) { go("#/"); return; }
+    if (!s) { go("#/trail"); return; }
     const t = dayKey(), habit = prog.habits[n] || { count: 0, last: null };
     const doneToday = habit.last === t, pending = !!prog.pending[n] && !doneToday;
     const got = !!prog.stickers[s.sticker.id];
@@ -996,7 +1082,7 @@
     const fromStory = storyLine(s, "story");
     const taskLn = { text: s.task, id: `task.${n}` };
     app.innerHTML = `
-      <div class="play-head"><a class="btn btn-small btn-ghost" href="#/">← Trail</a><h1>Try it today</h1></div>
+      <div class="play-head"><a class="btn btn-small btn-ghost" href="#/trail">← Trail</a><h1>Try it today</h1></div>
       ${guideHtml(g)}
       ${echoHtml(fromStory)}
       <section class="task-card" style="--c:${s.color}">
@@ -1126,7 +1212,7 @@
         </section>
         <details class="grown-fold"><summary>For grown-ups: what the names Ayu and Ojo mean</summary><p>${esc(WHY_AYU_OJO)}</p><p><a href="#/grown">More readings for grown-ups</a></p></details>
         ${authorLine()}
-        <div class="cta-row"><a class="btn btn-big" href="#/stories">📖 Read the stories</a><a class="btn btn-big btn-alt" href="#/">🗺️ Go to the Trail</a></div>
+        <div class="cta-row"><a class="btn btn-big" href="#/stories">📖 Read the stories</a><a class="btn btn-big btn-alt" href="#/trail">🗺️ Go to the Trail</a></div>
       </section>`;
     app.querySelectorAll(".listen").forEach(b => b.addEventListener("click", () => voice(introLines(b.dataset.k))));
   }
@@ -1209,10 +1295,11 @@
     const groups = [
       ["For children", [
         ["#/intro", ojoSvg(), "Meet Ayu and Ojo", "Who they are and why they matter"],
-        ["#/stories", "📖", "Stories", "The Ojo Treasury, read aloud"],
-        ["#/", "🗺️", "Treasure Trail", "Listen, play, then do it for real"],
-        ["#/games", "🎮", "Games", "Every game in one place"],
-        ["#/drops", dropSvg(), "My golden drops", `${prog.earned || 0} collected`],
+        ["#/", icon("i-home"), "Home", "Today's adventure"],
+        ["#/stories", icon("i-book"), "Stories", "The Ojo Treasury, read aloud"],
+        ["#/trail", icon("i-map"), "Treasure Trail", "Listen, play, then do it for real"],
+        ["#/games", icon("i-game"), "Games", "Every game in one place"],
+        ["#/drops", icon("i-jar"), "My golden drops", `${prog.earned || 0} collected`],
         ["#/me", active() ? avatarSvg(active().avatar, "avatar mini") : "🙂", "Me", "My look, stickers and shop"]
       ]],
       ["For grown-ups", [
