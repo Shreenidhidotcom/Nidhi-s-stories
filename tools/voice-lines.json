@@ -1,0 +1,703 @@
+[
+  {
+    "code": "A1",
+    "voice": "Ojo",
+    "lines": [
+      {
+        "text": "Hello, my friend! I am Ojo, the little light inside you.",
+        "ids": [
+          "ojo.firstMeet.1"
+        ]
+      },
+      {
+        "text": "Ayu and I are so happy you are here!",
+        "ids": [
+          "ojo.firstMeet.2"
+        ]
+      },
+      {
+        "text": "Hello! I am Ojo. Ask a grown-up to set up the app for you.",
+        "ids": [
+          "ojo.welcome.1"
+        ]
+      },
+      {
+        "text": "Good morning, my friend! Did you say hello to the sun?",
+        "ids": [
+          "ojo.morning.1"
+        ]
+      },
+      {
+        "text": "Good morning! Have you brushed your teeth?",
+        "ids": [
+          "ojo.morning.2"
+        ]
+      },
+      {
+        "text": "Rise and shine, my friend!",
+        "ids": [
+          "ojo.morning.3"
+        ]
+      },
+      {
+        "text": "Hello, my friend! Shall we find a drop of light?",
+        "ids": [
+          "ojo.afternoon.1"
+        ]
+      },
+      {
+        "text": "Good afternoon! Ready for a story?",
+        "ids": [
+          "ojo.afternoon.2"
+        ]
+      },
+      {
+        "text": "Hello again, my friend!",
+        "ids": [
+          "ojo.afternoon.3"
+        ]
+      },
+      {
+        "text": "Good evening, my friend! Story time soon?",
+        "ids": [
+          "ojo.evening.1"
+        ]
+      },
+      {
+        "text": "The sun is going to sleep. Shall we read?",
+        "ids": [
+          "ojo.evening.2"
+        ]
+      },
+      {
+        "text": "Hello, my friend! A little play before bed?",
+        "ids": [
+          "ojo.evening.3"
+        ]
+      },
+      {
+        "text": "I missed you, my friend! Your garden waited for you.",
+        "ids": [
+          "ojo.returnAfterBreak.1"
+        ]
+      },
+      {
+        "text": "Welcome back! Your flowers are still blooming.",
+        "ids": [
+          "ojo.returnAfterBreak.2"
+        ]
+      }
+    ]
+  },
+  {
+    "code": "A2",
+    "voice": "Ojo",
+    "lines": [
+      {
+        "text": "Yes! Well done!",
+        "ids": [
+          "ojo.correct.1"
+        ]
+      },
+      {
+        "text": "You did it, my friend!",
+        "ids": [
+          "ojo.correct.2"
+        ]
+      },
+      {
+        "text": "That's right!",
+        "ids": [
+          "ojo.correct.3"
+        ]
+      },
+      {
+        "text": "Wonderful!",
+        "ids": [
+          "ojo.correct.4"
+        ]
+      },
+      {
+        "text": "Hmm, let's look again.",
+        "ids": [
+          "ojo.wrong.1"
+        ]
+      },
+      {
+        "text": "Nearly! Try once more.",
+        "ids": [
+          "ojo.wrong.2"
+        ]
+      },
+      {
+        "text": "Good try! Look closely.",
+        "ids": [
+          "ojo.wrong.3"
+        ]
+      },
+      {
+        "text": "Hmm, does that help? Try another!",
+        "ids": [
+          "ojo.sortHint.1"
+        ]
+      },
+      {
+        "text": "Hmm, what comes next?",
+        "ids": [
+          "ojo.seqHint.1"
+        ]
+      },
+      {
+        "text": "What comes next? Look at the glowing one!",
+        "ids": [
+          "ojo.seqGlow.1"
+        ]
+      },
+      {
+        "text": "That one is already sparkly!",
+        "ids": [
+          "ojo.teethClean.1"
+        ]
+      },
+      {
+        "text": "A pair!",
+        "ids": [
+          "ojo.pairMatch.1"
+        ]
+      },
+      {
+        "text": "Match!",
+        "ids": [
+          "ojo.pairMatch.2"
+        ]
+      },
+      {
+        "text": "You played so well, my friend!",
+        "ids": [
+          "ojo.gameDone.1"
+        ]
+      },
+      {
+        "text": "I am glowing brighter!",
+        "ids": [
+          "ojo.gameDone.2"
+        ]
+      },
+      {
+        "text": "Hooray! That was fun!",
+        "ids": [
+          "ojo.gameDone.3"
+        ]
+      }
+    ]
+  },
+  {
+    "code": "A3",
+    "voice": "Ojo",
+    "lines": [
+      {
+        "text": "Tap everything that makes Ojo glow!",
+        "ids": [
+          "game.glow.prompt"
+        ]
+      },
+      {
+        "text": "Help Ayu start her day. Tap in order!",
+        "ids": [
+          "game.morning.prompt"
+        ]
+      },
+      {
+        "text": "Brush away the fuzzy spots!",
+        "ids": [
+          "game.teeth.prompt"
+        ]
+      },
+      {
+        "text": "Fill Ojo's plate with fresh, home-cooked food!",
+        "ids": [
+          "game.plate.prompt"
+        ]
+      },
+      {
+        "text": "Help Ojo get ready for bed. Tap in order!",
+        "ids": [
+          "game.bedtime.prompt"
+        ]
+      },
+      {
+        "text": "Feed Ayu one bite at a time. Stop when her tummy feels comfy!",
+        "ids": [
+          "game.tummy.prompt"
+        ]
+      },
+      {
+        "text": "Find the matching pairs!",
+        "ids": [
+          "game.pairs.prompt"
+        ]
+      },
+      {
+        "text": "Ayu's tummy feels comfy. Leave a little space!",
+        "ids": [
+          "ojo.tummyComfy.1"
+        ]
+      },
+      {
+        "text": "Oops, too full! Let's try again and leave a little space.",
+        "ids": [
+          "ojo.tummyFull.1"
+        ]
+      },
+      {
+        "text": "Ayu is still a little hungry. One more bite?",
+        "ids": [
+          "ojo.tummyHungry.1"
+        ]
+      }
+    ]
+  },
+  {
+    "code": "A4",
+    "voice": "Ojo",
+    "lines": [
+      {
+        "text": "Now let's try it for real, with a grown-up!",
+        "ids": [
+          "ojo.taskInvite.1"
+        ]
+      },
+      {
+        "text": "Can you do this today, my friend?",
+        "ids": [
+          "ojo.taskInvite.2"
+        ]
+      },
+      {
+        "text": "When you've done it, a grown-up can tick it for you.",
+        "ids": [
+          "ojo.taskPending.1"
+        ]
+      },
+      {
+        "text": "I can't wait to hear how it went!",
+        "ids": [
+          "ojo.taskPending.2"
+        ]
+      },
+      {
+        "text": "Well done, my friend! You did it for real.",
+        "ids": [
+          "ojo.taskDone.1"
+        ]
+      },
+      {
+        "text": "Well done! You did it today.",
+        "ids": [
+          "ojo.taskDoneToday.1"
+        ]
+      },
+      {
+        "text": "You earned a new sticker!",
+        "ids": [
+          "ojo.newSticker.1"
+        ]
+      },
+      {
+        "text": "You found a drop of light in the story!",
+        "ids": [
+          "ojo.bookDrop.1"
+        ]
+      },
+      {
+        "text": "A treasure chest! You played on three days this week.",
+        "ids": [
+          "ojo.chest.1"
+        ]
+      },
+      {
+        "text": "Look at your garden! Flowers never wilt here.",
+        "ids": [
+          "ojo.garden.1"
+        ]
+      },
+      {
+        "text": "Play today and your first flower will bloom!",
+        "ids": [
+          "ojo.gardenEmpty.1"
+        ]
+      },
+      {
+        "text": "Keep playing to collect more drops!",
+        "ids": [
+          "ojo.needDrops.1"
+        ]
+      },
+      {
+        "text": "Great playing, my friend! Now let's try it for real.",
+        "ids": [
+          "ojo.sessionEnd.1"
+        ]
+      },
+      {
+        "text": "Let's go and do it for real now. Bye for now, my friend!",
+        "ids": [
+          "ojo.sessionEnd.2"
+        ]
+      },
+      {
+        "text": "My treasure is full! Eight drops of light. Thank you, my friend!",
+        "ids": [
+          "ojo.allDone.1"
+        ]
+      }
+    ]
+  },
+  {
+    "code": "B1",
+    "voice": "Narrator",
+    "lines": [
+      {
+        "text": "Put your hand on your heart and feel Ojo go thum, thum. Then give someone you love a big hug.",
+        "ids": [
+          "task.1"
+        ]
+      },
+      {
+        "text": "Wake up with the birds tomorrow and say good morning to the sun.",
+        "ids": [
+          "task.2"
+        ]
+      },
+      {
+        "text": "Brush your teeth in the morning and at night, with a grown-up watching.",
+        "ids": [
+          "task.3"
+        ]
+      },
+      {
+        "text": "Close your eyes and tell a grown-up three sounds you can hear.",
+        "ids": [
+          "task.4"
+        ]
+      },
+      {
+        "text": "Chew your rice slowly, slowly, until it starts to taste sweet.",
+        "ids": [
+          "task.5"
+        ]
+      },
+      {
+        "text": "If something breaks or goes wrong today, tell a grown-up the truth.",
+        "ids": [
+          "task.6"
+        ]
+      },
+      {
+        "text": "Lights out at the same time tonight, right after your bedtime story.",
+        "ids": [
+          "task.7"
+        ]
+      },
+      {
+        "text": "Stop eating when your tummy feels comfy, and say \"Thank you, tummy!\"",
+        "ids": [
+          "task.8"
+        ]
+      }
+    ]
+  },
+  {
+    "code": "B2",
+    "voice": "Narrator",
+    "lines": [
+      {
+        "text": "Good sleep",
+        "ids": [
+          "game.glow.item.1"
+        ]
+      },
+      {
+        "text": "Fresh fruit",
+        "ids": [
+          "game.glow.item.2"
+        ]
+      },
+      {
+        "text": "A big hug",
+        "ids": [
+          "game.glow.item.3"
+        ]
+      },
+      {
+        "text": "Playing outside",
+        "ids": [
+          "game.glow.item.4"
+        ]
+      },
+      {
+        "text": "Phone at bedtime",
+        "ids": [
+          "game.glow.item.5"
+        ]
+      },
+      {
+        "text": "Lots of sweets",
+        "ids": [
+          "game.glow.item.6"
+        ]
+      },
+      {
+        "text": "Shouting",
+        "ids": [
+          "game.glow.item.7"
+        ]
+      },
+      {
+        "text": "Rice",
+        "ids": [
+          "game.plate.item.1"
+        ]
+      },
+      {
+        "text": "Carrot",
+        "ids": [
+          "game.plate.item.2"
+        ]
+      },
+      {
+        "text": "Banana",
+        "ids": [
+          "game.plate.item.3"
+        ]
+      },
+      {
+        "text": "Chapati",
+        "ids": [
+          "game.plate.item.4"
+        ]
+      },
+      {
+        "text": "Packet chips",
+        "ids": [
+          "game.plate.item.5"
+        ]
+      },
+      {
+        "text": "Fizzy drink",
+        "ids": [
+          "game.plate.item.6"
+        ]
+      },
+      {
+        "text": "Packet sweets",
+        "ids": [
+          "game.plate.item.7"
+        ]
+      }
+    ]
+  },
+  {
+    "code": "B3",
+    "voice": "Narrator",
+    "lines": [
+      {
+        "text": "Wake up",
+        "ids": [
+          "game.morning.step.1"
+        ]
+      },
+      {
+        "text": "Toilet",
+        "ids": [
+          "game.morning.step.2"
+        ]
+      },
+      {
+        "text": "Brush teeth",
+        "ids": [
+          "game.morning.step.3",
+          "game.bedtime.step.2"
+        ]
+      },
+      {
+        "text": "Splash eyes",
+        "ids": [
+          "game.morning.step.4"
+        ]
+      },
+      {
+        "text": "Bath",
+        "ids": [
+          "game.morning.step.5"
+        ]
+      },
+      {
+        "text": "Breakfast",
+        "ids": [
+          "game.morning.step.6"
+        ]
+      },
+      {
+        "text": "Put toys away",
+        "ids": [
+          "game.bedtime.step.1"
+        ]
+      },
+      {
+        "text": "Bedtime story",
+        "ids": [
+          "game.bedtime.step.3"
+        ]
+      },
+      {
+        "text": "Lights off",
+        "ids": [
+          "game.bedtime.step.4"
+        ]
+      },
+      {
+        "text": "Sleep",
+        "ids": [
+          "game.bedtime.step.5"
+        ]
+      }
+    ]
+  },
+  {
+    "code": "B4",
+    "voice": "Narrator",
+    "lines": [
+      {
+        "text": "Which friend helps you see the rainbow?",
+        "ids": [
+          "game.senses.q1"
+        ]
+      },
+      {
+        "text": "Eyes",
+        "ids": [
+          "game.senses.q1.opt1",
+          "game.senses.q3.opt2",
+          "game.senses.q5.opt3"
+        ]
+      },
+      {
+        "text": "Ears",
+        "ids": [
+          "game.senses.q1.opt2",
+          "game.senses.q2.opt2",
+          "game.senses.q4.opt1"
+        ]
+      },
+      {
+        "text": "Nose",
+        "ids": [
+          "game.senses.q1.opt3",
+          "game.senses.q3.opt1",
+          "game.senses.q5.opt2"
+        ]
+      },
+      {
+        "text": "Which friend helps you hear the bird sing?",
+        "ids": [
+          "game.senses.q2"
+        ]
+      },
+      {
+        "text": "Tongue",
+        "ids": [
+          "game.senses.q2.opt1",
+          "game.senses.q3.opt3",
+          "game.senses.q4.opt3"
+        ]
+      },
+      {
+        "text": "Skin",
+        "ids": [
+          "game.senses.q2.opt3",
+          "game.senses.q4.opt2",
+          "game.senses.q5.opt1"
+        ]
+      },
+      {
+        "text": "Which friend helps you smell the jasmine?",
+        "ids": [
+          "game.senses.q3"
+        ]
+      },
+      {
+        "text": "Which friend helps you taste the mango?",
+        "ids": [
+          "game.senses.q4"
+        ]
+      },
+      {
+        "text": "Which friend feels the warm sun on your arm?",
+        "ids": [
+          "game.senses.q5"
+        ]
+      }
+    ]
+  },
+  {
+    "code": "B5",
+    "voice": "Narrator",
+    "lines": [
+      {
+        "text": "Ayu's blue cup broke. What should she do?",
+        "ids": [
+          "game.truth.q1"
+        ]
+      },
+      {
+        "text": "Tell Amma the truth",
+        "ids": [
+          "game.truth.q1.opt1"
+        ]
+      },
+      {
+        "text": "Hide the pieces",
+        "ids": [
+          "game.truth.q1.opt2"
+        ]
+      },
+      {
+        "text": "Ayu found a toy that is not hers. What should she do?",
+        "ids": [
+          "game.truth.q2"
+        ]
+      },
+      {
+        "text": "Keep it secretly",
+        "ids": [
+          "game.truth.q2.opt1"
+        ]
+      },
+      {
+        "text": "Give it back",
+        "ids": [
+          "game.truth.q2.opt2"
+        ]
+      },
+      {
+        "text": "Ayu spilled water on the floor. What should she do?",
+        "ids": [
+          "game.truth.q3"
+        ]
+      },
+      {
+        "text": "Say sorry and help clean",
+        "ids": [
+          "game.truth.q3.opt1"
+        ]
+      },
+      {
+        "text": "Walk away",
+        "ids": [
+          "game.truth.q3.opt2"
+        ]
+      }
+    ]
+  }
+]
