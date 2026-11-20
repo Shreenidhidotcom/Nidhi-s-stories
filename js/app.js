@@ -2,403 +2,1077 @@
   "use strict";
 
   const app = document.getElementById("app");
-  const STORIES = window.STORIES || [];
+  const layer = document.getElementById("layer");
+  const { TIERS, DROP_VALUES: DV, TRAIL, GAMES, GUIDE, AVATAR, PLANTS, CHEST_STICKERS, LEARNING_GAMES } = window;
 
-  /* ---------------- Progress (saved in the browser) ---------------- */
-  const KEY = "nidhis-stories-progress-v1";
-  const progress = Object.assign(
-    { stars: 0, read: {}, quizBest: {}, lastStory: null, lastPage: 0 },
-    safeParse(localStorage.getItem(KEY))
-  );
-  function safeParse(s) { try { return JSON.parse(s) || {}; } catch (e) { return {}; } }
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(progress)); } catch (e) { /* ignore */ } updateStars(); }
-  function addStars(n) { progress.stars += n; save(); bounceStars(); }
-  function updateStars() { document.getElementById("star-count").textContent = progress.stars; }
-  function bounceStars() {
-    const el = document.querySelector(".stars");
-    el.classList.remove("bounce"); void el.offsetWidth; el.classList.add("bounce");
+  /* ================= Storage (this device only) ================= */
+  function load(key, fallback) {
+    try { const v = JSON.parse(localStorage.getItem(key)); return v == null ? fallback : v; } catch (e) { return fallback; }
+  }
+  function store(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { /* storage unavailable */ } }
+  function loadRaw(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+  function storeRaw(key, val) { try { localStorage.setItem(key, val); } catch (e) { /* ignore */ } }
+  function remove(key) { try { localStorage.removeItem(key); } catch (e) { /* ignore */ } }
+
+  /* ---------- Settings ---------- */
+  const settings = Object.assign({ sessionMin: 10, mute: false, calm: false }, load("ns-settings", {}));
+  function saveSettings() { store("ns-settings", settings); applySettings(); }
+  function applySettings() { document.body.classList.toggle("calm", !!settings.calm); }
+
+  /* ---------- Child profiles ---------- */
+  let profiles = load("ns-profiles", []);
+  if (!Array.isArray(profiles)) profiles = [];
+  let activeId = loadRaw("ns-active");
+  if (!profiles.some(p => p.id === activeId)) activeId = profiles.length === 1 ? profiles[0].id : null;
+
+  function active() { return profiles.find(p => p.id === activeId) || null; }
+  function saveProfiles() { store("ns-profiles", profiles); }
+  function setActive(id) {
+    activeId = id;
+    if (id) storeRaw("ns-active", id); else remove("ns-active");
+    prog = loadProg(id);
+    updateTop();
+  }
+  function tierFor(age) {
+    return TIERS.find(t => age >= t.ages[0] && age <= t.ages[1]) || TIERS[0];
   }
 
-  /* ---------------- Helpers ---------------- */
+  /* ---------- Progress per child ---------- */
+  const blankProg = () => ({ drops: 0, stops: {}, days: [], chests: {}, stickers: {}, owned: [], plants: [], played: {}, habits: {}, pending: {} });
+  function loadProg(id) { return id ? Object.assign(blankProg(), load("ns-p:" + id, {})) : blankProg(); }
+  function saveProgFor(id, p) { if (id) store("ns-p:" + id, p); }
+  let prog = loadProg(activeId);
+  function saveProg() { saveProgFor(activeId, prog); updateTop(); }
+  const stopState = (p, n) => (p.stops[n] = p.stops[n] || { listen: false, play: false, done: false });
+
+  /* ---------- Dates ---------- */
+  function dayKey(d = new Date()) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function weekKey(d = new Date()) { const x = new Date(d); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return dayKey(x); }
+  function daysApart(a, b) { return Math.round((Date.parse(b) - Date.parse(a)) / 864e5); }
+
+  function markActive(p = prog) { const t = dayKey(); if (!p.days.includes(t)) p.days.push(t); }
+  function addDrops(n, p = prog) { if (n > 0) { p.drops += n; markActive(p); } return n; }
+
+  /* The Ojo Treasury saves the drops of light caught in each story; turn new ones into "Listen" steps. */
+  function syncBook() {
+    if (!activeId) return 0;
+    const caught = load("ojo-drops:" + activeId, []);
+    let gained = 0;
+    (Array.isArray(caught) ? caught : []).forEach(n => {
+      const s = stopState(prog, n);
+      if (n >= 1 && n <= TRAIL.length && !s.listen) { s.listen = true; gained += addDrops(DV.listen); }
+    });
+    if (gained) saveProg();
+    return gained;
+  }
+
+  /* Bring progress from the earlier version of the app into the first child's profile. */
+  function migrateLegacy(id, p) {
+    const old = load("nidhis-stories-progress-v1", null);
+    if (old && old.stars > 0) p.drops += old.stars;
+    remove("nidhis-stories-progress-v1");
+    const oldDrops = load("ojo-drops", null);
+    if (Array.isArray(oldDrops) && oldDrops.length) store("ojo-drops:" + id, oldDrops);
+    remove("ojo-drops");
+  }
+
+  /* ================= Helpers ================= */
   function esc(s) {
     return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
   function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
   function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
   function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+  const isSmall = () => (active() ? active().age : 5) <= 4;
 
   let toastTimer;
   function toast(msg) {
     const t = document.getElementById("toast");
     t.textContent = msg; t.classList.add("show");
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 1800);
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
   }
 
   function confetti() {
+    if (settings.calm) return;
     const box = document.createElement("div");
     box.className = "confetti";
-    const bits = ["⭐", "🎉", "✨", "🌟", "🎈"];
+    const bits = ["✨", "🌟", "🎉", "💛", "🌸"];
     for (let i = 0; i < 24; i++) {
       const s = document.createElement("span");
       s.textContent = pick(bits);
       s.style.left = Math.random() * 100 + "vw";
       s.style.animationDelay = Math.random() * 0.6 + "s";
-      s.style.fontSize = rand(18, 36) + "px";
+      s.style.fontSize = rand(18, 34) + "px";
       box.appendChild(s);
     }
     document.body.appendChild(box);
     setTimeout(() => box.remove(), 2600);
   }
 
-  /* ---------------- Read aloud (Web Speech API) ---------------- */
+  /* ---------- Voice (device text-to-speech) ---------- */
   const canSpeak = "speechSynthesis" in window;
   let voice = null;
   function chooseVoice() {
     if (!canSpeak) return;
     const voices = speechSynthesis.getVoices();
-    voice = voices.find(v => /en[-_](US|GB|IN)/i.test(v.lang) && /female|samantha|google/i.test(v.name))
+    voice = voices.find(v => /en[-_]IN/i.test(v.lang)) || voices.find(v => /en[-_](GB|US)/i.test(v.lang) && /female|samantha|google/i.test(v.name))
       || voices.find(v => /^en/i.test(v.lang)) || null;
   }
   if (canSpeak) { chooseVoice(); speechSynthesis.onvoiceschanged = chooseVoice; }
-
   function speak(text, onEnd) {
-    if (!canSpeak) { if (onEnd) onEnd(); return; }
+    if (!canSpeak || settings.mute) { if (onEnd) onEnd(); return; }
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
+    const u = new SpeechSynthesisUtterance(text.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, ""));
     if (voice) u.voice = voice;
     u.rate = 0.9; u.pitch = 1.1;
     if (onEnd) u.onend = onEnd;
     speechSynthesis.speak(u);
   }
   function stopSpeaking() { if (canSpeak) speechSynthesis.cancel(); }
+  /* Under 6, Ojo speaks every instruction; from 6, text shows and the child taps Ojo to hear it. */
+  const autoTalk = () => !settings.mute && (active() ? active().age : 5) < 6;
+  function say(text) { if (autoTalk()) speak(text); }
 
-  /* ---------------- Router ---------------- */
+  /* ---------- Ojo's lines ---------- */
+  function line(moment, vars = {}) {
+    let s = pick(GUIDE[moment] || [""]);
+    const name = active() ? active().name : "";
+    s = name ? s.replace(/\{name\}/g, name) : s.replace(/,\s*\{name\}/g, "").replace(/\s*\{name\}/g, "");
+    Object.keys(vars).forEach(k => { s = s.replace(new RegExp("\\{" + k + "\\}", "g"), vars[k]); });
+    return s;
+  }
+  function ojoSvg(cls = "") { return `<svg class="ojo-svg ${cls}" viewBox="0 0 100 115" aria-hidden="true"><use href="#ojo"/></svg>`; }
+  function dropSvg(cls = "") { return `<svg class="drop-svg ${cls}" viewBox="0 0 24 30" aria-hidden="true"><use href="#drop"/></svg>`; }
+  function guideHtml(text, id = "guide") {
+    return `<div class="guide" id="${id}">
+        <button class="guide-ojo" type="button" aria-label="Hear Ojo say it again">${ojoSvg()}</button>
+        <div class="guide-bubble"><span class="guide-text">${esc(text)}</span>${canSpeak && !settings.mute ? `<span class="guide-hear" aria-hidden="true">🔊</span>` : ""}</div>
+      </div>`;
+  }
+  function bindGuide(root, text, id = "guide") {
+    const g = root.querySelector("#" + id);
+    if (!g) return;
+    g.addEventListener("click", () => { speak(g.querySelector(".guide-text").textContent); g.classList.remove("hop"); void g.offsetWidth; g.classList.add("hop"); });
+    if (text) say(text);
+  }
+  function setGuide(root, text, id = "guide") {
+    const t = root.querySelector("#" + id + " .guide-text");
+    if (t) { t.textContent = text; say(text); }
+  }
+
+  /* ================= Avatar (layered SVG) ================= */
+  let clipN = 0;
+  function avatarSvg(av, cls = "avatar") {
+    av = Object.assign({ skin: 2, hair: "curly", hairColor: 0, eyes: "round", outfit: "sun", acc: "none" }, av || {});
+    const skin = AVATAR.skin[av.skin] || AVATAR.skin[2];
+    const hc = AVATAR.hairColor[av.hairColor] || AVATAR.hairColor[0];
+    const body = "M18 140 C18 112 36 100 60 100 C84 100 102 112 102 140Z";
+    return `<svg class="${cls}" viewBox="0 0 120 140" aria-hidden="true">
+      ${hairBack(av.hair, hc)}
+      ${outfitSvg(av.outfit, body)}
+      <rect x="52" y="84" width="16" height="20" rx="7" fill="${skin}"/>
+      <circle cx="31" cy="62" r="6" fill="${skin}"/><circle cx="89" cy="62" r="6" fill="${skin}"/>
+      <circle cx="60" cy="58" r="30" fill="${skin}"/>
+      ${eyesSvg(av.eyes)}
+      <circle cx="43" cy="71" r="4.5" fill="#f27a7a" opacity=".35"/><circle cx="77" cy="71" r="4.5" fill="#f27a7a" opacity=".35"/>
+      <path d="M52 74 Q60 81 68 74" fill="none" stroke="#3a2230" stroke-width="2.6" stroke-linecap="round"/>
+      ${hairFront(av.hair, hc)}
+      ${accSvg(av.acc)}
+    </svg>`;
+  }
+  const CAP = "M29 60 C27 34 43 24 60 24 C77 24 93 34 91 60 C86 47 75 40 60 40 C45 40 34 47 29 60Z";
+  function hairBack(style, c) {
+    switch (style) {
+      case "long": return `<path d="M27 58 C25 30 95 30 93 58 L96 106 Q60 116 24 106Z" fill="${c}"/>`;
+      case "bob": return `<path d="M25 60 C25 28 95 28 95 60 L95 86 Q89 92 84 84 L84 62 L36 62 L36 84 Q31 92 25 86Z" fill="${c}"/>`;
+      case "braid": return `<path d="M27 58 C25 34 95 34 93 58 L92 70 L28 70Z" fill="${c}"/>`;
+      default: return "";
+    }
+  }
+  function hairFront(style, c) {
+    switch (style) {
+      case "curly": return [33, 43, 53, 63, 73, 83].map((x, i) => `<circle cx="${x + 2}" cy="${i % 2 ? 32 : 37}" r="10" fill="${c}"/>`).join("") + `<path d="${CAP}" fill="${c}"/>`;
+      case "bun": return `<circle cx="60" cy="21" r="12" fill="${c}"/><path d="${CAP}" fill="${c}"/>`;
+      case "puffs": return `<circle cx="29" cy="36" r="13" fill="${c}"/><circle cx="91" cy="36" r="13" fill="${c}"/><path d="${CAP}" fill="${c}"/>`;
+      case "braid": return `<path d="${CAP}" fill="${c}"/><circle cx="89" cy="78" r="7" fill="${c}"/><circle cx="91" cy="91" r="6.5" fill="${c}"/><circle cx="92" cy="103" r="6" fill="${c}"/><circle cx="92" cy="112" r="3.5" fill="#e74c3c"/>`;
+      case "spiky": return `<path d="M29 58 L31 36 L39 42 L43 27 L51 37 L60 22 L69 37 L77 27 L81 42 L89 36 L91 58 C85 46 75 40 60 40 C45 40 35 46 29 58Z" fill="${c}"/>`;
+      default: return `<path d="${CAP}" fill="${c}"/>`;
+    }
+  }
+  function eyesSvg(style) {
+    const ink = "#2a1830";
+    switch (style) {
+      case "happy": return `<path d="M44 61 Q49 55 54 61 M66 61 Q71 55 76 61" fill="none" stroke="${ink}" stroke-width="2.8" stroke-linecap="round"/>`;
+      case "sparkle": return `<ellipse cx="49" cy="60" rx="5.4" ry="6.6" fill="${ink}"/><ellipse cx="71" cy="60" rx="5.4" ry="6.6" fill="${ink}"/><circle cx="51" cy="57.5" r="2.2" fill="#fff"/><circle cx="73" cy="57.5" r="2.2" fill="#fff"/><circle cx="47.5" cy="62.5" r="1.1" fill="#fff"/><circle cx="69.5" cy="62.5" r="1.1" fill="#fff"/>`;
+      case "almond": return `<ellipse cx="49" cy="60" rx="5.6" ry="3.4" fill="${ink}"/><ellipse cx="71" cy="60" rx="5.6" ry="3.4" fill="${ink}"/><circle cx="50.5" cy="59" r="1.2" fill="#fff"/><circle cx="72.5" cy="59" r="1.2" fill="#fff"/>`;
+      default: return `<ellipse cx="49" cy="60" rx="4" ry="5" fill="${ink}"/><ellipse cx="71" cy="60" rx="4" ry="5" fill="${ink}"/><circle cx="50.3" cy="58.3" r="1.4" fill="#fff"/><circle cx="72.3" cy="58.3" r="1.4" fill="#fff"/>`;
+    }
+  }
+  function outfitSvg(id, body) {
+    const clip = "av-cl" + (++clipN);
+    const clipped = inner => `<defs><clipPath id="${clip}"><path d="${body}"/></clipPath></defs><g clip-path="url(#${clip})"><path d="${body}" fill="#fff"/>${inner}</g>`;
+    switch (id) {
+      case "sky": return `<path d="${body}" fill="#5ab0f0"/><path d="M50 101 Q60 110 70 101" fill="none" stroke="#2f7fc0" stroke-width="3"/>`;
+      case "kurta": return `<path d="${body}" fill="#4caf72"/><path d="M60 101 L60 124" stroke="#2f7d4d" stroke-width="2.4"/><circle cx="60" cy="110" r="1.8" fill="#fff"/><circle cx="60" cy="118" r="1.8" fill="#fff"/>`;
+      case "frock": return `<path d="M12 140 C22 114 40 100 60 100 C80 100 98 114 108 140Z" fill="#f07fa8"/><path d="M48 101 Q60 112 72 101" fill="#fff" opacity=".9"/>`;
+      case "stripes": return clipped([104, 114, 124, 134].map(y => `<rect x="0" y="${y}" width="120" height="5" fill="#6c63ff"/>`).join(""));
+      case "stars": return `<path d="${body}" fill="#34307a"/>` + [[40, 118], [60, 126], [80, 116], [50, 134], [74, 134]].map(([x, y]) => `<text x="${x}" y="${y}" font-size="9" text-anchor="middle" fill="#ffd54f">★</text>`).join("");
+      case "festive": return `<path d="${body}" fill="#c0392b"/><path d="M47 101 Q60 114 73 101" fill="none" stroke="#f4c542" stroke-width="4"/><path d="M60 110 L60 140" stroke="#f4c542" stroke-width="3" stroke-dasharray="3 4"/>`;
+      case "rainbow": return clipped(["#e74c3c", "#f39c12", "#f1c40f", "#2ecc71", "#3498db", "#8e44ad"].map((c, i) => `<rect x="0" y="${100 + i * 7}" width="120" height="7" fill="${c}"/>`).join(""));
+      default: return `<path d="${body}" fill="#f6c344"/><path d="M50 101 Q60 110 70 101" fill="none" stroke="#d99a1c" stroke-width="3"/>`;
+    }
+  }
+  function accSvg(id) {
+    switch (id) {
+      case "glasses": return `<g fill="rgba(255,255,255,.25)" stroke="#3a3046" stroke-width="2.4"><circle cx="49" cy="60" r="8"/><circle cx="71" cy="60" r="8"/><path d="M57 60 L63 60"/></g>`;
+      case "flower": return `<g transform="translate(84 36)">${[0, 72, 144, 216, 288].map(a => `<circle cx="${(6 * Math.cos(a * Math.PI / 180)).toFixed(1)}" cy="${(6 * Math.sin(a * Math.PI / 180)).toFixed(1)}" r="4.6" fill="#ff8fb1"/>`).join("")}<circle r="3.4" fill="#ffd54f"/></g>`;
+      case "bow": return `<g transform="translate(60 25)"><path d="M0 0 L-14 -8 L-14 8Z M0 0 L14 -8 L14 8Z" fill="#e74c3c"/><circle r="3.6" fill="#c0392b"/></g>`;
+      case "cap": return `<path d="M27 47 C28 18 92 18 93 47Z" fill="#2d9cdb"/><path d="M60 45 L108 47 Q104 54 60 51Z" fill="#1f78b4"/><circle cx="60" cy="22" r="3" fill="#1f78b4"/>`;
+      case "leaves": return [[-58, 34, 40], [-30, 42, 28], [0, 60, 24], [30, 78, 28], [58, 86, 40]].map(([r, x, y]) => `<ellipse cx="${x}" cy="${y}" rx="5" ry="9" transform="rotate(${r} ${x} ${y})" fill="#43a047"/>`).join("");
+      default: return "";
+    }
+  }
+
+  /* ================= Overlays: modal, parent gate, celebration, session end ================= */
+  let onModalClose = null;
+  function modal(html, opts = {}) {
+    stopSpeaking();
+    layer.innerHTML = `<div class="scrim ${opts.full ? "full" : ""}">${html}</div>`;
+    onModalClose = opts.onClose || null;
+    const scrim = layer.firstElementChild;
+    if (!opts.locked) scrim.addEventListener("click", e => { if (e.target === scrim) closeModal(); });
+    scrim.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeModal));
+    const first = scrim.querySelector("input, .autofocus, button, a");
+    if (first) setTimeout(() => first.focus(), 30);
+    return scrim;
+  }
+  function closeModal() {
+    if (!layer.firstElementChild) return;
+    layer.innerHTML = "";
+    const cb = onModalClose; onModalClose = null;
+    if (cb) cb();
+  }
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && layer.firstElementChild && !layer.querySelector(".locked")) closeModal();
+  });
+
+  let gateOpenUntil = 0;
+  const gateIsOpen = () => Date.now() < gateOpenUntil;
+  function parentGate(onPass, onCancel) {
+    if (gateIsOpen()) { onPass(); return; }
+    const a = rand(11, 19), b = rand(4, 9);
+    let passed = false;
+    const scrim = modal(`
+      <div class="sheet gate" role="dialog" aria-modal="true" aria-labelledby="gate-h">
+        <div class="gate-kid">🙋 Please ask a grown-up</div>
+        <h2 id="gate-h">For grown-ups</h2>
+        <p>What is <b>${a} + ${b}</b>?</p>
+        <input id="gate-in" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-label="Your answer" />
+        <div class="gate-msg" id="gate-msg" aria-live="polite"></div>
+        <div class="row">
+          <button class="btn btn-ghost" data-close type="button">Cancel</button>
+          <button class="btn" id="gate-ok" type="button">Continue</button>
+        </div>
+      </div>`, { onClose: () => { if (!passed && onCancel) onCancel(); } });
+    const input = scrim.querySelector("#gate-in");
+    const check = () => {
+      if (parseInt(input.value, 10) === a + b) {
+        passed = true; gateOpenUntil = Date.now() + 5 * 60 * 1000;
+        closeModal(); onPass();
+      } else {
+        scrim.querySelector("#gate-msg").textContent = "That's not quite right. Please try again.";
+        input.value = ""; input.focus();
+      }
+    };
+    scrim.querySelector("#gate-ok").addEventListener("click", check);
+    input.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+  }
+
+  function bumpDrops() {
+    const el = document.getElementById("drops-pill");
+    el.classList.remove("bounce"); void el.offsetWidth; el.classList.add("bounce");
+  }
+  function celebrate(n, text, then) {
+    const msg = text || line("gameDone");
+    confetti();
+    const scrim = modal(`
+      <div class="celebrate" role="dialog" aria-modal="true" aria-label="Well done">
+        <div class="cel-ojo">${ojoSvg("dance")}</div>
+        <p class="cel-text">${esc(msg)}</p>
+        ${n > 0 ? `<div class="cel-drops">${dropSvg()}<b>+${n}</b><span>Ojas drop${n > 1 ? "s" : ""}</span></div>` : ""}
+        <button class="btn btn-big autofocus" data-close type="button">Yay!</button>
+      </div>`, { onClose: then });
+    say(msg);
+    bumpDrops();
+    const t = setTimeout(() => { if (layer.contains(scrim)) closeModal(); }, settings.calm ? 2200 : 3200);
+    scrim.addEventListener("click", () => clearTimeout(t), { once: true });
+  }
+
+  /* Gentle session limit: after the set minutes, Ojo sends the child off to try the habit for real. */
+  const sess = Object.assign({ secs: 0, over: false }, (() => { try { return JSON.parse(sessionStorage.getItem("ns-session")) || {}; } catch (e) { return {}; } })());
+  const saveSess = () => { try { sessionStorage.setItem("ns-session", JSON.stringify(sess)); } catch (e) { /* ignore */ } };
+  const ADULT_VIEWS = ["parents", "setup", "welcome"];
+  setInterval(() => {
+    if (document.hidden || !active() || sess.over || ADULT_VIEWS.includes(currentView) || layer.querySelector(".gate")) return;
+    sess.secs++;
+    if (sess.secs % 15 === 0) saveSess();
+    if (sess.secs >= settings.sessionMin * 60) endSession();
+  }, 1000);
+  function endSession() {
+    sess.over = true; saveSess();
+    const todo = TRAIL.find(s => prog.pending[s.n]) || TRAIL.find(s => !stopState(prog, s.n).done) || pick(TRAIL);
+    const msg = line("sessionEnd");
+    const scrim = modal(`
+      <div class="sheet session-end locked" role="dialog" aria-modal="true" aria-labelledby="se-h">
+        ${ojoSvg("big")}
+        <h2 id="se-h">Time to try it with Ojo!</h2>
+        <p>${esc(msg)}</p>
+        <div class="task-mini"><span>${todo.sticker.e}</span><p>${esc(todo.task)}</p></div>
+        <button class="btn btn-ghost" id="se-more" type="button">Grown-up: play a little more 🔒</button>
+      </div>`, { full: true, locked: true });
+    say(msg);
+    scrim.querySelector("#se-more").addEventListener("click", () => parentGate(() => {
+      sess.secs = 0; sess.over = false; saveSess(); closeModal();
+    }, () => { if (sess.over) endSession(); }));
+  }
+
+  /* ================= Top bar & router ================= */
+  function updateTop() {
+    document.getElementById("drop-count").textContent = prog.drops;
+    const me = document.getElementById("me-chip");
+    const p = active();
+    me.innerHTML = p ? avatarSvg(p.avatar, "avatar mini") : `<span class="me-empty">🙂</span>`;
+    me.setAttribute("aria-label", p ? `${p.name} is playing. Change who is playing` : "Who is playing?");
+  }
+  document.getElementById("lock-btn").addEventListener("click", () => parentGate(() => { location.hash = "#/parents"; }));
+
   const routes = {
-    "": viewHome,
-    "stories": viewStories,
-    "story": viewStory,
-    "quiz": viewQuiz,
-    "abc": viewAbc,
-    "numbers": viewNumbers,
-    "shapes": viewShapes,
-    "grownups": viewGrownups
+    "": viewTrail, welcome: viewWelcome, setup: viewSetup, avatar: viewAvatar, meet: viewMeet, who: viewWho,
+    play: viewPlay, do: viewDo, games: viewGames, garden: viewGarden, me: viewMe, parents: viewParents,
+    abc: viewAbc, numbers: viewNumbers, shapes: viewShapes
   };
+  const TAB_OF = { "": "trail", play: "games", do: "trail", games: "games", abc: "games", numbers: "games", shapes: "games", garden: "garden", me: "me", avatar: "me" };
+  let currentView = "";
+  let viewId = 0, cleanups = [];
+  function later(fn, ms) { const id = viewId; setTimeout(() => { if (id === viewId) fn(); }, ms); }
+  function onCleanup(fn) { cleanups.push(fn); }
 
   function router() {
     stopSpeaking();
-    cleanup();
+    viewId++; cleanups.forEach(f => f()); cleanups = [];
+    if (layer.firstElementChild && !layer.querySelector(".locked")) { onModalClose = null; layer.innerHTML = ""; }
     const parts = location.hash.replace(/^#\/?/, "").split("/");
-    const name = parts[0] || "";
-    const view = routes[name] || viewHome;
-    document.querySelectorAll("[data-nav]").forEach(a =>
-      a.classList.toggle("active", a.dataset.nav === name || (name === "story" && a.dataset.nav === "stories") || (name === "quiz" && a.dataset.nav === "stories")));
-    view(parts.slice(1));
+    let name = routes[parts[0]] ? parts[0] : "";
+    if (!profiles.length && name !== "setup") name = "welcome";
+    else if (profiles.length && !active() && !["who", "setup", "parents"].includes(name)) name = "who";
+    currentView = name;
+    document.body.dataset.view = name || "trail";
+    document.querySelectorAll("[data-nav]").forEach(a => a.classList.toggle("active", a.dataset.nav === TAB_OF[name]));
+    routes[name](parts.slice(1));
     app.focus({ preventScroll: true });
     window.scrollTo(0, 0);
+    if (sess.over && active() && !ADULT_VIEWS.includes(name) && !layer.querySelector(".locked, .gate")) endSession();
   }
-
-  // Delayed callbacks are dropped if the user has moved to another view/tab meanwhile.
-  let viewId = 0;
-  function later(fn, ms) { const id = viewId; setTimeout(() => { if (id === viewId) fn(); }, ms); }
-
-  let cleanups = [];
-  function onCleanup(fn) { cleanups.push(fn); }
-  function cleanup() { viewId++; cleanups.forEach(f => f()); cleanups = []; }
-
   window.addEventListener("hashchange", router);
+  const go = h => { if (location.hash === h) router(); else location.hash = h; };
 
-  /* ---------------- Views ---------------- */
-  function viewHome() {
-    const last = STORIES.find(s => s.id === progress.lastStory);
-    const readCount = Object.keys(progress.read).length;
+  /* ================= Onboarding ================= */
+  function viewWelcome() {
     app.innerHTML = `
-      <section class="hero">
-        <div class="hero-text">
-          <h1>Hello, little reader! 👋</h1>
-          <p>Read magical stories, play learning games and collect shiny stars.</p>
-          <div class="hero-actions">
-            <a class="btn btn-big" href="#/stories">📖 Start Reading</a>
-            ${last ? `<a class="btn btn-big btn-alt" href="#/story/${last.id}/${progress.lastPage}">↪ Continue “${esc(last.title)}”</a>` : ""}
-          </div>
-        </div>
-        <div class="hero-art" aria-hidden="true">
-          <span class="float f1">🦉</span><span class="float f2">📚</span><span class="float f3">🌈</span><span class="float f4">⭐</span>
-        </div>
-      </section>
-
-      ${featuredHtml()}
-
-      <section class="tiles">
-        <a class="tile" href="#/stories" style="--c:#ffb347">
-          <span class="tile-icon">📖</span><h2>Story Books</h2><p>${readCount} of ${STORIES.length} read</p>
-        </a>
-        <a class="tile" href="#/abc" style="--c:#ff7eb3">
-          <span class="tile-icon">🔤</span><h2>ABC Fun</h2><p>Letters & sounds</p>
-        </a>
-        <a class="tile" href="#/numbers" style="--c:#6fc3ff">
-          <span class="tile-icon">🔢</span><h2>Count with Me</h2><p>Numbers 1–10</p>
-        </a>
-        <a class="tile" href="#/shapes" style="--c:#8ee08e">
-          <span class="tile-icon">🔺</span><h2>Shapes & Colors</h2><p>Look and tap</p>
-        </a>
+      <section class="welcome">
+        ${ojoSvg("big float")}
+        <h1>Hello! I am Ojo.</h1>
+        <p>I am the little light inside you. Let's find eight drops of light together!</p>
+        <p class="welcome-ask">🙋 Ask a grown-up to set up the app for you.</p>
+        <button class="btn btn-big" id="start" type="button">Grown-up: set up 🔒</button>
       </section>`;
+    say("Hello! I am Ojo. Ask a grown-up to set up the app for you.");
+    document.getElementById("start").addEventListener("click", () => parentGate(() => go("#/setup")));
   }
 
-  function featuredHtml() {
-    return (window.FEATURED_BOOKS || []).map(b => `
-      <a class="featured" href="${esc(b.href)}" style="--c:${b.color};--c2:${b.color2}">
-        <div class="featured-art" aria-hidden="true"><span class="fa-main">${b.cover}</span><span class="fa-sub">${b.art}</span></div>
-        <div class="featured-info">
-          <span class="ribbon">⭐ Featured book</span>
-          <h2>${esc(b.title)}</h2>
-          <p>${esc(b.subtitle)}</p>
-          <div class="tags">${b.tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}</div>
-          <span class="btn btn-small featured-btn">Open the book →</span>
-        </div>
-      </a>`).join("");
-  }
-
-  function viewStories() {
+  function viewSetup([editId]) {
+    if (!gateIsOpen()) { parentGate(() => viewSetup([editId]), () => go(profiles.length ? "#/parents" : "#/welcome")); app.innerHTML = ""; return; }
+    const editing = profiles.find(p => p.id === editId);
+    if (!editing && profiles.length >= 3) { toast("Up to three children can share one device."); go("#/parents"); return; }
+    const f = { name: editing ? editing.name : "", age: editing ? editing.age : 5, gender: editing ? editing.gender : "none" };
     app.innerHTML = `
-      <h1 class="page-title">📖 Story Books</h1>
-      <p class="subtitle">Pick a book to read. Finish it and take the quiz to earn stars!</p>
-      ${featuredHtml()}
-      <h2 class="section-title">More stories</h2>
-      <div class="shelf">
-        ${STORIES.map(s => {
-          const best = progress.quizBest[s.id];
-          return `
-          <a class="book" href="#/story/${s.id}" style="--c:${s.color}">
-            <div class="book-cover"><span>${s.cover}</span></div>
-            <div class="book-info">
-              <h2>${esc(s.title)}</h2>
-              <div class="tags"><span class="tag">Ages ${esc(s.age)}</span><span class="tag">${esc(s.theme)}</span></div>
-              <div class="book-status">
-                ${progress.read[s.id] ? `<span class="done">✅ Read</span>` : `<span class="new">✨ New</span>`}
-                ${best != null ? `<span class="best">${"⭐".repeat(best)}${"☆".repeat(s.quiz.length - best)}</span>` : ""}
-              </div>
-            </div>
-          </a>`;
-        }).join("")}
-      </div>`;
+      <section class="panel setup">
+        <h1 class="page-title">${editing ? "Edit profile" : "Set up your child"}</h1>
+        <p class="subtitle">These details stay on this device only. We never ask for a full name, photo, school or birthday.</p>
+        <label class="field"><span>Child's first name or nickname</span>
+          <input id="f-name" type="text" maxlength="12" autocomplete="off" value="${esc(f.name)}" placeholder="e.g. Riya" /></label>
+        <div class="field"><span>Age</span>
+          <div class="stepper"><button class="step-btn" id="age-down" type="button" aria-label="Younger">−</button>
+          <output id="f-age" aria-live="polite">${f.age}</output>
+          <button class="step-btn" id="age-up" type="button" aria-label="Older">+</button></div>
+          <p class="hint" id="tier-note"></p></div>
+        <div class="field"><span>Gender (optional)</span>
+          <div class="chips" role="radiogroup">
+            ${[["girl", "Girl"], ["boy", "Boy"], ["none", "Prefer not to say"]].map(([v, l]) => `<button class="chip-btn ${f.gender === v ? "on" : ""}" data-g="${v}" role="radio" aria-checked="${f.gender === v}" type="button">${l}</button>`).join("")}
+          </div>
+          <p class="hint">Only sets the starting look of your child's character. Every look stays open to every child.</p></div>
+        <p class="form-msg" id="f-msg" aria-live="polite"></p>
+        <div class="row">
+          <a class="btn btn-ghost" href="${profiles.length ? "#/parents" : "#/welcome"}">Cancel</a>
+          <button class="btn" id="f-save" type="button">${editing ? "Save" : "Next: choose a look"}</button>
+        </div>
+      </section>`;
+    const ageOut = document.getElementById("f-age");
+    const note = () => {
+      const t = tierFor(f.age);
+      document.getElementById("tier-note").textContent = t.active ? `${t.companion} will guide your child (ages ${t.ages[0]}–${t.ages[1]}).`
+        : `Stories for ages ${t.ages[0]}–${t.ages[1]} with ${t.companion} are coming soon. Your child will start with Ojo's stories.`;
+    };
+    note();
+    const setAge = d => { f.age = Math.min(16, Math.max(3, f.age + d)); ageOut.textContent = f.age; note(); };
+    document.getElementById("age-down").addEventListener("click", () => setAge(-1));
+    document.getElementById("age-up").addEventListener("click", () => setAge(1));
+    app.querySelectorAll(".chip-btn").forEach(b => b.addEventListener("click", () => {
+      f.gender = b.dataset.g;
+      app.querySelectorAll(".chip-btn").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-checked", String(x === b)); });
+    }));
+    document.getElementById("f-save").addEventListener("click", () => {
+      const name = document.getElementById("f-name").value.replace(/\s+/g, " ").trim().slice(0, 12);
+      if (!name) { document.getElementById("f-msg").textContent = "Please enter a first name or nickname."; return; }
+      if (editing) {
+        Object.assign(editing, { name, age: f.age, gender: f.gender });
+        saveProfiles(); updateTop(); toast("Profile saved"); go("#/parents"); return;
+      }
+      const id = "c" + Date.now().toString(36) + rand(100, 999);
+      const look = AVATAR.startLook[f.gender] || AVATAR.startLook.none;
+      const profile = { id, name, age: f.age, gender: f.gender, avatar: { skin: 2, hair: look.hair, hairColor: 0, eyes: "round", outfit: look.outfit, acc: "none" } };
+      const p = blankProg();
+      if (!profiles.length) migrateLegacy(id, p);
+      profiles.push(profile); saveProfiles(); saveProgFor(id, p);
+      setActive(id);
+      try { sessionStorage.setItem("ns-onboard", "1"); } catch (e) { /* ignore */ }
+      go("#/avatar");
+    });
   }
 
-  function viewStory([id, pageStr]) {
-    const story = STORIES.find(s => s.id === id);
-    if (!story) { location.hash = "#/stories"; return; }
-    const total = story.pages.length + 1; // +1 for the "The End" page
-    let page = Math.min(Math.max(parseInt(pageStr, 10) || 0, 0), total - 1);
-    let autoRead = false;
-
-    app.innerHTML = `
-      <div class="reader">
-        <div class="reader-head">
-          <a class="btn btn-small btn-ghost" href="#/stories">← Library</a>
-          <h1>${esc(story.title)}</h1>
-          <div class="reader-tools">
-            ${canSpeak ? `<button class="btn btn-small" id="read-btn" aria-pressed="false">🔊 Read to me</button>` : ""}
-          </div>
-        </div>
-        <div class="book-page-wrap">
-          <button class="arrow" id="prev" aria-label="Previous page">‹</button>
-          <article class="book-page" id="book-page" aria-live="polite"></article>
-          <button class="arrow" id="next" aria-label="Next page">›</button>
-        </div>
-        <div class="dots" id="dots"></div>
-      </div>`;
-
-    const pageEl = document.getElementById("book-page");
-    const dotsEl = document.getElementById("dots");
-    const readBtn = document.getElementById("read-btn");
-
-    function render(dir) {
-      progress.lastStory = story.id; progress.lastPage = page;
-      if (page === total - 1 && !progress.read[story.id]) {
-        progress.read[story.id] = true; addStars(1); toast("You finished the book! +1 ⭐");
-      }
-      save();
-      history.replaceState(null, "", `#/story/${story.id}/${page}`);
-
-      pageEl.classList.remove("turn-left", "turn-right"); void pageEl.offsetWidth;
-      if (dir) pageEl.classList.add(dir > 0 ? "turn-right" : "turn-left");
-
-      if (page < story.pages.length) {
-        const p = story.pages[page];
-        pageEl.style.background = p.bg;
-        pageEl.classList.toggle("dark", !!p.dark);
-        pageEl.innerHTML = `
-          <div class="scene" aria-hidden="true">${p.scene}</div>
-          <p class="story-text">${highlightWords(esc(p.text), story.words)}</p>
-          <div class="page-num">Page ${page + 1} of ${story.pages.length}</div>`;
-        pageEl.querySelectorAll(".vocab").forEach(w => w.addEventListener("click", () => {
-          const item = story.words.find(x => x.word.toLowerCase() === w.dataset.word);
-          if (item) { toast(`${item.word}: ${item.meaning}`); speak(`${item.word}. ${item.meaning}`); }
-        }));
-      } else {
-        pageEl.style.background = "#fff8e6";
-        pageEl.classList.remove("dark");
-        pageEl.innerHTML = `
-          <div class="scene small" aria-hidden="true">🎉 ${story.cover} 🎉</div>
-          <h2 class="the-end">The End</h2>
-          <p class="moral"><strong>Lesson:</strong> ${esc(story.moral)}</p>
-          <div class="word-box">
-            <h3>📝 New words</h3>
-            <ul>${story.words.map(w => `<li><button class="word-chip" data-say="${esc(w.word + ". " + w.meaning)}"><b>${esc(w.word)}</b> – ${esc(w.meaning)}</button></li>`).join("")}</ul>
-          </div>
-          <div class="end-actions">
-            <a class="btn btn-big" href="#/quiz/${story.id}">🧠 Take the Quiz</a>
-            <button class="btn btn-alt" id="again">🔁 Read again</button>
-          </div>`;
-        pageEl.querySelectorAll(".word-chip").forEach(b => b.addEventListener("click", () => speak(b.dataset.say)));
-        document.getElementById("again").addEventListener("click", () => go(-page));
-      }
-
-      document.getElementById("prev").disabled = page === 0;
-      document.getElementById("next").disabled = page === total - 1;
-      dotsEl.innerHTML = Array.from({ length: total }, (_, i) =>
-        `<button class="dot ${i === page ? "on" : ""}" aria-label="Go to page ${i + 1}" data-i="${i}"></button>`).join("");
-      dotsEl.querySelectorAll(".dot").forEach(d => d.addEventListener("click", () => go(+d.dataset.i - page)));
-
-      if (autoRead) readCurrent();
-    }
-
-    function readCurrent() {
-      const text = page < story.pages.length
-        ? story.pages[page].text
-        : `The End. The lesson is: ${story.moral}`;
-      speak(text, () => {
-        if (autoRead && page < total - 1) later(() => { if (autoRead) go(1); }, 700);
-        else if (autoRead) setAuto(false);
+  function viewAvatar() {
+    const p = active(); if (!p) { go("#/who"); return; }
+    const onboarding = (() => { try { return sessionStorage.getItem("ns-onboard") === "1"; } catch (e) { return false; } })();
+    const av = p.avatar;
+    const owned = id => !priceOf(id) || prog.owned.includes(id);
+    function render() {
+      app.innerHTML = `
+        <section class="avatar-maker">
+          <h1 class="page-title">Choose your look</h1>
+          <div class="av-stage">${avatarSvg(av, "avatar big")}${ojoSvg("buddy float")}</div>
+          ${section("Skin", AVATAR.skin.map((c, i) => `<button class="sw ${av.skin === i ? "on" : ""}" data-k="skin" data-v="${i}" style="--c:${c}" aria-label="Skin tone ${i + 1}" type="button"></button>`).join(""))}
+          ${section("Hair", AVATAR.hair.map(h => `<button class="pick ${av.hair === h.id ? "on" : ""}" data-k="hair" data-v="${h.id}" type="button">${avatarSvg(Object.assign({}, av, { hair: h.id }), "avatar tiny")}<span>${h.name}</span></button>`).join(""))}
+          ${section("Hair colour", AVATAR.hairColor.map((c, i) => `<button class="sw ${av.hairColor === i ? "on" : ""}" data-k="hairColor" data-v="${i}" style="--c:${c}" aria-label="Hair colour ${i + 1}" type="button"></button>`).join(""))}
+          ${section("Eyes", AVATAR.eyes.map(e => `<button class="pick ${av.eyes === e.id ? "on" : ""}" data-k="eyes" data-v="${e.id}" type="button">${avatarSvg(Object.assign({}, av, { eyes: e.id }), "avatar tiny face")}<span>${e.name}</span></button>`).join(""))}
+          ${section("Clothes", AVATAR.outfit.map(o => itemBtn("outfit", o, owned(o.id))).join(""))}
+          ${section("Extras", AVATAR.acc.map(o => itemBtn("acc", o, owned(o.id))).join(""))}
+          <div class="row sticky-row"><button class="btn btn-big" id="av-done" type="button">${onboarding ? "Meet Ojo →" : "Done"}</button></div>
+        </section>`;
+      app.querySelectorAll("[data-k]").forEach(b => b.addEventListener("click", () => {
+        const k = b.dataset.k, v = b.dataset.v;
+        if (b.classList.contains("locked")) { toast(`Collect drops to get this in the shop on your Me page.`); return; }
+        av[k] = (k === "skin" || k === "hairColor") ? +v : v;
+        saveProfiles(); updateTop(); render();
+      }));
+      document.getElementById("av-done").addEventListener("click", () => {
+        if (onboarding) { try { sessionStorage.removeItem("ns-onboard"); } catch (e) { /* ignore */ } go("#/meet"); } else go("#/me");
       });
     }
-
-    function setAuto(on) {
-      autoRead = on;
-      if (readBtn) {
-        readBtn.setAttribute("aria-pressed", String(on));
-        readBtn.textContent = on ? "⏸ Stop reading" : "🔊 Read to me";
-      }
-      if (on) readCurrent(); else stopSpeaking();
+    function section(title, inner) { return `<h2 class="section-title">${title}</h2><div class="pick-row">${inner}</div>`; }
+    function itemBtn(k, o, isOwned) {
+      const preview = avatarSvg(Object.assign({}, av, { [k]: o.id }), "avatar tiny");
+      return `<button class="pick ${av[k] === o.id ? "on" : ""} ${isOwned ? "" : "locked"}" data-k="${k}" data-v="${o.id}" type="button">${preview}<span>${isOwned ? o.name : `🔒 ${o.price}`}</span></button>`;
     }
-
-    function go(delta) {
-      const next = page + delta;
-      if (next < 0 || next >= total || delta === 0) return;
-      stopSpeaking();
-      page = next;
-      render(delta);
-    }
-
-    document.getElementById("prev").addEventListener("click", () => go(-1));
-    document.getElementById("next").addEventListener("click", () => go(1));
-    if (readBtn) readBtn.addEventListener("click", () => setAuto(!autoRead));
-
-    const onKey = e => {
-      if (e.key === "ArrowRight") go(1);
-      else if (e.key === "ArrowLeft") go(-1);
-    };
-    document.addEventListener("keydown", onKey);
-
-    let startX = null;
-    const onStart = e => { startX = e.touches[0].clientX; };
-    const onEnd = e => {
-      if (startX === null) return;
-      const dx = e.changedTouches[0].clientX - startX;
-      if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
-      startX = null;
-    };
-    pageEl.addEventListener("touchstart", onStart, { passive: true });
-    pageEl.addEventListener("touchend", onEnd);
-
-    onCleanup(() => { autoRead = false; document.removeEventListener("keydown", onKey); });
-    render(0);
-  }
-
-  function highlightWords(html, words) {
-    words.forEach(w => {
-      const re = new RegExp(`\\b(${w.word})\\b`, "i");
-      html = html.replace(re, `<button class="vocab" data-word="${w.word.toLowerCase()}" title="Tap to learn this word">$1</button>`);
-    });
-    return html;
-  }
-
-  function viewQuiz([id]) {
-    const story = STORIES.find(s => s.id === id);
-    if (!story) { location.hash = "#/stories"; return; }
-    let i = 0, score = 0, locked = false;
-    const questions = story.quiz.map(q => {
-      const order = shuffle(q.options.map((_, k) => k));
-      return { q: q.q, options: order.map(k => q.options[k]), answer: order.indexOf(q.answer) };
-    });
-
-    function render() {
-      if (i >= questions.length) return finish();
-      const q = questions[i];
-      locked = false;
-      app.innerHTML = `
-        <div class="quiz">
-          <a class="btn btn-small btn-ghost" href="#/story/${story.id}">← Back to book</a>
-          <div class="quiz-card">
-            <div class="quiz-progress">Question ${i + 1} of ${questions.length}</div>
-            <div class="quiz-cover" aria-hidden="true">${story.cover}</div>
-            <h2>${esc(q.q)} ${canSpeak ? `<button class="icon-btn" id="say-q" aria-label="Read question">🔊</button>` : ""}</h2>
-            <div class="options">
-              ${q.options.map((o, k) => `<button class="option" data-k="${k}">${esc(o)}</button>`).join("")}
-            </div>
-            <div class="feedback" id="feedback" aria-live="polite"></div>
-          </div>
-        </div>`;
-      const sayQ = document.getElementById("say-q");
-      if (sayQ) sayQ.addEventListener("click", () => speak(q.q + " " + q.options.join(", or ")));
-      app.querySelectorAll(".option").forEach(b => b.addEventListener("click", () => answer(b, +b.dataset.k)));
-    }
-
-    function answer(btn, k) {
-      if (locked) return;
-      const q = questions[i];
-      const fb = document.getElementById("feedback");
-      if (k === q.answer) {
-        locked = true;
-        btn.classList.add("right");
-        if (!q.missed) score++;
-        const msg = pick(["Great job!", "You got it!", "Super!", "Well done!"]);
-        fb.textContent = "🎉 " + msg; speak(msg);
-        later(() => { i++; render(); }, 1300);
-      } else {
-        btn.classList.add("wrong"); btn.disabled = true;
-        fb.textContent = "🤔 Not quite — try again!"; speak("Try again!");
-        q.missed = true; // only first-try answers count for stars
-      }
-    }
-
-    function finish() {
-      const prev = progress.quizBest[story.id];
-      const gained = Math.max(0, score - (prev || 0));
-      if (prev == null || score > prev) progress.quizBest[story.id] = score;
-      if (gained) addStars(gained); else save();
-      if (score === questions.length) confetti();
-      const msg = score === questions.length ? "Perfect score! You are a super reader!" : score > 0 ? "Nice work! Keep reading!" : "Good try! Read the story again and try once more.";
-      speak(msg);
-      app.innerHTML = `
-        <div class="quiz">
-          <div class="quiz-card center">
-            <div class="quiz-cover" aria-hidden="true">🏅</div>
-            <h2>${esc(msg)}</h2>
-            <p class="big-stars">${"⭐".repeat(score)}${"☆".repeat(questions.length - score)}</p>
-            <p>You got <b>${score}</b> of <b>${questions.length}</b> right on the first try${gained ? ` and earned <b>${gained}</b> new star${gained > 1 ? "s" : ""}!` : "."}</p>
-            <div class="end-actions">
-              <a class="btn" href="#/quiz/${story.id}" id="retry">🔁 Try again</a>
-              <a class="btn btn-alt" href="#/stories">📚 More stories</a>
-            </div>
-          </div>
-        </div>`;
-      document.getElementById("retry").addEventListener("click", e => { e.preventDefault(); router(); });
-    }
-
     render();
   }
 
-  /* ---------------- ABC ---------------- */
+  function viewMeet() {
+    const p = active(); if (!p) { go("#/who"); return; }
+    const lines = GUIDE.firstMeet.map(l => l.replace(/\{name\}/g, p.name));
+    app.innerHTML = `
+      <section class="meet">
+        <div class="meet-stage">${avatarSvg(p.avatar, "avatar big")}${ojoSvg("buddy float")}</div>
+        ${guideHtml(lines[0])}
+        <button class="btn btn-big" id="meet-go" type="button">Next →</button>
+      </section>`;
+    bindGuide(app, lines[0]);
+    let i = 0;
+    document.getElementById("meet-go").addEventListener("click", e => {
+      i++;
+      if (i < lines.length) { setGuide(app, lines[i]); if (i === lines.length - 1) e.target.textContent = "Let's go to the Trail! 🗺️"; }
+      else go("#/");
+    });
+  }
+
+  function viewWho() {
+    app.innerHTML = `
+      <section class="who">
+        <h1 class="page-title">Who is playing?</h1>
+        <div class="who-list">
+          ${profiles.map(p => `<button class="who-card ${p.id === activeId ? "on" : ""}" data-id="${p.id}" type="button">${avatarSvg(p.avatar, "avatar mid")}<span>${esc(p.name)}</span></button>`).join("")}
+          ${profiles.length < 3 ? `<button class="who-card add" id="who-add" type="button"><span class="plus">＋</span><span>Add a child 🔒</span></button>` : ""}
+        </div>
+      </section>`;
+    app.querySelectorAll(".who-card[data-id]").forEach(b => b.addEventListener("click", () => { setActive(b.dataset.id); go("#/"); }));
+    const add = document.getElementById("who-add");
+    if (add) add.addEventListener("click", () => parentGate(() => go("#/setup")));
+  }
+
+  /* ================= Treasure Trail ================= */
+  const OFFSETS = [0, 0.67, 1, 0.67, 0, -0.67, -1, -0.67];
+  const ROW = 132;
+  function viewTrail() {
+    const p = active();
+    const gained = syncBook();
+    const lastDay = prog.days.length ? prog.days[prog.days.length - 1] : null;
+    const h = new Date().getHours();
+    const greet = lastDay && daysApart(lastDay, dayKey()) >= 3 ? line("returnAfterBreak") : line(h < 12 ? "morning" : h < 17 ? "afternoon" : "evening");
+    const lights = TRAIL.filter(s => stopState(prog, s.n).listen).length;
+    const complete = s => { const st = stopState(prog, s.n); return st.listen && st.play && st.done; };
+    const nextStop = TRAIL.find(s => !complete(s));
+    const allDone = !nextStop;
+    const W = Math.max(260, Math.min(340, (app.clientWidth || 320) - 8)), amp = (W - 124) / 2;
+    const cx = i => Math.round(W / 2 + OFFSETS[i] * amp), cy = i => i * ROW + 56;
+    const path = TRAIL.map((_, i) => i === 0 ? `M${cx(0)} ${cy(0)}` : `C${cx(i - 1)} ${cy(i - 1) + ROW / 2} ${cx(i)} ${cy(i) - ROW / 2} ${cx(i)} ${cy(i)}`).join(" ");
+    const tier = tierFor(p.age);
+
+    app.innerHTML = `
+      <section class="trail-head">
+        ${guideHtml(allDone ? line("allDone") : greet)}
+        <div class="lights" aria-label="${lights} of 8 drops of light found">
+          <div class="lights-row">${TRAIL.map(s => dropSvg(stopState(prog, s.n).listen ? "lit" : "")).join("")}</div>
+          <p>${lights === 8 ? "Ojo is full of light!" : `${lights} of 8 drops of light`}</p>
+        </div>
+        ${!tier.active ? `<p class="tier-soon">More stories for ${esc(p.name)}'s age are coming soon!</p>` : ""}
+      </section>
+      <div class="trail" style="width:${W}px;height:${TRAIL.length * ROW + 40}px">
+        <svg class="trail-path" width="${W}" height="${TRAIL.length * ROW}" viewBox="0 0 ${W} ${TRAIL.length * ROW}" aria-hidden="true"><path d="${path}"/></svg>
+        ${TRAIL.map((s, i) => {
+          const st = stopState(prog, s.n), isNext = nextStop && nextStop.n === s.n;
+          return `<button class="stop ${complete(s) ? "complete" : ""} ${isNext ? "next" : ""}" data-n="${s.n}" type="button"
+              style="--c:${s.color};left:${cx(i) - 42}px;top:${cy(i) - 42}px" aria-label="Stop ${s.n}: ${esc(s.title)}">
+              <span class="stop-ring"><span class="stop-icon">${s.icon}</span></span>
+              <span class="pips"><i class="${st.listen ? "on" : ""}">🎧</i><i class="${st.play ? "on" : ""}">🎮</i><i class="${st.done ? "on" : ""}">🌟</i></span>
+              <span class="stop-title">${esc(s.title)}</span>
+              ${isNext ? `<span class="stop-here ${OFFSETS[i] > 0 ? "on-left" : "on-right"}">${ojoSvg("tiny float")}<b>${complete(s) ? "" : (st.listen || st.play ? "Keep going" : "Start")}</b></span>` : ""}
+            </button>`;
+        }).join("")}
+        ${allDone ? `<div class="trail-end" style="top:${TRAIL.length * ROW}px">🏆 Ojo's treasure is full!<br><button class="btn btn-small" id="cert" type="button">Print certificate</button></div>` : ""}
+      </div>`;
+    bindGuide(app, allDone ? null : greet);
+    app.querySelectorAll(".stop").forEach(b => b.addEventListener("click", () => openStop(+b.dataset.n)));
+    const cert = document.getElementById("cert"); if (cert) cert.addEventListener("click", printCertificate);
+    if (gained) later(() => celebrate(gained, "You found a drop of light in the story!"), 400);
+    else if (!allDone) later(() => { const el = app.querySelector(".stop.next"); if (el && el.getBoundingClientRect().top > innerHeight - 120) el.scrollIntoView({ behavior: settings.calm ? "auto" : "smooth", block: "center" }); }, 500);
+  }
+
+  function openStop(n) {
+    const s = TRAIL.find(x => x.n === n), st = stopState(prog, n), g = GAMES[s.game];
+    const pending = !!prog.pending[n];
+    const scrim = modal(`
+      <div class="sheet stop-sheet" role="dialog" aria-modal="true" aria-labelledby="ss-h" style="--c:${s.color}">
+        <div class="ss-icon">${s.icon}</div>
+        <h2 id="ss-h">${esc(s.title)}</h2>
+        <p class="ss-hook">${esc(s.hook)}</p>
+        <a class="step ${st.listen ? "done" : ""}" href="ojo-treasury/index.html#story-${n}">
+          <span class="step-ic">🎧</span><span class="step-tx"><b>Listen</b><small>Story · ${DV.listen} drops</small></span><span class="step-ok">${st.listen ? "✓" : "›"}</span></a>
+        <a class="step ${st.play ? "done" : ""}" href="#/play/${n}">
+          <span class="step-ic">🎮</span><span class="step-tx"><b>Play</b><small>${esc(g.title)} · ${DV.play} drops</small></span><span class="step-ok">${st.play ? "✓" : "›"}</span></a>
+        <a class="step ${st.done ? "done" : ""} ${pending ? "waiting" : ""}" href="#/do/${n}">
+          <span class="step-ic">🌟</span><span class="step-tx"><b>Do</b><small>${pending ? "Waiting for a grown-up's tick" : `Real-life habit · ${DV.do} drops`}</small></span><span class="step-ok">${st.done ? "✓" : pending ? "⏳" : "›"}</span></a>
+        <button class="btn btn-ghost" data-close type="button">Close</button>
+      </div>`);
+    scrim.querySelectorAll("a.step").forEach(a => a.addEventListener("click", () => { onModalClose = null; }));
+  }
+
+  function printCertificate() {
+    const p = active();
+    const w = window.open("", "_blank");
+    if (!w) { toast("Please allow pop-ups to print the certificate."); return; }
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Ojo's Treasure is Full</title>
+      <style>body{font-family:"Baloo 2",system-ui,sans-serif;text-align:center;padding:40px;color:#3a3046}
+      .c{border:12px double #f4b52c;border-radius:24px;padding:40px}h1{color:#46307e;font-size:2.6rem;margin:.2em 0}
+      .n{font-size:3rem;color:#e86f22;font-weight:800}.d{font-size:2.4rem;letter-spacing:6px}</style></head>
+      <body><div class="c"><div class="d">💧💧💧💧💧💧💧💧</div><h1>Ojo's Treasure is Full!</h1>
+      <p>This certificate is for</p><p class="n">${esc(p.name)}</p>
+      <p>who found all eight drops of light in <b>The Ojo Treasury</b>.</p>
+      <p>${new Date().toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}</p></div>
+      <script>onload=()=>print()<\/script></body></html>`);
+    w.document.close();
+  }
+
+  /* ================= Games ================= */
+  function viewGames() {
+    app.innerHTML = `
+      <h1 class="page-title">🎮 Games</h1>
+      <p class="subtitle">Every game ends with something to try for real.</p>
+      <h2 class="section-title">Ojo's games</h2>
+      <div class="tiles">
+        ${TRAIL.map(s => `<a class="tile" href="#/play/${s.n}" style="--c:${s.color}">
+          <span class="tile-icon">${s.icon}</span><h2>${esc(GAMES[s.game].title)}</h2>
+          <p>${stopState(prog, s.n).play ? "✓ Played · " : ""}From “${esc(s.title)}”</p></a>`).join("")}
+        <a class="tile" href="#/play/pairs" style="--c:#f39c12"><span class="tile-icon">🃏</span><h2>${esc(GAMES.pairs.title)}</h2><p>A memory game</p></a>
+      </div>
+      <h2 class="section-title">Learning games</h2>
+      <div class="tiles">
+        ${LEARNING_GAMES.map(g => `<a class="tile" href="#/${g.route}" style="--c:${g.color}"><span class="tile-icon">${g.icon}</span><h2>${esc(g.title)}</h2><p>${esc(g.note)}</p></a>`).join("")}
+      </div>`;
+  }
+
+  function viewPlay([key]) {
+    const n = parseInt(key, 10);
+    const stop = TRAIL.find(s => s.n === n);
+    const gameKey = stop ? stop.game : key;
+    const game = GAMES[gameKey];
+    if (!game) { go("#/games"); return; }
+    const back = stop ? "#/" : "#/games";
+    app.innerHTML = `
+      <div class="play-head">
+        <a class="btn btn-small btn-ghost" href="${back}">← ${stop ? "Trail" : "Games"}</a>
+        <h1>${esc(game.title)}</h1>
+      </div>
+      ${guideHtml(game.prompt || "")}
+      <div class="game" id="game-box"></div>`;
+    bindGuide(app, game.prompt);
+    const box = document.getElementById("game-box");
+    const engines = { sort: gameSort, sequence: gameSequence, choose: gameChoose, scrub: gameScrub, tummy: gameTummy, pairs: gamePairs };
+    const win = () => later(() => finishGame(gameKey, stop, box), 700);
+    engines[game.type](box, game, isSmall(), win);
+  }
+
+  function praise() { const t = line("correct"); setGuide(app, t); }
+  function hint(text) { setGuide(app, text || line("wrong")); }
+
+  function finishGame(gameKey, stop, box) {
+    let earned = 0;
+    if (stop && !stopState(prog, stop.n).play) { stopState(prog, stop.n).play = true; earned = addDrops(DV.play); }
+    else if (prog.played[gameKey] !== dayKey()) { prog.played[gameKey] = dayKey(); earned = addDrops(DV.replay); }
+    else markActive();
+    saveProg();
+    const msg = line("gameDone");
+    box.innerHTML = `
+      <div class="center game-done">
+        <div class="game-cover">🏆</div>
+        <h2>${esc(msg)}</h2>
+        ${earned ? `<p class="earned">${dropSvg()} +${earned} Ojas drop${earned > 1 ? "s" : ""}</p>` : `<p class="earned">You've already collected today's drops for this game.</p>`}
+        <div class="row">
+          ${stop ? `<a class="btn btn-big" href="#/do/${stop.n}">🌟 Now try it for real</a>` : ""}
+          <button class="btn btn-alt again" type="button">🔁 Play again</button>
+        </div>
+      </div>`;
+    box.querySelector(".again").addEventListener("click", router);
+    if (earned) celebrate(earned, msg, () => { if (stop) setGuide(app, line("taskInvite")); });
+    else setGuide(app, msg);
+  }
+
+  /* Tap everything that is right */
+  function gameSort(box, game, small, win) {
+    let items = game.items;
+    if (small) items = [...items.filter(i => i.ok).slice(0, 3), ...items.filter(i => !i.ok).slice(0, game.small - 3)];
+    items = shuffle(items);
+    const need = items.filter(i => i.ok).length;
+    let found = 0;
+    box.innerHTML = `<p class="counter" id="counter">0 of ${need} found</p>
+      <div class="pick-grid">${items.map((it, k) => `<button class="card-btn" data-k="${k}" type="button"><span class="ce">${it.e}</span><span class="cl">${esc(it.l)}</span></button>`).join("")}</div>`;
+    box.querySelectorAll(".card-btn").forEach(b => b.addEventListener("click", () => {
+      const it = items[+b.dataset.k];
+      if (b.classList.contains("right")) return;
+      if (it.ok) {
+        b.classList.add("right"); found++;
+        box.querySelector("#counter").textContent = `${found} of ${need} found`;
+        if (found === need) { praise(); win(); } else speak(it.l);
+      } else {
+        b.classList.remove("wrong"); void b.offsetWidth; b.classList.add("wrong");
+        hint(`Hmm, does ${it.l.toLowerCase()} help? Try another!`);
+      }
+    }));
+  }
+
+  /* Tap the pictures in the right order */
+  function gameSequence(box, game, small, win) {
+    const steps = small ? game.steps.filter(s => s.core) : game.steps;
+    const order = shuffle(steps.map((_, k) => k));
+    let next = 0, misses = 0;
+    box.innerHTML = `
+      <ol class="slots">${steps.map((_, k) => `<li class="slot" data-k="${k}"><span class="slot-n">${k + 1}</span></li>`).join("")}</ol>
+      <div class="pick-grid">${order.map(k => `<button class="card-btn" data-k="${k}" type="button"><span class="ce">${steps[k].e}</span><span class="cl">${esc(steps[k].l)}</span></button>`).join("")}</div>`;
+    box.querySelectorAll(".card-btn").forEach(b => b.addEventListener("click", () => {
+      const k = +b.dataset.k;
+      if (k === next) {
+        const slot = box.querySelector(`.slot[data-k="${k}"]`);
+        slot.innerHTML = `<span class="ce">${steps[k].e}</span><span class="cl">${esc(steps[k].l)}</span>`;
+        slot.classList.add("filled", "pop");
+        b.classList.add("used"); b.disabled = true;
+        next++; misses = 0;
+        box.querySelectorAll(".card-btn.glow").forEach(x => x.classList.remove("glow"));
+        speak(steps[k].l);
+        if (next === steps.length) { praise(); win(); }
+      } else {
+        misses++;
+        b.classList.remove("wrong"); void b.offsetWidth; b.classList.add("wrong");
+        hint(misses >= 2 ? `What comes next? Look at the glowing one!` : "Hmm, what comes next?");
+        if (misses >= 2) { const c = box.querySelector(`.card-btn[data-k="${next}"]`); if (c) c.classList.add("glow"); }
+      }
+    }));
+  }
+
+  /* One question, a few answers, several rounds */
+  function gameChoose(box, game, small, win) {
+    const rounds = small ? game.rounds.slice(0, game.small) : game.rounds;
+    let i = 0;
+    function render() {
+      const r = rounds[i];
+      const opts = shuffle(r.options.map((o, k) => ({ o, k })));
+      box.innerHTML = `
+        <div class="game-round">Question ${i + 1} of ${rounds.length}</div>
+        <div class="prompt-emoji">${r.e}</div>
+        <p class="q">${esc(r.q)} ${canSpeak ? `<button class="icon-btn" id="hear" type="button" aria-label="Hear the question">🔊</button>` : ""}</p>
+        <div class="options">${opts.map(x => `<button class="option" data-k="${x.k}" type="button">${esc(x.o)}</button>`).join("")}</div>`;
+      const ask = () => speak(r.q + " " + r.options.map(o => o.replace(/^[\p{Extended_Pictographic}\uFE0F\u200D]+\s*/u, "")).join(", or "));
+      if (autoTalk()) ask();
+      const hear = box.querySelector("#hear"); if (hear) hear.addEventListener("click", ask);
+      let done = false;
+      box.querySelectorAll(".option").forEach(b => b.addEventListener("click", () => {
+        if (done) return;
+        if (+b.dataset.k === r.a) {
+          done = true; b.classList.add("right"); praise();
+          i++; later(() => { if (i < rounds.length) render(); else win(); }, 1200);
+        } else { b.classList.add("wrong"); b.disabled = true; hint(); }
+      }));
+    }
+    render();
+  }
+
+  /* Brush away the fuzzy spots */
+  function gameScrub(box, game, small, win) {
+    const total = small ? game.small : game.spots;
+    const fuzzy = new Set(shuffle([...Array(12).keys()]).slice(0, total));
+    let left = total;
+    box.innerHTML = `<p class="counter" id="counter">${left} fuzzy spots left</p>
+      <div class="mouth">${[...Array(12).keys()].map(k => `<button class="tooth ${fuzzy.has(k) ? "fuzzy" : ""} ${k < 6 ? "top" : "bottom"}" data-k="${k}" type="button" aria-label="${fuzzy.has(k) ? "Fuzzy tooth" : "Clean tooth"}"></button>`).join("")}</div>`;
+    box.querySelectorAll(".tooth").forEach(b => b.addEventListener("click", () => {
+      if (!b.classList.contains("fuzzy")) { setGuide(app, "That one is already sparkly!"); return; }
+      b.classList.remove("fuzzy"); b.classList.add("sparkle"); b.setAttribute("aria-label", "Clean tooth");
+      left--;
+      box.querySelector("#counter").textContent = left ? `${left} fuzzy spot${left > 1 ? "s" : ""} left` : "All sparkly!";
+      if (!left) { praise(); win(); }
+    }));
+  }
+
+  /* Stop eating when the tummy feels comfy */
+  function gameTummy(box, game, small, win) {
+    const max = game.bites.length, comfy = game.comfy;
+    let level = 0, locked = false;
+    function render() {
+      box.innerHTML = `
+        <div class="tummy-wrap">
+          <div class="plate">${game.bites.map((b, k) => `<button class="bite ${k < level ? "eaten" : ""}" data-k="${k}" type="button" aria-label="Eat a bite">${b}</button>`).join("")}</div>
+          <div class="tummy">
+            <span class="tummy-kid" aria-hidden="true">👧🏽</span>
+            <div class="meter" aria-label="Tummy ${level} of ${max} full">${[...Array(max).keys()].map(k => `<span class="${k < level ? "full" : ""} ${k === comfy - 1 ? "comfy" : ""}"></span>`).join("")}</div>
+            <small>${level === 0 ? "Hungry" : level < comfy ? "Still a little hungry" : level === comfy ? "Comfy, with a little space" : "Too full!"}</small>
+          </div>
+        </div>
+        <button class="btn btn-big ${level === comfy ? "pulse" : ""}" id="tummy-done" type="button">🙏 I'm done</button>`;
+      box.querySelectorAll(".bite:not(.eaten)").forEach(b => b.addEventListener("click", () => {
+        if (locked) return;
+        level++;
+        if (level > comfy) {
+          locked = true; render();
+          setGuide(app, "Oops, too full! Let's try again and leave a little space.");
+          later(() => { level = 0; locked = false; render(); }, 1800);
+          return;
+        }
+        render();
+        if (level === comfy) setGuide(app, "Ayu's tummy feels comfy. Leave a little space!");
+      }));
+      box.querySelector("#tummy-done").addEventListener("click", () => {
+        if (locked) return;
+        if (level < comfy) { hint("Ayu is still a little hungry. One more bite?"); return; }
+        locked = true; setGuide(app, "Thank you, tummy!"); win();
+      });
+    }
+    render();
+  }
+
+  /* Memory pairs */
+  function gamePairs(box, game, small, win) {
+    const faces = small ? game.cards.slice(0, game.small) : game.cards;
+    const deck = shuffle([...faces, ...faces]);
+    let open = [], matched = 0, busy = false;
+    box.innerHTML = `<div class="pairs ${small ? "small" : ""}">${deck.map((f, k) => `<button class="pair" data-k="${k}" type="button" aria-label="Hidden card"><span>${f}</span></button>`).join("")}</div>`;
+    box.querySelectorAll(".pair").forEach(b => b.addEventListener("click", () => {
+      if (busy || b.classList.contains("up")) return;
+      b.classList.add("up"); b.setAttribute("aria-label", "Card " + deck[+b.dataset.k]);
+      open.push(b);
+      if (open.length < 2) return;
+      const [a, c] = open; open = [];
+      if (deck[+a.dataset.k] === deck[+c.dataset.k]) {
+        a.classList.add("got"); c.classList.add("got"); matched++;
+        if (matched === faces.length) { praise(); win(); } else speak(pick(["A pair!", "Match!", "Yes!"]));
+      } else {
+        busy = true;
+        later(() => { a.classList.remove("up"); c.classList.remove("up"); a.setAttribute("aria-label", "Hidden card"); c.setAttribute("aria-label", "Hidden card"); busy = false; }, 900);
+      }
+    }));
+  }
+
+  /* ================= Do: the real-life habit ================= */
+  function viewDo([key]) {
+    const n = parseInt(key, 10), s = TRAIL.find(x => x.n === n);
+    if (!s) { go("#/"); return; }
+    const t = dayKey(), habit = prog.habits[n] || { count: 0, last: null };
+    const doneToday = habit.last === t, pending = !!prog.pending[n] && !doneToday;
+    const got = !!prog.stickers[s.sticker.id];
+    const g = doneToday ? `Well done! You did it today.` : pending ? line("taskPending") : line("taskInvite");
+    app.innerHTML = `
+      <div class="play-head"><a class="btn btn-small btn-ghost" href="#/">← Trail</a><h1>Try it today</h1></div>
+      ${guideHtml(g)}
+      <section class="task-card" style="--c:${s.color}">
+        <div class="task-sticker">${s.sticker.e}</div>
+        <p class="task-text">${esc(s.task)}</p>
+        ${canSpeak ? `<button class="icon-btn" id="hear-task" type="button" aria-label="Hear the task">🔊</button>` : ""}
+        <div class="task-status">
+          ${doneToday ? `<p class="ok">✅ Done today!</p>`
+            : pending ? `<p class="wait">⏳ Waiting for a grown-up's tick</p>`
+            : `<button class="btn btn-big" id="will-do" type="button">I'll try it today! 🌟</button>`}
+        </div>
+        ${!doneToday ? `<button class="btn btn-ghost btn-small" id="tick-now" type="button">Grown-up here? Tick it now 🔒</button>` : ""}
+        <div class="sticker-progress">
+          <p>${got ? `You have the <b>${esc(s.sticker.name)}</b> sticker!` : `Do it on 3 days to earn the <b>${esc(s.sticker.name)}</b> sticker`}</p>
+          <div class="dots3">${[0, 1, 2].map(k => `<span class="${k < Math.min(habit.count, 3) ? "on" : ""}"></span>`).join("")}</div>
+        </div>
+      </section>`;
+    bindGuide(app, g);
+    const hear = document.getElementById("hear-task"); if (hear) hear.addEventListener("click", () => speak(s.task));
+    const will = document.getElementById("will-do");
+    if (will) will.addEventListener("click", () => { prog.pending[n] = t; saveProg(); router(); });
+    const tick = document.getElementById("tick-now");
+    if (tick) tick.addEventListener("click", () => parentGate(() => {
+      const r = confirmTask(activeId, n);
+      if (r) celebrate(r.earned, r.sticker ? `New sticker: ${r.sticker.name}!` : `Well done, ${active().name}!`, router);
+    }));
+  }
+
+  /* A grown-up confirms the habit was done. Drops once a day per habit; sticker after three days. */
+  function confirmTask(childId, n) {
+    const s = TRAIL.find(x => x.n === n);
+    const p = childId === activeId ? prog : loadProg(childId);
+    const t = dayKey(), habit = p.habits[n] || { count: 0, last: null };
+    if (habit.last === t) { delete p.pending[n]; saveProgFor(childId, p); return null; }
+    habit.count++; habit.last = t; p.habits[n] = habit;
+    delete p.pending[n];
+    stopState(p, n).done = true;
+    const earned = addDrops(DV.do, p);
+    let sticker = null;
+    if (habit.count >= 3 && !p.stickers[s.sticker.id]) { p.stickers[s.sticker.id] = t; sticker = s.sticker; }
+    saveProgFor(childId, p);
+    if (childId === activeId) updateTop();
+    return { earned, sticker };
+  }
+
+  /* ================= Garden ================= */
+  const FLOWERS = ["🌸", "🌼", "🌷", "🌺", "🌻", "💐"];
+  function viewGarden() {
+    const wk = weekKey(), weekDays = prog.days.filter(d => weekKey(new Date(d + "T12:00:00")) === wk).length;
+    const chestReady = weekDays >= 3 && !prog.chests[wk];
+    const plants = prog.plants.map(id => PLANTS.find(p => p.id === id)).filter(Boolean);
+    const g = prog.days.length ? `Your garden has ${prog.days.length} flower${prog.days.length > 1 ? "s" : ""}. Flowers never wilt here!` : "Play today and your first flower will bloom!";
+    app.innerHTML = `
+      <h1 class="page-title">🌼 My Garden</h1>
+      ${guideHtml(g)}
+      <section class="garden">
+        <div class="bed">
+          ${prog.days.length || plants.length ? "" : `<span class="seed">🌱</span>`}
+          ${prog.days.map((d, i) => `<span class="flower" style="--i:${i}" title="${d}">${FLOWERS[i % FLOWERS.length]}</span>`).join("")}
+          ${plants.map(p => `<span class="flower plant" title="${esc(p.name)}">${p.e}</span>`).join("")}
+        </div>
+        <p class="garden-note">One flower blooms on every day you play. Missed days never take a flower away.</p>
+      </section>
+      <section class="chest-box">
+        ${chestReady ? `<button class="chest ready" id="open-chest" type="button"><span>🎁</span><b>Open your treasure chest!</b></button>`
+          : prog.chests[wk] ? `<div class="chest opened"><span>🧰</span><b>You opened this week's chest. A new one comes next week!</b></div>`
+          : `<div class="chest"><span>🎁</span><b>Play on 3 days this week to open the treasure chest</b>
+              <div class="dots3">${[0, 1, 2].map(k => `<span class="${k < weekDays ? "on" : ""}"></span>`).join("")}</div></div>`}
+      </section>`;
+    bindGuide(app, g);
+    const open = document.getElementById("open-chest");
+    if (open) open.addEventListener("click", () => {
+      prog.chests[wk] = dayKey();
+      const options = CHEST_STICKERS.filter(s => !prog.stickers[s.id]);
+      const st = options.length ? pick(options) : null;
+      if (st) prog.stickers[st.id] = dayKey();
+      const earned = addDrops(DV.chest);
+      saveProg();
+      celebrate(earned, st ? `${line("chest")} You got the ${st.name} sticker!` : line("chest"), router);
+    });
+  }
+
+  /* ================= Me: avatar, stickers, shop ================= */
+  function priceOf(id) {
+    const all = [...AVATAR.outfit, ...AVATAR.acc, ...PLANTS];
+    const it = all.find(x => x.id === id);
+    return it ? it.price : 0;
+  }
+  function viewMe([tab]) {
+    const p = active();
+    const shopTab = ["outfit", "acc", "plants"].includes(tab) ? tab : "outfit";
+    const allStickers = [...TRAIL.map(s => s.sticker), ...CHEST_STICKERS];
+    const items = shopTab === "plants" ? PLANTS : AVATAR[shopTab].filter(i => i.price > 0);
+    app.innerHTML = `
+      <section class="me-head">
+        ${avatarSvg(p.avatar, "avatar big")}
+        <div><h1 class="page-title">${esc(p.name)}</h1>
+          <p class="me-drops">${dropSvg()} <b>${prog.drops}</b> Ojas drops</p>
+          <a class="btn" href="#/avatar">✏️ Change my look</a></div>
+      </section>
+      <h2 class="section-title">My stickers</h2>
+      <div class="album">${allStickers.map(s => prog.stickers[s.id]
+          ? `<div class="stk got"><span>${s.e}</span><small>${esc(s.name)}</small></div>`
+          : `<div class="stk"><span>?</span><small>${esc(s.name)}</small></div>`).join("")}</div>
+      <h2 class="section-title">Ojo's shop</h2>
+      <p class="subtitle">Spend your drops on clothes, extras and plants. Drops are only ever earned, never bought.</p>
+      <div class="tabs" role="tablist">
+        ${[["outfit", "Clothes"], ["acc", "Extras"], ["plants", "Plants"]].map(([k, l]) => `<a class="tab ${shopTab === k ? "on" : ""}" href="#/me/${k}" role="tab">${l}</a>`).join("")}
+      </div>
+      <div class="shop">${items.map(it => {
+        const owned = prog.owned.includes(it.id);
+        const wearing = p.avatar.outfit === it.id || p.avatar.acc === it.id;
+        const preview = shopTab === "plants" ? `<span class="shop-e">${it.e}</span>` : avatarSvg(Object.assign({}, p.avatar, { [shopTab]: it.id }), "avatar small");
+        return `<div class="shop-item">${preview}<b>${esc(it.name)}</b>
+          ${owned ? (shopTab === "plants" ? `<span class="owned">In your garden ✓</span>` : wearing ? `<span class="owned">Wearing ✓</span>` : `<button class="btn btn-small btn-alt" data-wear="${it.id}" type="button">Wear</button>`)
+            : `<button class="btn btn-small" data-buy="${it.id}" type="button">${dropSvg()} ${it.price}</button>`}</div>`;
+      }).join("")}</div>`;
+    app.querySelectorAll("[data-wear]").forEach(b => b.addEventListener("click", () => {
+      p.avatar[shopTab] = b.dataset.wear; saveProfiles(); updateTop(); viewMe([shopTab]);
+    }));
+    app.querySelectorAll("[data-buy]").forEach(b => b.addEventListener("click", () => {
+      const it = items.find(x => x.id === b.dataset.buy);
+      if (prog.drops < it.price) { toast(`You need ${it.price - prog.drops} more drops. Keep playing!`); speak("Keep playing to collect more drops!"); return; }
+      const scrim = modal(`
+        <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="buy-h">
+          <h2 id="buy-h">Get ${esc(it.name)}?</h2>
+          <p>It costs ${it.price} drops. You have ${prog.drops}.</p>
+          <div class="row"><button class="btn btn-ghost" data-close type="button">Not now</button><button class="btn" id="buy-yes" type="button">Yes, please!</button></div>
+        </div>`);
+      scrim.querySelector("#buy-yes").addEventListener("click", () => {
+        prog.drops -= it.price; prog.owned.push(it.id);
+        if (shopTab === "plants") prog.plants.push(it.id); else { p.avatar[shopTab] = it.id; saveProfiles(); }
+        saveProg(); closeModal(); confetti(); toast(shopTab === "plants" ? `${it.name} is growing in your garden!` : `You're wearing ${it.name}!`); viewMe([shopTab]);
+      });
+    }));
+  }
+
+  /* ================= Parent Corner ================= */
+  function viewParents() {
+    if (!gateIsOpen()) { app.innerHTML = ""; parentGate(() => viewParents(), () => go("#/")); return; }
+    const pendingRows = [];
+    profiles.forEach(c => {
+      const p = c.id === activeId ? prog : loadProg(c.id);
+      Object.keys(p.pending).forEach(n => {
+        const s = TRAIL.find(x => x.n === +n);
+        if (s && (p.habits[n] || {}).last !== dayKey()) pendingRows.push({ c, s, since: p.pending[n] });
+      });
+    });
+    const summary = c => {
+      const p = c.id === activeId ? prog : loadProg(c.id);
+      const done = TRAIL.filter(s => { const st = p.stops[s.n] || {}; return st.listen && st.play && st.done; }).length;
+      const lights = TRAIL.filter(s => (p.stops[s.n] || {}).listen).length;
+      return `${lights}/8 stories · ${done}/8 stops complete · ${p.drops} drops · ${p.days.length} active day${p.days.length === 1 ? "" : "s"}`;
+    };
+    app.innerHTML = `
+      <section class="panel parents">
+        <h1 class="page-title">👨‍👩‍👧 Parent Corner</h1>
+        <p class="subtitle">Only grown-ups can see this page.</p>
+
+        <h2 class="section-title">Waiting for your tick</h2>
+        ${pendingRows.length ? `<ul class="tick-list">${pendingRows.map(r => `
+          <li><span class="tl-e">${r.s.sticker.e}</span>
+            <span class="tl-t"><span><b>${esc(r.c.name)}</b>: ${esc(r.s.task)}</span><small>Planned on ${esc(r.since)}</small></span>
+            <span class="tl-b"><button class="btn btn-small" data-yes="${r.c.id}:${r.s.n}" type="button">Done ✓</button>
+            <button class="btn btn-small btn-ghost" data-no="${r.c.id}:${r.s.n}" type="button">Not yet</button></span></li>`).join("")}</ul>`
+          : `<p class="muted">Nothing to confirm. When your child taps “I'll try it today”, the habit appears here for you to tick once it's done.</p>`}
+
+        <h2 class="section-title">Children on this device</h2>
+        <ul class="kid-list">${profiles.map(c => {
+          const t = tierFor(c.age);
+          return `<li>${avatarSvg(c.avatar, "avatar mini")}
+            <span class="kl-t"><span><b>${esc(c.name)}</b>, age ${c.age}${c.id === activeId ? " · playing now" : ""}</span><small>${summary(c)}</small>
+            ${t.active ? "" : `<small class="soon">Stories for ages ${t.ages[0]}–${t.ages[1]} are coming soon; ${esc(c.name)} is using Ojo's stories for now.</small>`}</span>
+            <span class="kl-b"><a class="btn btn-small btn-ghost" href="#/setup/${c.id}">Edit</a>
+            <button class="btn btn-small btn-ghost" data-reset="${c.id}" type="button">Reset progress</button>
+            <button class="btn btn-small btn-ghost danger" data-del="${c.id}" type="button">Delete</button></span></li>`;
+        }).join("")}</ul>
+        ${profiles.length < 3 ? `<a class="btn btn-alt" href="#/setup">＋ Add a child</a>` : `<p class="muted">Up to three children can share one device.</p>`}
+
+        <h2 class="section-title">Play time</h2>
+        <label class="field inline"><span>End each session after</span>
+          <select id="sess">${[5, 10, 15, 20].map(m => `<option value="${m}" ${settings.sessionMin === m ? "selected" : ""}>${m} minutes</option>`).join("")}</select></label>
+        <p class="muted">When time is up, Ojo invites your child to go and try the habit for real. Only a grown-up can unlock more play.</p>
+
+        <h2 class="section-title">Sound and motion</h2>
+        <label class="toggle"><input type="checkbox" id="mute" ${settings.mute ? "" : "checked"} /> <span>Ojo speaks aloud (under 6, every instruction is spoken)</span></label>
+        <label class="toggle"><input type="checkbox" id="calm" ${settings.calm ? "checked" : ""} /> <span>Calm mode: less movement, no confetti</span></label>
+
+        <h2 class="section-title">About the book</h2>
+        <p><a href="ojo-treasury/index.html#grown-ups">Open The Ojo Treasury notes for grown-ups</a>: how to read the book, the day at a glance and when to see a doctor.</p>
+
+        <h2 class="section-title">Privacy</h2>
+        <ul class="list">
+          <li>Names, ages and progress are saved only on this device. Nothing is sent to a server.</li>
+          <li>No accounts, ads, tracking, chat, camera or microphone.</li>
+          <li>Ojas drops are earned by playing and by real-life habits. They can never be bought.</li>
+          <li>No leaderboards or comparison between children. Mistakes never cost anything.</li>
+        </ul>
+        <div class="row"><a class="btn btn-big" href="#/">Back to the app</a></div>
+      </section>`;
+
+    app.querySelectorAll("[data-yes]").forEach(b => b.addEventListener("click", () => {
+      const [cid, n] = b.dataset.yes.split(":");
+      const r = confirmTask(cid, +n);
+      const c = profiles.find(x => x.id === cid);
+      if (r) toast(`${c.name} earned ${r.earned} drops${r.sticker ? ` and the ${r.sticker.name} sticker` : ""}!`);
+      viewParents();
+    }));
+    app.querySelectorAll("[data-no]").forEach(b => b.addEventListener("click", () => {
+      const [cid, n] = b.dataset.no.split(":");
+      const p = cid === activeId ? prog : loadProg(cid);
+      delete p.pending[n]; saveProgFor(cid, p); if (cid === activeId) updateTop();
+      toast("No problem. Your child can try again another day."); viewParents();
+    }));
+    app.querySelectorAll("[data-reset]").forEach(b => b.addEventListener("click", () => {
+      const c = profiles.find(x => x.id === b.dataset.reset);
+      if (!confirm(`Reset all of ${c.name}'s drops, stickers, garden and trail progress?`)) return;
+      saveProgFor(c.id, blankProg()); remove("ojo-drops:" + c.id);
+      if (c.id === activeId) prog = blankProg();
+      updateTop(); toast("Progress reset"); viewParents();
+    }));
+    app.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => {
+      const c = profiles.find(x => x.id === b.dataset.del);
+      if (!confirm(`Delete ${c.name}'s profile and all progress from this device?`)) return;
+      profiles = profiles.filter(x => x.id !== c.id); saveProfiles();
+      remove("ns-p:" + c.id); remove("ojo-drops:" + c.id);
+      if (c.id === activeId) setActive(profiles.length === 1 ? profiles[0].id : null);
+      toast("Profile deleted");
+      if (!profiles.length) go("#/welcome"); else viewParents();
+    }));
+    document.getElementById("sess").addEventListener("change", e => { settings.sessionMin = +e.target.value; saveSettings(); toast("Play time saved"); });
+    document.getElementById("mute").addEventListener("change", e => { settings.mute = !e.target.checked; saveSettings(); });
+    document.getElementById("calm").addEventListener("change", e => { settings.calm = e.target.checked; saveSettings(); });
+  }
+
+  /* ================= Learning games (from the earlier version) ================= */
+  function learningDone(route) {
+    if (prog.played["learn-" + route] === dayKey()) { markActive(); saveProg(); return 0; }
+    prog.played["learn-" + route] = dayKey();
+    const n = addDrops(DV.learning); saveProg(); return n;
+  }
+  function learnHead(title) {
+    return `<div class="play-head"><a class="btn btn-small btn-ghost" href="#/games">← Games</a><h1>${title}</h1></div>`;
+  }
+
   const ABC = [
     ["A", "Apple", "🍎"], ["B", "Ball", "⚽"], ["C", "Cat", "🐱"], ["D", "Dog", "🐶"], ["E", "Elephant", "🐘"],
     ["F", "Fish", "🐟"], ["G", "Grapes", "🍇"], ["H", "Hat", "🎩"], ["I", "Ice cream", "🍦"], ["J", "Jellyfish", "🪼"],
@@ -409,22 +1083,21 @@
   const PALETTE = ["#ff8a80", "#ffb74d", "#ffd54f", "#aed581", "#4dd0e1", "#64b5f6", "#9575cd", "#f06292"];
 
   function viewAbc() {
-    app.innerHTML = `
-      <h1 class="page-title">🔤 ABC Fun</h1>
+    app.innerHTML = `${learnHead("🔤 ABC Fun")}
       <div class="tabs" role="tablist">
-        <button class="tab on" data-tab="learn" role="tab">Learn</button>
-        <button class="tab" data-tab="play" role="tab">Play: Find the letter</button>
+        <button class="tab on" data-tab="learn" role="tab" type="button">Learn</button>
+        <button class="tab" data-tab="play" role="tab" type="button">Play: Find the letter</button>
       </div>
       <div id="abc-body"></div>`;
     const body = document.getElementById("abc-body");
-    setupTabs({ learn: learn, play: play });
+    setupTabs({ learn, play });
 
     function learn() {
       body.innerHTML = `
         <p class="subtitle">Tap a letter to hear it!</p>
         <div class="letter-grid">
           ${ABC.map(([L, w, e], k) => `
-            <button class="letter-card" style="--c:${PALETTE[k % PALETTE.length]}" data-k="${k}">
+            <button class="letter-card" style="--c:${PALETTE[k % PALETTE.length]}" data-k="${k}" type="button">
               <span class="letter">${L}<small>${L.toLowerCase()}</small></span>
               <span class="letter-emoji">${e}</span>
               <span class="letter-word">${w}</span>
@@ -438,56 +1111,29 @@
     }
 
     function play() {
-      let round = 0, correct = 0;
-      function next() {
-        if (round === 5) {
-          const won = correct;
-          if (won) addStars(won);
-          if (won === 5) confetti();
-          body.innerHTML = gameDone(`You found ${correct} of 5 letters!`, won);
-          body.querySelector(".again").addEventListener("click", play);
-          return;
-        }
+      roundGame(body, () => {
         const target = pick(ABC);
         const choices = shuffle([target, ...shuffle(ABC.filter(x => x !== target)).slice(0, 3)]);
-        let firstTry = true;
-        body.innerHTML = `
-          <div class="game">
-            <div class="game-round">Round ${round + 1} of 5</div>
-            <div class="game-prompt">
-              <span class="prompt-emoji">${target[2]}</span>
-              <p>Which letter does <b>${target[1]}</b> start with?</p>
-              ${canSpeak ? `<button class="icon-btn" id="hear">🔊</button>` : ""}
-            </div>
-            <div class="options letters">
-              ${choices.map(c => `<button class="option big" data-l="${c[0]}">${c[0]}</button>`).join("")}
-            </div>
-            <div class="feedback" aria-live="polite"></div>
-          </div>`;
-        const ask = () => speak(`Which letter does ${target[1]} start with?`);
-        ask();
-        const hear = document.getElementById("hear"); if (hear) hear.addEventListener("click", ask);
-        handleOptions(body, b => b.dataset.l === target[0], ok => {
-          if (ok) { if (firstTry) correct++; round++; later(next, 1100); }
-          else firstTry = false;
-        });
-      }
-      next();
+        return {
+          prompt: `<span class="prompt-emoji">${target[2]}</span><p>Which letter does <b>${target[1]}</b> start with?</p>`,
+          say: `Which letter does ${target[1]} start with?`,
+          options: choices.map(c => c[0]), correct: target[0],
+          praise: `Yes! ${target[1]} starts with ${target[0]}!`
+        };
+      }, play, "abc");
     }
     learn();
   }
 
-  /* ---------------- Numbers ---------------- */
   const COUNT_THINGS = ["🍎", "🐤", "⭐", "🎈", "🐟", "🍓", "🚗", "🌸", "🧁", "🐞"];
   const NUMBER_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
 
   function viewNumbers() {
-    app.innerHTML = `
-      <h1 class="page-title">🔢 Count with Me</h1>
+    app.innerHTML = `${learnHead("🔢 Count with Me")}
       <div class="tabs" role="tablist">
-        <button class="tab on" data-tab="learn" role="tab">Learn 1–10</button>
-        <button class="tab" data-tab="count" role="tab">Play: How many?</button>
-        <button class="tab" data-tab="add" role="tab">Play: Add it up</button>
+        <button class="tab on" data-tab="learn" role="tab" type="button">Learn 1–10</button>
+        <button class="tab" data-tab="count" role="tab" type="button">Play: How many?</button>
+        <button class="tab" data-tab="add" role="tab" type="button">Play: Add it up</button>
       </div>
       <div id="num-body"></div>`;
     const body = document.getElementById("num-body");
@@ -499,7 +1145,7 @@
         <div class="number-grid">
           ${Array.from({ length: 10 }, (_, k) => {
             const n = k + 1, thing = COUNT_THINGS[k];
-            return `<button class="number-card" style="--c:${PALETTE[k % PALETTE.length]}" data-n="${n}">
+            return `<button class="number-card" style="--c:${PALETTE[k % PALETTE.length]}" data-n="${n}" type="button">
               <span class="number">${n}</span>
               <span class="number-word">${NUMBER_WORDS[n]}</span>
               <span class="number-things">${thing.repeat(n)}</span>
@@ -516,14 +1162,13 @@
     function count() {
       roundGame(body, () => {
         const n = rand(1, 10), thing = pick(COUNT_THINGS);
-        const opts = shuffle(uniqueNear(n, 1, 10));
         return {
           prompt: `<div class="count-things">${Array.from({ length: n }, () => `<span>${thing}</span>`).join("")}</div><p>How many do you see?</p>`,
           say: "How many do you see?",
-          options: opts.map(String), correct: String(n),
+          options: shuffle(uniqueNear(n, 1, 10)).map(String), correct: String(n),
           praise: `Yes! ${NUMBER_WORDS[n]}!`
         };
-      }, count);
+      }, count, "numbers");
     }
 
     function add() {
@@ -538,21 +1183,17 @@
           options: shuffle(uniqueNear(sum, 2, 10)).map(String), correct: String(sum),
           praise: `Yes! ${a} plus ${b} is ${sum}!`
         };
-      }, add);
+      }, add, "numbers");
     }
     learn();
   }
 
   function uniqueNear(n, min, max) {
     const set = new Set([n]);
-    while (set.size < 3) {
-      const v = n + rand(-3, 3);
-      if (v >= min && v <= max) set.add(v);
-    }
+    while (set.size < 3) { const v = n + rand(-3, 3); if (v >= min && v <= max) set.add(v); }
     return [...set];
   }
 
-  /* ---------------- Shapes & colors ---------------- */
   const SHAPES = [
     { name: "circle", svg: c => `<circle cx="50" cy="50" r="40" fill="${c}"/>` },
     { name: "square", svg: c => `<rect x="12" y="12" width="76" height="76" rx="6" fill="${c}"/>` },
@@ -571,12 +1212,11 @@
   const shapeSvg = (s, c) => `<svg viewBox="0 0 100 100" class="shape-svg" aria-hidden="true">${s.svg(c)}</svg>`;
 
   function viewShapes() {
-    app.innerHTML = `
-      <h1 class="page-title">🔺 Shapes & Colors</h1>
+    app.innerHTML = `${learnHead("🔺 Shapes & Colors")}
       <div class="tabs" role="tablist">
-        <button class="tab on" data-tab="learn" role="tab">Learn</button>
-        <button class="tab" data-tab="shape" role="tab">Play: Find the shape</button>
-        <button class="tab" data-tab="color" role="tab">Play: Find the color</button>
+        <button class="tab on" data-tab="learn" role="tab" type="button">Learn</button>
+        <button class="tab" data-tab="shape" role="tab" type="button">Play: Find the shape</button>
+        <button class="tab" data-tab="color" role="tab" type="button">Play: Find the color</button>
       </div>
       <div id="shape-body"></div>`;
     const body = document.getElementById("shape-body");
@@ -586,12 +1226,12 @@
       body.innerHTML = `
         <h2 class="section-title">Shapes</h2>
         <div class="shape-grid">
-          ${SHAPES.map((s, k) => `<button class="shape-card" data-say="This is a ${s.name}">
+          ${SHAPES.map((s, k) => `<button class="shape-card" data-say="This is a ${s.name}" type="button">
             ${shapeSvg(s, COLORS[k % COLORS.length].hex)}<span>${s.name}</span></button>`).join("")}
         </div>
         <h2 class="section-title">Colors</h2>
         <div class="color-grid">
-          ${COLORS.map(c => `<button class="color-card" style="--c:${c.hex}" data-say="${c.name}">
+          ${COLORS.map(c => `<button class="color-card" style="--c:${c.hex}" data-say="${c.name}" type="button">
             <span class="swatch"></span><span>${c.name}</span></button>`).join("")}
         </div>`;
       body.querySelectorAll("[data-say]").forEach(b => b.addEventListener("click", () => {
@@ -605,13 +1245,11 @@
         const target = pick(SHAPES);
         const opts = shuffle([target, ...shuffle(SHAPES.filter(s => s !== target)).slice(0, 3)]);
         return {
-          prompt: `<p>Tap the <b>${target.name}</b>!</p>`,
-          say: `Tap the ${target.name}`,
+          prompt: `<p>Tap the <b>${target.name}</b>!</p>`, say: `Tap the ${target.name}`,
           optionsHtml: opts.map(s => ({ key: s.name, html: shapeSvg(s, pick(COLORS).hex) })),
-          correct: target.name,
-          praise: `Yes, that's the ${target.name}!`
+          correct: target.name, praise: `Yes, that's the ${target.name}!`
         };
-      }, shapeGame);
+      }, shapeGame, "shapes");
     }
 
     function colorGame() {
@@ -620,115 +1258,74 @@
         const opts = shuffle([target, ...shuffle(COLORS.filter(c => c !== target)).slice(0, 3)]);
         const s = pick(SHAPES);
         return {
-          prompt: `<p>Which one is <b>${target.name}</b>?</p>`,
-          say: `Which one is ${target.name}?`,
+          prompt: `<p>Which one is <b>${target.name}</b>?</p>`, say: `Which one is ${target.name}?`,
           optionsHtml: opts.map(c => ({ key: c.name, html: shapeSvg(s, c.hex) })),
-          correct: target.name,
-          praise: `Yes! That's ${target.name}!`
+          correct: target.name, praise: `Yes! That's ${target.name}!`
         };
-      }, colorGame);
+      }, colorGame, "shapes");
     }
     learn();
   }
 
-  /* ---------------- Grown-ups ---------------- */
-  function viewGrownups() {
-    app.innerHTML = `
-      <div class="panel">
-        <h1 class="page-title">👨‍👩‍👧 For Grown-ups</h1>
-        <p>Nidhi's Stories is a gentle, ad-free learning space for children aged about 3–7.</p>
-        <ul class="list">
-          <li><b>Story Books</b> – illustrated picture books with read-aloud narration, tap-to-learn vocabulary words, a lesson at the end, and a short comprehension quiz.</li>
-          <li><b>ABC Fun</b> – letters with phonics-style “A is for Apple” prompts and a letter-finding game.</li>
-          <li><b>Count with Me</b> – counting 1–10 and simple addition with pictures.</li>
-          <li><b>Shapes & Colors</b> – recognising common shapes and colors.</li>
-        </ul>
-        <p>Progress and stars are stored only in this browser (no accounts, no tracking). Read-aloud uses your device's built-in voice.</p>
-        <h2 class="section-title">Progress</h2>
-        <p>⭐ Stars: <b>${progress.stars}</b> · 📖 Books read: <b>${Object.keys(progress.read).length} / ${STORIES.length}</b></p>
-        <button class="btn btn-alt" id="reset">Reset progress</button>
-      </div>`;
-    document.getElementById("reset").addEventListener("click", () => {
-      if (!confirm("Reset all stars and reading progress?")) return;
-      Object.assign(progress, { stars: 0, read: {}, quizBest: {}, lastStory: null, lastPage: 0 });
-      save(); toast("Progress reset"); viewGrownups();
-    });
-  }
-
-  /* ---------------- Shared game helpers ---------------- */
   function setupTabs(map) {
-    app.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
+    app.querySelectorAll(".tab[data-tab]").forEach(t => t.addEventListener("click", () => {
       stopSpeaking(); viewId++;
-      app.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x === t));
+      app.querySelectorAll(".tab[data-tab]").forEach(x => x.classList.toggle("on", x === t));
       map[t.dataset.tab]();
     }));
   }
 
-  function handleOptions(root, isRight, after) {
-    let done = false;
-    const fb = root.querySelector(".feedback");
-    root.querySelectorAll(".option").forEach(b => b.addEventListener("click", () => {
-      if (done) return;
-      if (isRight(b)) {
-        done = true; b.classList.add("right");
-        const msg = b.dataset.praise || pick(["Great job!", "Yay!", "Super!", "You did it!"]);
-        fb.textContent = "🎉 " + msg; speak(msg);
-        after(true);
-      } else {
-        b.classList.add("wrong"); b.disabled = true;
-        fb.textContent = "🤔 Try again!"; speak("Try again!");
-        after(false);
-      }
-    }));
-  }
-
-  // Generic 5-round game: make() returns a round description.
-  function roundGame(body, make, restart) {
+  /* Five rounds; a wrong answer is simply tried again. One drop for finishing, once a day per game. */
+  function roundGame(body, make, restart, route) {
     const ROUNDS = 5;
-    let round = 0, correct = 0;
+    let round = 0;
     function next() {
       if (round === ROUNDS) {
-        if (correct) addStars(correct);
-        if (correct === ROUNDS) confetti();
-        body.innerHTML = gameDone(`You got ${correct} of ${ROUNDS} on the first try!`, correct);
+        const earned = learningDone(route);
+        body.innerHTML = `
+          <div class="game center">
+            <div class="game-cover">🏆</div>
+            <h2>${esc(line("gameDone"))}</h2>
+            <p class="earned">${earned ? `${dropSvg()} +${earned} Ojas drop` : "You've already collected today's drop for this game."}</p>
+            <button class="btn btn-big again" type="button">🔁 Play again</button>
+          </div>`;
         body.querySelector(".again").addEventListener("click", restart);
+        if (earned) { confetti(); bumpDrops(); }
         return;
       }
       const r = make();
-      let firstTry = true;
       const opts = r.optionsHtml
-        ? r.optionsHtml.map(o => `<button class="option shape-option" data-key="${esc(o.key)}" aria-label="${esc(o.key)}">${o.html}</button>`).join("")
-        : r.options.map(o => `<button class="option big" data-key="${esc(o)}">${esc(o)}</button>`).join("");
+        ? r.optionsHtml.map(o => `<button class="option shape-option" data-key="${esc(o.key)}" aria-label="${esc(o.key)}" type="button">${o.html}</button>`).join("")
+        : r.options.map(o => `<button class="option big" data-key="${esc(o)}" type="button">${esc(o)}</button>`).join("");
       body.innerHTML = `
         <div class="game">
           <div class="game-round">Round ${round + 1} of ${ROUNDS}</div>
-          <div class="game-prompt">${r.prompt}${canSpeak ? `<button class="icon-btn" id="hear" aria-label="Hear again">🔊</button>` : ""}</div>
+          <div class="game-prompt">${r.prompt}${canSpeak ? `<button class="icon-btn" id="hear" aria-label="Hear again" type="button">🔊</button>` : ""}</div>
           <div class="options">${opts}</div>
           <div class="feedback" aria-live="polite"></div>
         </div>`;
-      body.querySelectorAll(".option").forEach(b => { if (b.dataset.key === r.correct) b.dataset.praise = r.praise; });
       speak(r.say);
       const hear = document.getElementById("hear"); if (hear) hear.addEventListener("click", () => speak(r.say));
-      handleOptions(body, b => b.dataset.key === r.correct, ok => {
-        if (ok) { if (firstTry) correct++; round++; later(next, 1200); }
-        else firstTry = false;
-      });
+      let done = false;
+      const fb = body.querySelector(".feedback");
+      body.querySelectorAll(".option").forEach(b => b.addEventListener("click", () => {
+        if (done) return;
+        if (b.dataset.key === r.correct) {
+          done = true; b.classList.add("right");
+          fb.textContent = "🎉 " + r.praise; speak(r.praise);
+          round++; later(next, 1200);
+        } else {
+          b.classList.add("wrong"); b.disabled = true;
+          const t = line("wrong"); fb.textContent = "🤔 " + t; speak(t);
+        }
+      }));
     }
     next();
   }
 
-  function gameDone(text, stars) {
-    return `
-      <div class="game center">
-        <div class="quiz-cover" aria-hidden="true">🏆</div>
-        <h2>${esc(text)}</h2>
-        <p class="big-stars">${"⭐".repeat(stars) || "💪"}</p>
-        <p>${stars ? `+${stars} star${stars > 1 ? "s" : ""} added!` : "Keep practising — you're getting better!"}</p>
-        <button class="btn btn-big again">🔁 Play again</button>
-      </div>`;
-  }
-
-  /* ---------------- Start ---------------- */
-  updateStars();
+  /* ================= Start ================= */
+  applySettings();
+  updateTop();
+  if (sess.over && active()) setTimeout(endSession, 300);
   router();
 })();
