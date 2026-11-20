@@ -44,14 +44,11 @@ Ojo's lines, the tasks and the game content are drafts: send them through panel 
 
 ## Voice
 
-The app uses the narrator's own recorded voice wherever it can:
+The app plays recorded voices, in this order:
 
-1. **Recordings of the app's own lines** (`audio/voice/`, listed in `js/voice-files.js`).
-2. **Lines from The Ojo Treasury narration**, cut from the story recordings using the book's timings (`STORY_AUDIO` in `js/content.js`):
-   - the story title when a Trail stop opens
-   - a story line at the start of each game and on each Do screen
-   - Ojo's own line from the story when a game is finished, and "And Ojo shone gold and bright" for celebrations
-3. **The device's voice** for any line not yet recorded.
+1. **Recordings of the app's own lines** (`audio/voice/`, listed in `js/voice-files.js`): Ojo's greetings, instructions, praise and hints, and the narrator's habits, items, questions and answers. These play by themselves for every age, so each game brings new sentences rather than repeating the stories.
+2. **Lines from The Ojo Treasury narration**, cut from the story recordings using the book's timings (`STORY_AUDIO` in `js/content.js`): the story title when a Trail stop opens, and Ayu's "Thank you, tummy!" in the tummy game. The story line linked to each game and Do screen is shown on screen with a 🔊 button, and plays by itself only if that screen's own line has no recording.
+3. **The device's voice** for any line without a recording. These lines play by themselves under age 6; older children tap Ojo to hear them.
 
 All 106 lines in `RECORDING-SCRIPT.md` are recorded. To add or replace recordings, run:
 
