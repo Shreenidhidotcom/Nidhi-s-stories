@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Nidhi's Stories – Ojo's Treasure Trail</title>
-  <meta name="description" content="A gentle, ad-free learning app for children aged 3–7: The Ojo Treasury stories, games and healthy daily habits with Ojo as guide." />
+  <meta name="description" content="A gentle, ad-free app for children aged 3–7: The Ojo Treasury stories by Dr Shreenidhi Kalmath, games and healthy daily habits with Ojo as guide." />
   <meta name="theme-color" content="#46307e" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✨</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -42,10 +42,10 @@
       <span class="brand-text">Nidhi's Stories</span>
     </a>
     <div class="topbar-right">
-      <div class="drops-pill" id="drops-pill" title="Ojas drops" aria-live="polite">
+      <a class="drops-pill" id="drops-pill" href="#/drops" title="My golden drops" aria-live="polite">
         <svg viewBox="0 0 24 30" aria-hidden="true"><use href="#drop"/></svg>
-        <span id="drop-count">0</span><span class="sr-only"> Ojas drops</span>
-      </div>
+        <span id="drop-count">0</span><span class="sr-only"> golden drops</span>
+      </a>
       <a class="me-chip" id="me-chip" href="#/who" aria-label="Who is playing?"></a>
       <button class="lock-btn" id="lock-btn" aria-label="Parent Corner (for grown-ups)">🔒</button>
     </div>
@@ -54,10 +54,11 @@
   <main id="app" tabindex="-1"></main>
 
   <nav class="tabbar" id="tabbar" aria-label="Main">
+    <a href="#/intro" data-nav="intro"><span class="tb-icon"><svg viewBox="0 0 100 115" aria-hidden="true"><use href="#ojo"/></svg></span><span>Ayu &amp; Ojo</span></a>
+    <a href="#/stories" data-nav="stories"><span class="tb-icon">📖</span><span>Stories</span></a>
     <a href="#/" data-nav="trail"><span class="tb-icon">🗺️</span><span>Trail</span></a>
     <a href="#/games" data-nav="games"><span class="tb-icon">🎮</span><span>Games</span></a>
-    <a href="#/garden" data-nav="garden"><span class="tb-icon">🌼</span><span>Garden</span></a>
-    <a href="#/me" data-nav="me"><span class="tb-icon">🙂</span><span>Me</span></a>
+    <a href="#/menu" data-nav="menu"><span class="tb-icon">☰</span><span>Menu</span></a>
   </nav>
 
   <div id="layer"></div>

@@ -3,7 +3,7 @@
 
   const app = document.getElementById("app");
   const layer = document.getElementById("layer");
-  const { TIERS, DROP_VALUES: DV, TRAIL, GAMES, GUIDE, AVATAR, PLANTS, CHEST_STICKERS, LEARNING_GAMES } = window;
+  const { TIERS, DROP_VALUES: DV, TRAIL, GAMES, GUIDE, AVATAR, PLANTS, CHEST_STICKERS, LEARNING_GAMES, INTRO, AUTHOR, WHY_AYU_OJO, GROWN } = window;
 
   /* ================= Storage (this device only) ================= */
   function load(key, fallback) {
@@ -38,8 +38,21 @@
   }
 
   /* ---------- Progress per child ---------- */
-  const blankProg = () => ({ drops: 0, stops: {}, days: [], chests: {}, stickers: {}, owned: [], plants: [], played: {}, habits: {}, pending: {} });
-  function loadProg(id) { return id ? Object.assign(blankProg(), load("ns-p:" + id, {})) : blankProg(); }
+  const blankProg = () => ({ drops: 0, earned: 0, stops: {}, days: [], chests: {}, stickers: {}, owned: [], plants: [], played: {}, habits: {}, pending: {} });
+  function loadProg(id) {
+    if (!id) return blankProg();
+    const p = Object.assign(blankProg(), load("ns-p:" + id, {}));
+    const stored = load("ns-p:" + id, null);
+    /* The garden is now a jar of golden drops: plants bought for it are refunded. */
+    if (p.plants.length) {
+      p.drops += p.plants.reduce((t, pid) => t + ((PLANTS.find(x => x.id === pid) || {}).price || 0), 0);
+      p.owned = p.owned.filter(x => !p.plants.includes(x)); p.plants = [];
+    }
+    /* `earned` counts every drop ever collected, so spending in the shop never empties the jar. */
+    if (stored && typeof stored.earned !== "number") p.earned = p.drops + p.owned.reduce((t, x) => t + priceOf(x), 0);
+    if (stored && (stored.plants || []).length || stored && typeof stored.earned !== "number") store("ns-p:" + id, p);
+    return p;
+  }
   function saveProgFor(id, p) { if (id) store("ns-p:" + id, p); }
   let prog = loadProg(activeId);
   function saveProg() { saveProgFor(activeId, prog); updateTop(); }
@@ -53,7 +66,7 @@
   function daysApart(a, b) { return Math.round((Date.parse(b) - Date.parse(a)) / 864e5); }
 
   function markActive(p = prog) { const t = dayKey(); if (!p.days.includes(t)) p.days.push(t); }
-  function addDrops(n, p = prog) { if (n > 0) { p.drops += n; markActive(p); } return n; }
+  function addDrops(n, p = prog) { if (n > 0) { p.drops += n; p.earned = (p.earned || 0) + n; markActive(p); } return n; }
 
   /* The Ojo Treasury saves the drops of light caught in each story; turn new ones into "Listen" steps. */
   function syncBook() {
@@ -71,7 +84,7 @@
   /* Bring progress from the earlier version of the app into the first child's profile. */
   function migrateLegacy(id, p) {
     const old = load("nidhis-stories-progress-v1", null);
-    if (old && old.stars > 0) p.drops += old.stars;
+    if (old && old.stars > 0) { p.drops += old.stars; p.earned = (p.earned || 0) + old.stars; }
     remove("nidhis-stories-progress-v1");
     const oldDrops = load("ojo-drops", null);
     if (Array.isArray(oldDrops) && oldDrops.length) store("ojo-drops:" + id, oldDrops);
@@ -94,22 +107,59 @@
     clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
   }
 
-  function confetti() {
+  /* Small golden drops fall when something is finished. */
+  function goldenDrops() {
     if (settings.calm) return;
     const box = document.createElement("div");
-    box.className = "confetti";
-    const bits = ["✨", "🌟", "🎉", "💛", "🌸"];
-    for (let i = 0; i < 24; i++) {
+    box.className = "drop-rain"; box.setAttribute("aria-hidden", "true");
+    for (let i = 0; i < 22; i++) {
       const s = document.createElement("span");
-      s.textContent = pick(bits);
-      s.style.left = Math.random() * 100 + "vw";
-      s.style.animationDelay = Math.random() * 0.6 + "s";
-      s.style.fontSize = rand(18, 34) + "px";
+      s.innerHTML = '<svg viewBox="0 0 24 30"><use href="#drop"/></svg>';
+      s.style.left = rand(2, 95) + "vw";
+      s.style.animationDelay = (Math.random() * 0.7).toFixed(2) + "s";
+      s.style.width = rand(14, 26) + "px";
       box.appendChild(s);
     }
     document.body.appendChild(box);
-    setTimeout(() => box.remove(), 2600);
+    setTimeout(() => box.remove(), 2900);
   }
+
+  /* ================= Sounds =================
+     A soft tap for every button, a bright chime for a right answer, a gentle low tone for "try again",
+     and a sparkle when drops are earned. Made by the browser (no audio files); a grown-up can turn them off. */
+  const sfx = (() => {
+    let ctx = null, pendingTap = 0;
+    const on = () => settings.sfx !== false;
+    function ac() {
+      if (!ctx) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; try { ctx = new C(); } catch (e) { return null; } }
+      if (ctx.state === "suspended") ctx.resume().catch(() => {});
+      return ctx;
+    }
+    function tone(freq, start, dur, { type = "sine", vol = 0.15, to = 0 } = {}) {
+      const c = ac(); if (!c) return;
+      const t = c.currentTime + start, o = c.createOscillator(), g = c.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t);
+      if (to) o.frequency.exponentialRampToValueAtTime(to, t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + dur + 0.03);
+    }
+    const play = {
+      tap: () => tone(520, 0, 0.09, { vol: 0.12, to: 760 }),
+      right: () => { tone(784, 0, 0.16, { type: "triangle", vol: 0.17 }); tone(1047, 0.1, 0.24, { type: "triangle", vol: 0.17 }); tone(1319, 0.2, 0.36, { type: "triangle", vol: 0.13 }); },
+      wrong: () => { tone(330, 0, 0.17, { vol: 0.15, to: 300 }); tone(247, 0.17, 0.3, { vol: 0.15, to: 220 }); },
+      drops: () => [1568, 2093, 2637, 3136].forEach((f, i) => tone(f, i * 0.07, 0.24, { type: "triangle", vol: 0.07 }))
+    };
+    function fire(kind) { if (!on()) return; clearTimeout(pendingTap); pendingTap = 0; try { play[kind](); } catch (e) { /* no sound */ } }
+    /* Every tap makes a sound; a right or wrong answer in the same tap replaces it. */
+    document.addEventListener("click", e => {
+      if (!on() || !e.target.closest("button, a, label.toggle, summary, [role=button]")) return;
+      ac(); clearTimeout(pendingTap);
+      pendingTap = setTimeout(() => { pendingTap = 0; try { play.tap(); } catch (er) { /* no sound */ } }, 0);
+    }, true);
+    return { right: () => fire("right"), wrong: () => fire("wrong"), drops: () => fire("drops") };
+  })();
 
   /* ================= Voice =================
      For every line the app plays, in this order: a recording of that exact line (VOICE_FILES),
@@ -385,16 +435,17 @@
   }
   function celebrate(n, ln, then, extraHtml = "") {
     const msg = ln || line("gameDone");
-    confetti();
+    goldenDrops();
     const scrim = modal(`
       <div class="celebrate" role="dialog" aria-modal="true" aria-label="Well done">
         <div class="cel-ojo">${ojoSvg("dance")}</div>
         <p class="cel-text">${esc(msg.text)}</p>
         ${extraHtml}
-        ${n > 0 ? `<div class="cel-drops">${dropSvg()}<b>+${n}</b><span>Ojas drop${n > 1 ? "s" : ""}</span></div>` : ""}
+        ${n > 0 ? `<div class="cel-drops">${dropSvg()}<b>+${n}</b><span>golden drop${n > 1 ? "s" : ""}</span></div>` : ""}
         <button class="btn btn-big autofocus" data-close type="button">Yay!</button>
       </div>`, { onClose: then });
     const spoken = msg.clip || recorded(msg) ? say(msg.lead, msg) : say(cheerLine(), msg);
+    if (n > 0) sfx.drops();
     bumpDrops();
     /* Close by itself once the voice has finished (at least ~3 seconds); a tap keeps it open. */
     let held = false;
@@ -407,7 +458,7 @@
   /* Gentle session limit: after the set minutes, Ojo sends the child off to try the habit for real. */
   const sess = Object.assign({ secs: 0, over: false }, (() => { try { return JSON.parse(sessionStorage.getItem("ns-session")) || {}; } catch (e) { return {}; } })());
   const saveSess = () => { try { sessionStorage.setItem("ns-session", JSON.stringify(sess)); } catch (e) { /* ignore */ } };
-  const ADULT_VIEWS = ["parents", "setup", "welcome"];
+  const ADULT_VIEWS = ["parents", "setup", "welcome", "grown"];
   setInterval(() => {
     if (document.hidden || !active() || sess.over || ADULT_VIEWS.includes(currentView) || layer.querySelector(".gate")) return;
     sess.secs++;
@@ -444,10 +495,12 @@
 
   const routes = {
     "": viewTrail, welcome: viewWelcome, setup: viewSetup, avatar: viewAvatar, meet: viewMeet, who: viewWho,
-    play: viewPlay, do: viewDo, games: viewGames, garden: viewGarden, me: viewMe, parents: viewParents,
-    abc: viewAbc, numbers: viewNumbers, shapes: viewShapes
+    play: viewPlay, do: viewDo, games: viewGames, drops: viewDrops, garden: viewDrops, me: viewMe, parents: viewParents,
+    abc: viewAbc, numbers: viewNumbers, shapes: viewShapes,
+    intro: viewIntro, stories: viewStories, grown: viewGrown, author: viewAuthor, menu: viewMenu
   };
-  const TAB_OF = { "": "trail", play: "games", do: "trail", games: "games", abc: "games", numbers: "games", shapes: "games", garden: "garden", me: "me", avatar: "me" };
+  const TAB_OF = { "": "trail", play: "games", do: "trail", games: "games", abc: "games", numbers: "games", shapes: "games",
+    intro: "intro", stories: "stories", menu: "menu", drops: "menu", garden: "menu", me: "menu", avatar: "menu", grown: "menu", author: "menu" };
   let currentView = "";
   let viewId = 0, cleanups = [];
   function later(fn, ms) { const id = viewId; setTimeout(() => { if (id === viewId) fn(); }, ms); }
@@ -470,6 +523,10 @@
     if (sess.over && active() && !ADULT_VIEWS.includes(name) && !layer.querySelector(".locked, .gate")) endSession();
   }
   window.addEventListener("hashchange", router);
+  /* Remember where the child was, so the book's back button returns there. */
+  document.addEventListener("click", e => {
+    if (e.target.closest('a[href^="ojo-treasury/"]')) { try { sessionStorage.setItem("ns-back", location.hash || "#/"); } catch (er) { /* ignore */ } }
+  }, true);
   const go = h => { if (location.hash === h) router(); else location.hash = h; };
 
   /* ================= Onboarding ================= */
@@ -595,8 +652,8 @@
     let i = 0;
     document.getElementById("meet-go").addEventListener("click", e => {
       i++;
-      if (i < lines.length) { setGuide(app, lines[i]); if (i === lines.length - 1) e.target.textContent = "Let's go to the Trail! 🗺️"; }
-      else go("#/");
+      if (i < lines.length) { setGuide(app, lines[i]); if (i === lines.length - 1) e.target.textContent = "Meet Ayu and Ojo →"; }
+      else go("#/intro");
     });
   }
 
@@ -746,8 +803,8 @@
   }
 
   /* On the last step the celebration speaks, so the praise only shows (it would be cut off). */
-  function praise(last) { if (last) quietGuide(app, line("correct")); else setGuide(app, line("correct")); }
-  function hint(ln) { setGuide(app, ln || line("wrong")); }
+  function praise(last) { sfx.right(); if (last) quietGuide(app, line("correct")); else setGuide(app, line("correct")); }
+  function hint(ln) { sfx.wrong(); setGuide(app, ln || line("wrong")); }
 
   function finishGame(gameKey, stop, box) {
     let earned = 0;
@@ -762,7 +819,7 @@
         <div class="game-cover">🏆</div>
         <h2>${esc(msg.text)}</h2>
         ${msg !== fromStory ? echoHtml(fromStory) : ""}
-        ${earned ? `<p class="earned">${dropSvg()} +${earned} Ojas drop${earned > 1 ? "s" : ""}</p>` : `<p class="earned">You've already collected today's drops for this game.</p>`}
+        ${earned ? `<p class="earned">${dropSvg()} +${earned} golden drop${earned > 1 ? "s" : ""}</p>` : `<p class="earned">You've already collected today's drops for this game.</p>`}
         <div class="row">
           ${stop ? `<a class="btn btn-big" href="#/do/${stop.n}">🌟 Now try it for real</a>` : ""}
           <button class="btn btn-alt again" type="button">🔁 Play again</button>
@@ -790,7 +847,7 @@
       if (it.ok) {
         b.classList.add("right"); found++;
         box.querySelector("#counter").textContent = `${found} of ${need} found`;
-        if (found === need) { praise(true); win(); } else voice({ text: it.l, id: `game.${game.key}.item.${it.k + 1}` });
+        if (found === need) { praise(true); win(); } else { sfx.right(); voice({ text: it.l, id: `game.${game.key}.item.${it.k + 1}` }); }
       } else {
         b.classList.remove("wrong"); void b.offsetWidth; b.classList.add("wrong");
         hint(line("sortHint"));
@@ -815,7 +872,7 @@
         b.classList.add("used"); b.disabled = true;
         next++; misses = 0;
         box.querySelectorAll(".card-btn.glow").forEach(x => x.classList.remove("glow"));
-        if (next === steps.length) { praise(true); win(); } else voice({ text: steps[k].l, id: `game.${game.key}.step.${steps[k].k + 1}` });
+        if (next === steps.length) { praise(true); win(); } else { sfx.right(); voice({ text: steps[k].l, id: `game.${game.key}.step.${steps[k].k + 1}` }); }
       } else {
         misses++;
         b.classList.remove("wrong"); void b.offsetWidth; b.classList.add("wrong");
@@ -864,7 +921,7 @@
     box.querySelectorAll(".tooth").forEach(b => b.addEventListener("click", () => {
       if (!b.classList.contains("fuzzy")) { setGuide(app, line("teethClean")); return; }
       b.classList.remove("fuzzy"); b.classList.add("sparkle"); b.setAttribute("aria-label", "Clean tooth");
-      left--;
+      left--; if (left) sfx.right();
       box.querySelector("#counter").textContent = left ? `${left} fuzzy spot${left > 1 ? "s" : ""} left` : "All sparkly!";
       if (!left) { praise(true); win(); }
     }));
@@ -889,13 +946,13 @@
         if (locked) return;
         level++;
         if (level > comfy) {
-          locked = true; render();
+          locked = true; render(); sfx.wrong();
           setGuide(app, line("tummyFull"));
           later(() => { level = 0; locked = false; render(); }, 1800);
           return;
         }
         render();
-        if (level === comfy) setGuide(app, line("tummyComfy"));
+        if (level === comfy) { sfx.right(); setGuide(app, line("tummyComfy")); }
       }));
       box.querySelector("#tummy-done").addEventListener("click", () => {
         if (locked) return;
@@ -920,7 +977,7 @@
       const [a, c] = open; open = [];
       if (deck[+a.dataset.k] === deck[+c.dataset.k]) {
         a.classList.add("got"); c.classList.add("got"); matched++;
-        if (matched === faces.length) { praise(true); win(); } else voice(line("pairMatch"));
+        if (matched === faces.length) { praise(true); win(); } else { sfx.right(); voice(line("pairMatch")); }
       } else {
         busy = true;
         later(() => { a.classList.remove("up"); c.classList.remove("up"); a.setAttribute("aria-label", "Hidden card"); c.setAttribute("aria-label", "Hidden card"); busy = false; }, 900);
@@ -990,23 +1047,26 @@
     return { earned, sticker };
   }
 
-  /* ================= Garden ================= */
-  const FLOWERS = ["🌸", "🌼", "🌷", "🌺", "🌻", "💐"];
-  function viewGarden() {
+  /* ================= My golden drops: a jar that fills as activities are finished ================= */
+  const JAR_MAX = 60;
+  function viewDrops() {
     const wk = weekKey(), weekDays = prog.days.filter(d => weekKey(new Date(d + "T12:00:00")) === wk).length;
     const chestReady = weekDays >= 3 && !prog.chests[wk];
-    const plants = prog.plants.map(id => PLANTS.find(p => p.id === id)).filter(Boolean);
-    const g = line(prog.days.length ? "garden" : "gardenEmpty");
+    const total = prog.earned || 0, shown = Math.min(total, JAR_MAX);
+    const g = line(total ? "jar" : "jarEmpty");
     app.innerHTML = `
-      <h1 class="page-title">🌼 My Garden</h1>
+      <h1 class="page-title"><span class="title-drop">${dropSvg()}</span> My golden drops</h1>
       ${guideHtml(g)}
-      <section class="garden">
-        <div class="bed">
-          ${prog.days.length || plants.length ? "" : `<span class="seed">🌱</span>`}
-          ${prog.days.map((d, i) => `<span class="flower" style="--i:${i}" title="${d}">${FLOWERS[i % FLOWERS.length]}</span>`).join("")}
-          ${plants.map(p => `<span class="flower plant" title="${esc(p.name)}">${p.e}</span>`).join("")}
+      <section class="jar-box">
+        <div class="jar" role="img" aria-label="${total} golden drop${total === 1 ? "" : "s"} in Ojo's jar">
+          <div class="jar-lid"></div>
+          <div class="jar-glass">
+            <div class="jar-drops">${Array.from({ length: shown }, (_, i) => `<span style="--i:${Math.max(0, i - shown + 12)}">${dropSvg()}</span>`).join("")}</div>
+            ${total ? "" : `<p class="jar-empty">Empty for now</p>`}
+          </div>
         </div>
-        <p class="garden-note">One flower blooms on every day you play. Missed days never take a flower away.</p>
+        <p class="jar-count"><b>${total}</b> golden drop${total === 1 ? "" : "s"}${total > JAR_MAX ? ` <small>(the jar shows ${JAR_MAX})</small>` : ""}</p>
+        <p class="garden-note">Every story, game and real-life habit you finish adds golden drops. Spending drops in the shop never empties your jar.</p>
       </section>
       <section class="chest-box">
         ${chestReady ? `<button class="chest ready" id="open-chest" type="button"><span>🎁</span><b>Open your treasure chest!</b></button>`
@@ -1027,6 +1087,148 @@
     });
   }
 
+  /* ================= Meet Ayu and Ojo ================= */
+  const introLines = key => INTRO[key].map((t, i) => ({ text: t, id: `intro.${key}.${i + 1}` }));
+  const bookDrops = () => { const c = load("ojo-drops:" + activeId, []); return new Set(Array.isArray(c) ? c : []); };
+  function authorLine(text = "Stories by") {
+    return `<a class="author-line" href="#/author"><img src="${AUTHOR.small}" alt="" width="48" height="48"><span>${esc(text)} <b>${esc(AUTHOR.name)}</b></span></a>`;
+  }
+  function viewIntro() {
+    const found = bookDrops();
+    app.innerHTML = `
+      <section class="intro">
+        <p class="kn-title" lang="kn">ಆಯು ಮತ್ತು ಓಜೋ</p>
+        <h1 class="page-title">Meet Ayu and Ojo</h1>
+        <p class="subtitle">Two friends who live in every story.</p>
+        <div class="intro-pair">
+          <article class="intro-card ayu" aria-labelledby="in-ayu">
+            <img class="intro-pic" src="images/ayu.svg" alt="Ayu, a five-year-old girl in a yellow dress, waving" width="200" height="300">
+            <div class="intro-txt"><h2 id="in-ayu">This is Ayu <span lang="kn">ಆಯು</span></h2>
+              ${INTRO.ayu.slice(1).map((t, i, a) => `<p${i === a.length - 1 ? ' class="pop"' : ""}>${esc(t)}</p>`).join("")}
+              <button class="btn btn-small listen" data-k="ayu" type="button">🔊 Listen</button></div>
+          </article>
+          <article class="intro-card ojo" aria-labelledby="in-ojo">
+            <div class="intro-pic ojo-pic">${ojoSvg("float")}</div>
+            <div class="intro-txt"><h2 id="in-ojo">This is Ojo <span lang="kn">ಓಜೋ</span></h2>
+              ${INTRO.ojo.slice(1).map((t, i, a) => `<p${i === a.length - 1 ? ' class="pop"' : ""}>${esc(t)}</p>`).join("")}
+              <button class="btn btn-small listen" data-k="ojo" type="button">🔊 Listen</button></div>
+          </article>
+        </div>
+        <section class="intro-why" aria-labelledby="in-why">
+          <h2 id="in-why">Why Ayu and Ojo?</h2>
+          ${INTRO.why.map(t => `<p>${esc(t)}</p>`).join("")}
+          <div class="eight" role="img" aria-label="${found.size} of 8 golden drops found in the stories">${TRAIL.map(s => `<span class="${found.has(s.n) ? "got" : ""}">${dropSvg()}</span>`).join("")}</div>
+          <button class="btn btn-small listen" data-k="why" type="button">🔊 Listen</button>
+        </section>
+        <section class="intro-family" aria-labelledby="in-fam">
+          <h2 id="in-fam">Ayu's family</h2>
+          <div class="fam">${INTRO.family.map(f => `<div class="fam-card"><img src="${f.img}" alt="" width="200" height="270"><div><h3>${esc(f.who)} <span lang="kn">${f.kn}</span></h3><p>${esc(f.text)}</p></div></div>`).join("")}</div>
+        </section>
+        <details class="grown-fold"><summary>For grown-ups: what the names Ayu and Ojo mean</summary><p>${esc(WHY_AYU_OJO)}</p><p><a href="#/grown">More readings for grown-ups</a></p></details>
+        ${authorLine()}
+        <div class="cta-row"><a class="btn btn-big" href="#/stories">📖 Read the stories</a><a class="btn btn-big btn-alt" href="#/">🗺️ Go to the Trail</a></div>
+      </section>`;
+    app.querySelectorAll(".listen").forEach(b => b.addEventListener("click", () => voice(introLines(b.dataset.k))));
+  }
+
+  /* ================= Stories: The Ojo Treasury ================= */
+  function viewStories() {
+    const found = bookDrops();
+    app.innerHTML = `
+      <section class="stories">
+        <p class="kn-title" lang="kn">ಓಜೋ ಕೋಶ</p>
+        <h1 class="page-title">📖 The Ojo Treasury</h1>
+        <p class="subtitle">Eight stories, read aloud by the author. Find Ojo's golden drop in each one!</p>
+        ${authorLine("Written and read by")}
+        <div class="story-list">
+          ${TRAIL.map(s => `<a class="story-card" href="ojo-treasury/index.html#story-${s.n}" style="--c:${s.color}">
+            <span class="sc-icon">${s.icon}</span>
+            <span class="sc-txt"><small>Story ${s.n}</small><b>${esc(s.title)}</b><span>${esc(s.hook)}</span></span>
+            <span class="sc-drop ${found.has(s.n) ? "got" : ""}" title="${found.has(s.n) ? "Golden drop found" : "Golden drop still to find"}">${dropSvg()}<span class="sr-only">${found.has(s.n) ? "Golden drop found" : "Golden drop still to find"}</span></span></a>`).join("")}
+        </div>
+        <div class="cta-row"><a class="btn btn-alt" href="ojo-treasury/index.html#cover">Open the whole book</a><a class="btn btn-ghost" href="#/intro">Meet Ayu and Ojo</a></div>
+      </section>`;
+  }
+
+  /* ================= For grown-ups (behind the grown-up check) ================= */
+  function viewGrown() {
+    if (!gateIsOpen()) { app.innerHTML = ""; parentGate(() => viewGrown(), () => go("#/menu")); return; }
+    app.innerHTML = `
+      <article class="panel grown">
+        <h1 class="page-title">📚 For grown-ups</h1>
+        <p class="lede">Readings for parents, grandparents and teachers: what each story teaches, the Ayurveda idea behind it, and how to practise it at home.</p>
+        <h2 class="section-title">How the app works</h2>
+        <ol class="steps">
+          <li><b>Listen.</b> Each stop on the Trail starts with a story from The Ojo Treasury, read by the author.</li>
+          <li><b>Play.</b> A short game repeats the story's one habit.</li>
+          <li><b>Do it for real.</b> Your child tries the habit with you, and you tick it in Parent Corner.</li>
+        </ol>
+        <p>Children hear plain words first: Ojo, a little light, golden drops. The Ayurveda name for each idea appears only on this page, so you can introduce it later, when your child is ready.</p>
+        <h2 class="section-title">What Ayu and Ojo mean</h2>
+        <p>${esc(WHY_AYU_OJO)}</p>
+        <h2 class="section-title">The eight stories and the idea behind each</h2>
+        ${GROWN.map(g => { const s = TRAIL.find(t => t.n === g.n); return `
+          <section class="gr-story" style="--c:${s.color}">
+            <h3><span aria-hidden="true">${s.icon}</span> ${g.n}. ${esc(s.title)}</h3>
+            <p class="gr-term"><b>${esc(g.practice)}</b> · <i>${esc(g.term)}</i></p>
+            <p>${esc(g.note)}</p>
+            <p class="gr-try"><b>Try it together:</b> ${esc(s.task)}</p>
+            <a href="ojo-treasury/index.html#story-${g.n}">Read the story</a>
+          </section>`; }).join("")}
+        <h2 class="section-title">More in the book</h2>
+        <p>The book's own section for grown-ups covers how to read with each age, myths about growth and feeding, and when to see a doctor.</p>
+        <p><a class="btn btn-alt" href="ojo-treasury/index.html#grown-ups">Open the book's guide for grown-ups</a></p>
+        ${authorLine("Written by")}
+      </article>`;
+  }
+
+  /* ================= About the author ================= */
+  function viewAuthor() {
+    app.innerHTML = `
+      <article class="panel author">
+        <p class="kn-title" lang="kn">ಲೇಖಕರ ಬಗ್ಗೆ</p>
+        <h1 class="page-title">About the author</h1>
+        <div class="au-top">
+          <img class="au-photo" src="${AUTHOR.photo}" alt="${esc(AUTHOR.name)}, smiling, in a green sari" width="480" height="640">
+          <div><p class="au-name">${esc(AUTHOR.name)}</p><p class="au-role">${esc(AUTHOR.role)}<br>${esc(AUTHOR.place)}</p></div>
+        </div>
+        <section class="au-note" aria-labelledby="au-n">
+          <h2 id="au-n">A note from the author</h2>
+          <p>Dear reader,</p>
+          ${AUTHOR.note.map(t => `<p>${esc(t)}</p>`).join("")}
+          <p class="au-sign">With warmth and good wishes,<br><b>${esc(AUTHOR.name)}</b></p>
+        </section>
+        <h2 class="section-title">Her work</h2>
+        <p>${esc(AUTHOR.work)}</p>
+        <div class="cta-row"><a class="btn btn-big" href="#/stories">📖 Read the stories</a></div>
+      </article>`;
+  }
+
+  /* ================= Menu: every part of the app in one place ================= */
+  function viewMenu() {
+    const groups = [
+      ["For children", [
+        ["#/intro", ojoSvg(), "Meet Ayu and Ojo", "Who they are and why they matter"],
+        ["#/stories", "📖", "Stories", "The Ojo Treasury, read aloud"],
+        ["#/", "🗺️", "Treasure Trail", "Listen, play, then do it for real"],
+        ["#/games", "🎮", "Games", "Every game in one place"],
+        ["#/drops", dropSvg(), "My golden drops", `${prog.earned || 0} collected`],
+        ["#/me", active() ? avatarSvg(active().avatar, "avatar mini") : "🙂", "Me", "My look, stickers and shop"]
+      ]],
+      ["For grown-ups", [
+        ["#/grown", "📚", "For grown-ups 🔒", "Readings for parents and teachers"],
+        ["#/author", `<img src="${AUTHOR.small}" alt="" width="48" height="48">`, "About the author", AUTHOR.name],
+        ["#/parents", "👨‍👩‍👧", "Parent Corner 🔒", "Ticks, children, play time, sounds"]
+      ]]
+    ];
+    app.innerHTML = `
+      <h1 class="page-title">☰ Menu</h1>
+      ${groups.map(([title, items]) => `
+        <h2 class="section-title">${title}</h2>
+        <div class="menu-grid">${items.map(([h, icon, t, d]) => `<a class="menu-item" href="${h}"><span class="mi-icon">${icon}</span><span class="mi-txt"><b>${esc(t)}</b><small>${esc(d)}</small></span></a>`).join("")}</div>`).join("")}
+      <p class="menu-foot">The Ojo Treasury <span lang="kn">ಓಜೋ ಕೋಶ</span> · stories by ${esc(AUTHOR.name)}</p>`;
+  }
+
   /* ================= Me: avatar, stickers, shop ================= */
   function priceOf(id) {
     const all = [...AVATAR.outfit, ...AVATAR.acc, ...PLANTS];
@@ -1035,14 +1237,14 @@
   }
   function viewMe([tab]) {
     const p = active();
-    const shopTab = ["outfit", "acc", "plants"].includes(tab) ? tab : "outfit";
+    const shopTab = ["outfit", "acc"].includes(tab) ? tab : "outfit";
     const allStickers = [...TRAIL.map(s => s.sticker), ...CHEST_STICKERS];
-    const items = shopTab === "plants" ? PLANTS : AVATAR[shopTab].filter(i => i.price > 0);
+    const items = AVATAR[shopTab].filter(i => i.price > 0);
     app.innerHTML = `
       <section class="me-head">
         ${avatarSvg(p.avatar, "avatar big")}
         <div><h1 class="page-title">${esc(p.name)}</h1>
-          <p class="me-drops">${dropSvg()} <b>${prog.drops}</b> Ojas drops</p>
+          <p class="me-drops">${dropSvg()} <b>${prog.drops}</b> golden drops to spend</p>
           <a class="btn" href="#/avatar">✏️ Change my look</a></div>
       </section>
       <h2 class="section-title">My stickers</h2>
@@ -1050,16 +1252,16 @@
           ? `<div class="stk got"><span>${s.e}</span><small>${esc(s.name)}</small></div>`
           : `<div class="stk"><span>?</span><small>${esc(s.name)}</small></div>`).join("")}</div>
       <h2 class="section-title">Ojo's shop</h2>
-      <p class="subtitle">Spend your drops on clothes, extras and plants. Drops are only ever earned, never bought.</p>
+      <p class="subtitle">Spend your drops on clothes and extras. Drops are only ever earned, never bought, and spending them never empties your jar.</p>
       <div class="tabs" role="tablist">
-        ${[["outfit", "Clothes"], ["acc", "Extras"], ["plants", "Plants"]].map(([k, l]) => `<a class="tab ${shopTab === k ? "on" : ""}" href="#/me/${k}" role="tab">${l}</a>`).join("")}
+        ${[["outfit", "Clothes"], ["acc", "Extras"]].map(([k, l]) => `<a class="tab ${shopTab === k ? "on" : ""}" href="#/me/${k}" role="tab">${l}</a>`).join("")}
       </div>
       <div class="shop">${items.map(it => {
         const owned = prog.owned.includes(it.id);
         const wearing = p.avatar.outfit === it.id || p.avatar.acc === it.id;
-        const preview = shopTab === "plants" ? `<span class="shop-e">${it.e}</span>` : avatarSvg(Object.assign({}, p.avatar, { [shopTab]: it.id }), "avatar small");
+        const preview = avatarSvg(Object.assign({}, p.avatar, { [shopTab]: it.id }), "avatar small");
         return `<div class="shop-item">${preview}<b>${esc(it.name)}</b>
-          ${owned ? (shopTab === "plants" ? `<span class="owned">In your garden ✓</span>` : wearing ? `<span class="owned">Wearing ✓</span>` : `<button class="btn btn-small btn-alt" data-wear="${it.id}" type="button">Wear</button>`)
+          ${owned ? (wearing ? `<span class="owned">Wearing ✓</span>` : `<button class="btn btn-small btn-alt" data-wear="${it.id}" type="button">Wear</button>`)
             : `<button class="btn btn-small" data-buy="${it.id}" type="button">${dropSvg()} ${it.price}</button>`}</div>`;
       }).join("")}</div>`;
     app.querySelectorAll("[data-wear]").forEach(b => b.addEventListener("click", () => {
@@ -1076,8 +1278,8 @@
         </div>`);
       scrim.querySelector("#buy-yes").addEventListener("click", () => {
         prog.drops -= it.price; prog.owned.push(it.id);
-        if (shopTab === "plants") prog.plants.push(it.id); else { p.avatar[shopTab] = it.id; saveProfiles(); }
-        saveProg(); closeModal(); confetti(); toast(shopTab === "plants" ? `${it.name} is growing in your garden!` : `You're wearing ${it.name}!`); viewMe([shopTab]);
+        p.avatar[shopTab] = it.id; saveProfiles();
+        saveProg(); closeModal(); goldenDrops(); toast(`You're wearing ${it.name}!`); viewMe([shopTab]);
       });
     }));
   }
@@ -1131,16 +1333,17 @@
 
         <h2 class="section-title">Sound and motion</h2>
         <label class="toggle"><input type="checkbox" id="mute" ${settings.mute ? "" : "checked"} /> <span>Ojo speaks aloud</span></label>
-        <label class="toggle"><input type="checkbox" id="calm" ${settings.calm ? "checked" : ""} /> <span>Calm mode: less movement, no confetti</span></label>
+        <label class="toggle"><input type="checkbox" id="sfx" ${settings.sfx === false ? "" : "checked"} /> <span>Tap sounds, and different sounds for right and wrong answers</span></label>
+        <label class="toggle"><input type="checkbox" id="calm" ${settings.calm ? "checked" : ""} /> <span>Calm mode: less movement, no falling drops</span></label>
 
-        <h2 class="section-title">About the book</h2>
-        <p><a href="ojo-treasury/index.html#grown-ups">Open The Ojo Treasury notes for grown-ups</a>: how to read the book, the day at a glance and when to see a doctor.</p>
+        <h2 class="section-title">Readings for grown-ups</h2>
+        <p><a href="#/grown">For grown-ups</a>: what each story teaches, the Ayurveda idea behind it, and how to practise it at home. <a href="#/author">About the author</a>.</p>
 
         <h2 class="section-title">Privacy</h2>
         <ul class="list">
           <li>Names, ages and progress are saved only on this device. Nothing is sent to a server.</li>
           <li>No accounts, ads, tracking, chat, camera or microphone.</li>
-          <li>Ojas drops are earned by playing and by real-life habits. They can never be bought.</li>
+          <li>Golden drops are earned by playing and by real-life habits. They can never be bought.</li>
           <li>No leaderboards or comparison between children. Mistakes never cost anything.</li>
         </ul>
         <div class="row"><a class="btn btn-big" href="#/">Back to the app</a></div>
@@ -1161,7 +1364,7 @@
     }));
     app.querySelectorAll("[data-reset]").forEach(b => b.addEventListener("click", () => {
       const c = profiles.find(x => x.id === b.dataset.reset);
-      if (!confirm(`Reset all of ${c.name}'s drops, stickers, garden and trail progress?`)) return;
+      if (!confirm(`Reset all of ${c.name}'s drops, stickers and trail progress?`)) return;
       saveProgFor(c.id, blankProg()); remove("ojo-drops:" + c.id);
       if (c.id === activeId) prog = blankProg();
       updateTop(); toast("Progress reset"); viewParents();
@@ -1178,6 +1381,7 @@
     document.getElementById("sess").addEventListener("change", e => { settings.sessionMin = +e.target.value; saveSettings(); toast("Play time saved"); });
     document.getElementById("mute").addEventListener("change", e => { settings.mute = !e.target.checked; saveSettings(); });
     document.getElementById("calm").addEventListener("change", e => { settings.calm = e.target.checked; saveSettings(); });
+    document.getElementById("sfx").addEventListener("change", e => { settings.sfx = e.target.checked; saveSettings(); if (e.target.checked) sfx.right(); });
   }
 
   /* ================= Learning games (from the earlier version) ================= */
@@ -1403,11 +1607,11 @@
           <div class="game center">
             <div class="game-cover">🏆</div>
             <h2>${esc(line("gameDone").text)}</h2>
-            <p class="earned">${earned ? `${dropSvg()} +${earned} Ojas drop` : "You've already collected today's drop for this game."}</p>
+            <p class="earned">${earned ? `${dropSvg()} +${earned} golden drop` : "You've already collected today's drop for this game."}</p>
             <button class="btn btn-big again" type="button">🔁 Play again</button>
           </div>`;
         body.querySelector(".again").addEventListener("click", restart);
-        if (earned) { confetti(); bumpDrops(); }
+        if (earned) { goldenDrops(); sfx.drops(); bumpDrops(); }
         return;
       }
       const r = make();
@@ -1428,11 +1632,11 @@
       body.querySelectorAll(".option").forEach(b => b.addEventListener("click", () => {
         if (done) return;
         if (b.dataset.key === r.correct) {
-          done = true; b.classList.add("right");
+          done = true; b.classList.add("right"); sfx.right();
           fb.textContent = "🎉 " + r.praise; speak(r.praise);
           round++; later(next, 1200);
         } else {
-          b.classList.add("wrong"); b.disabled = true;
+          b.classList.add("wrong"); b.disabled = true; sfx.wrong();
           const t = line("wrong"); fb.textContent = "🤔 " + t.text; voice(t);
         }
       }));

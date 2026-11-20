@@ -1,0 +1,104 @@
+[
+  {
+    "code": "C1",
+    "voice": "Narrator",
+    "lines": [
+      {
+        "text": "This is Ayu.",
+        "ids": [
+          "intro.ayu.1"
+        ]
+      },
+      {
+        "text": "Ayu is five years old.",
+        "ids": [
+          "intro.ayu.2"
+        ]
+      },
+      {
+        "text": "She lives with her family in a little house with a big tamarind tree.",
+        "ids": [
+          "intro.ayu.3"
+        ]
+      },
+      {
+        "text": "She loves mangoes, building blocks and asking “Why?”",
+        "ids": [
+          "intro.ayu.4"
+        ]
+      },
+      {
+        "text": "Sometimes she is scared of the dark. Sometimes she forgets things. Sometimes she gets cross.",
+        "ids": [
+          "intro.ayu.5"
+        ]
+      },
+      {
+        "text": "Just like you!",
+        "ids": [
+          "intro.ayu.6"
+        ]
+      },
+      {
+        "text": "This is Ojo.",
+        "ids": [
+          "intro.ojo.1"
+        ]
+      },
+      {
+        "text": "Ojo is a tiny golden light with two little wings.",
+        "ids": [
+          "intro.ojo.2"
+        ]
+      },
+      {
+        "text": "He lives in a little house inside Ayu's heart.",
+        "ids": [
+          "intro.ojo.3"
+        ]
+      },
+      {
+        "text": "Put your hand on your chest. Can you feel thum, thum? That is the door to Ojo's house!",
+        "ids": [
+          "intro.ojo.4"
+        ]
+      },
+      {
+        "text": "Ojo is Ayu's best friend. He never shouts, and he never goes away.",
+        "ids": [
+          "intro.ojo.5"
+        ]
+      },
+      {
+        "text": "Everybody has an Ojo. You have one too!",
+        "ids": [
+          "intro.ojo.6"
+        ]
+      },
+      {
+        "text": "Ayu's name means life.",
+        "ids": [
+          "intro.why.1"
+        ]
+      },
+      {
+        "text": "Ojo is the light of good health inside you.",
+        "ids": [
+          "intro.why.2"
+        ]
+      },
+      {
+        "text": "When you sleep well, eat good food, and are kind and truthful, Ojo shines bright.",
+        "ids": [
+          "intro.why.3"
+        ]
+      },
+      {
+        "text": "Every story gives Ojo one golden drop. Can you find all eight?",
+        "ids": [
+          "intro.why.4"
+        ]
+      }
+    ]
+  }
+]

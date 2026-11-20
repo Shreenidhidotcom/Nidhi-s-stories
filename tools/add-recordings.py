@@ -12,9 +12,9 @@ length and number of syllables. Lines whose length or syllables look wrong are l
 
 Writes audio/voice/<code>-<nn>.mp3, js/voice-files.js and tools/voice-check.html (a page to listen
 to every line next to its text). Needs ffmpeg, numpy and scipy.
-Rebuild tools/voice-lines.json first if the content changed:  node tools/make-recording-script.js
+When lines are added to the app, make a script of the new ones first:  node tools/make-recording-script.js
 """
-import html, json, math, os, re, subprocess, sys, tempfile
+import glob, html, json, math, os, re, subprocess, sys, tempfile
 
 import numpy as np
 from scipy.signal import butter, find_peaks, sosfiltfilt
@@ -23,7 +23,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT_DIR = os.path.join(ROOT, "audio", "voice")
 MANIFEST = os.path.join(ROOT, "js", "voice-files.js")
 CHECK_PAGE = os.path.join(ROOT, "tools", "voice-check.html")
-SECTIONS = {s["code"]: s for s in json.load(open(os.path.join(ROOT, "tools", "voice-lines.json"), encoding="utf-8"))}
+# Every batch of lines: voice-lines.json (sections A and B), then voice-lines-C.json, voice-lines-D.json ...
+SECTIONS = dict(sorted((s["code"], s) for f in glob.glob(os.path.join(ROOT, "tools", "voice-lines*.json"))
+                       for s in json.load(open(f, encoding="utf-8"))))
 SR, HOP = 16000, 0.01
 
 # Syllable counts for words the simple rule gets wrong.
