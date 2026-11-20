@@ -178,9 +178,13 @@ def main(folder):
             a = max(0.0, r["start"] - min(0.1, before / 2))
             b = r["end"] + min(0.15, after / 2)
             clip = f"{code}-{n:02d}.mp3"
-            subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", src, "-ss", f"{a:.3f}", "-to", f"{b:.3f}",
-                            "-af", f"afade=t=in:d=0.02,afade=t=out:st={max(0, b - a - 0.04):.3f}:d=0.04",
+            # atrim resets the clip to start at 0, so the fades are timed from the start of the line.
+            subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", src, "-af",
+                            f"atrim=start={a:.3f}:end={b:.3f},asetpts=PTS-STARTPTS,"
+                            f"afade=t=in:d=0.02,afade=t=out:st={max(0, b - a - 0.04):.3f}:d=0.04",
                             "-ac", "1", "-ar", "44100", "-b:a", "96k", os.path.join(OUT_DIR, clip)], check=True)
+            if np.abs(load(os.path.join(OUT_DIR, clip))).max() < 0.02:
+                sys.exit(f"{clip} came out silent; nothing was changed in js/voice-files.js.")
             for line_id in line["ids"]:
                 files[line_id] = f"audio/voice/{clip}"
             if r["check"]:
