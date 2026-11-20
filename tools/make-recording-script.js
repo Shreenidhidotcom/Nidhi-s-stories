@@ -55,9 +55,9 @@ Lines that are in the stories (story titles, Ojo's lines from each story, "And O
 ## How to record
 
 1. Use a quiet room and your phone's voice recorder, the same way you recorded the stories.
-2. Record **one audio file per section** below, and name it with the section code (for example \`A1\`).
-3. Read the lines in order. Do not read the numbers. **Leave a pause of about two seconds after each line.**
-4. If you stumble, stop and record that whole section again. The app matches lines by their order.
+2. Record **one audio file per section** below, and name it with the section code (for example \`A1\`). One file can also hold several sections in order, named like \`A2-4\`.
+3. Read the lines in order. Do not read the numbers. **Leave a short pause after each line** (a second is plenty).
+4. If you stumble, record that whole section again. The app matches lines by their order, so a missed or repeated line moves every line after it.
 5. **Part A** is Ojo's voice, as in the stories. **Part B** is the narrator's voice.
 6. Where a line says "my friend", the screen shows the child's name; the recording says "my friend".
 7. Send the files back in the chat. They will be cut into single lines and added to the app.

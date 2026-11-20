@@ -53,13 +53,13 @@ The app uses the narrator's own recorded voice wherever it can:
    - Ojo's own line from the story when a game is finished, and "And Ojo shone gold and bright" for celebrations
 3. **The device's voice** for any line not yet recorded.
 
-To record the app's own lines, follow `RECORDING-SCRIPT.md` (one audio file per section, a two-second pause after each line), then run:
+All 106 lines in `RECORDING-SCRIPT.md` are recorded. To add or replace recordings, run:
 
 ```
-python3 tools/add-recordings.py <folder with A1, A2 ... B5 audio files>
+python3 tools/add-recordings.py <folder with the audio files>
 ```
 
-It cuts each section into single lines, checks the count matches the script, and updates `js/voice-files.js`. If the content changes, rebuild the script first with `node tools/make-recording-script.js`.
+A file's name says which sections it holds: `A1.mp3` holds section A1, and `A2-4.mp3` (or `A2-A4`, `A_2-4`) holds A2, A3 and A4 in order. The tool splits each file at every pause and matches the pieces to the script lines by sentence count, length and syllables, so short pauses are fine. It updates `js/voice-files.js`, lists any line whose length looks wrong as `CHECK`, and writes `tools/voice-check.html`, a page to listen to every line next to its text. Needs ffmpeg, numpy and scipy. If the content changes, rebuild the script first with `node tools/make-recording-script.js`.
 
 If a story is re-recorded or re-synced in the book, copy its new timings from `NARR` in `ojo-treasury/index.html` to `STORY_AUDIO` in `js/content.js`.
 
