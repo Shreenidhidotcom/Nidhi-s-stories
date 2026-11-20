@@ -4,7 +4,7 @@
 
 /* Age tiers. Only Ojo is active; Veda and Prajñā switch on when their stories are ready. */
 window.TIERS = [
-  { id: "ojo", ages: [3, 7], active: true, companion: "Ojo", world: "Ojo's Treasure Trail", reward: "Ojas drops", sessionMinutes: 10 },
+  { id: "ojo", ages: [3, 7], active: true, companion: "Ojo", world: "Ojo's Treasure Trail", reward: "golden drops", sessionMinutes: 10 },
   { id: "veda", ages: [8, 12], active: false, companion: "Veda", world: "Veda's Quest Map", reward: "Knowledge stars", sessionMinutes: 15 },
   { id: "prajna", ages: [13, 16], active: false, companion: "Prajñā", world: "Prajñā's Journal", reward: "Insight points", sessionMinutes: 20 }
 ];
@@ -153,7 +153,7 @@ window.GUIDE = {
   morning: ["Good morning, {name}! Did you say hello to the sun?", "Good morning! Have you brushed your teeth?", "Rise and shine, {name}!"],
   afternoon: ["Hello {name}! Shall we find a drop of light?", "Good afternoon! Ready for a story?", "Hello again, {name}!"],
   evening: ["Good evening, {name}! Story time soon?", "The sun is going to sleep. Shall we read?", "Hello {name}! A little play before bed?"],
-  returnAfterBreak: ["I missed you, {name}! Your garden waited for you.", "Welcome back! Your flowers are still blooming."],
+  returnAfterBreak: ["I missed you, {name}!", "Welcome back!"],
   correct: ["Yes! Well done!", "You did it, {name}!", "That's right!", "Wonderful!"],
   wrong: ["Hmm, let's look again.", "Nearly! Try once more.", "Good try! Look closely."],
   gameDone: ["You played so well, {name}!", "I am glowing brighter!", "Hooray! That was fun!"],
@@ -167,8 +167,8 @@ window.GUIDE = {
   taskDone: ["Well done, {name}! You did it for real."],
   taskDoneToday: ["Well done! You did it today."],
   newSticker: ["You earned a new sticker!"],
-  garden: ["Look at your garden! Flowers never wilt here."],
-  gardenEmpty: ["Play today and your first flower will bloom!"],
+  jar: ["I am glowing brighter!"],
+  jarEmpty: ["Keep playing to collect more drops!"],
   needDrops: ["Keep playing to collect more drops!"],
   sortHint: ["Hmm, does that help? Try another!"],
   seqHint: ["Hmm, what comes next?"],
@@ -207,7 +207,8 @@ window.AVATAR = {
   }
 };
 
-/* Garden plants for the shop */
+/* Plants were sold in the shop for the old garden. The garden is now a jar of golden drops,
+   so plants are no longer sold; any a child bought are refunded in drops. */
 window.PLANTS = [
   { id: "tulsi", e: "🌿", name: "Tulsi", price: 10 }, { id: "sunflower", e: "🌻", name: "Sunflower", price: 10 },
   { id: "lotus", e: "🪷", name: "Lotus", price: 15 }, { id: "jasmine", e: "🌼", name: "Jasmine", price: 15 },
@@ -218,4 +219,90 @@ window.PLANTS = [
 window.CHEST_STICKERS = [
   { id: "rainbow", e: "🌈", name: "Rainbow" }, { id: "peacock", e: "🦚", name: "Peacock" }, { id: "elephant", e: "🐘", name: "Elephant" },
   { id: "butterfly", e: "🦋", name: "Butterfly" }, { id: "turtle", e: "🐢", name: "Turtle" }, { id: "star", e: "🌟", name: "Bright Star" }
+];
+
+/* ================= Meet Ayu and Ojo (children's words: no Ayurveda terms here) ================= */
+window.INTRO = {
+  ayu: ["This is Ayu.", "Ayu is five years old.", "She lives with her family in a little house with a big tamarind tree.",
+        "She loves mangoes, building blocks and asking \u201cWhy?\u201d",
+        "Sometimes she is scared of the dark. Sometimes she forgets things. Sometimes she gets cross.", "Just like you!"],
+  ojo: ["This is Ojo.", "Ojo is a tiny golden light with two little wings.", "He lives in a little house inside Ayu's heart.",
+        "Put your hand on your chest. Can you feel thum, thum? That is the door to Ojo's house!",
+        "Ojo is Ayu's best friend. He never shouts, and he never goes away.", "Everybody has an Ojo. You have one too!"],
+  why: ["Ayu's name means life.", "Ojo is the light of good health inside you.",
+        "When you sleep well, eat good food, and are kind and truthful, Ojo shines bright.",
+        "Every story gives Ojo one golden drop. Can you find all eight?"],
+  family: [
+    { who: "Ajji", kn: "\u0c85\u0c9c\u0ccd\u0c9c\u0cbf", img: "images/ajji.svg", text: "Ajji is Ayu's grandmother. She knows the old ways of keeping well, and she tells the best stories." },
+    { who: "Amma", kn: "\u0c85\u0cae\u0ccd\u0cae", img: "images/amma.svg", text: "Amma is Ayu's mother. She is kind and patient, and she always wants to hear the truth." }
+  ]
+};
+
+/* ================= The author (from the book's author page) ================= */
+window.AUTHOR = {
+  name: "Dr Shreenidhi Kalmath",
+  role: "Assistant Professor, Department of Sa\u1e43hit\u0101 Siddh\u0101nta and Sa\u1e43sk\u1e5bta",
+  place: "Rashmi Institute of Ayurveda Medical Sciences and Research Centre, Kudligi, Karnataka",
+  photo: "images/author.jpg", small: "images/author-small.jpg",
+  note: [
+    "I believe health is already within us. We do not have to go looking for it. When we practise what is good and wholesome for us each day, we stay well.",
+    "That is what Ayurveda has taught me. It is simple and gentle. It helps us understand our body: what it is made of, and why it changes with day and night, with the seasons, and as we grow older. It also shows how our food, our thoughts, our sleep and the people around us shape the way we feel. Then it guides us to live well with all of it.",
+    "I wrote these stories to plant a few small seeds in young minds. I hope each child learns to know what is good for them. I hope they learn to notice their own thoughts and deeds, and to choose well, one small step at a time.",
+    "Read these stories aloud together, pause often, and let your child tell you what they notice.",
+    "When we nurture healthy, happy children, we help a healthy, happy nation grow."
+  ],
+  work: "Dr Shreenidhi Kalmath teaches the classical texts of Ayurveda to BAMS students. Her work brings those texts into everyday teaching, through curriculum design, student programmes, and writing for students and the public. The Ojo Treasury (\u0c93\u0c9c\u0ccb \u0c95\u0ccb\u0cb6) carries ideas from those texts to children aged three to seven, and to the grown-ups who read with them."
+};
+
+/* ================= For grown-ups: the idea behind each story (Ayurveda terms live here, not in children's screens) ================= */
+window.WHY_AYU_OJO = "\u0100yu means life. It is the word \u0100yurveda is built on. Ojas is the essence that keeps life strong. The classical texts describe it as seated in the heart and golden like honey, growing with truthfulness, good food and good sleep, and wasting with anger, grief and exhaustion (Caraka Sa\u1e43hit\u0101, S\u016btrasth\u0101na 17). Ayu is the child who lives; Ojo is the light that keeps her well. The finest ojas, seated in the heart, is described as eight drops in measure (a\u1e63\u1e6da-bindu). So this first edition has eight stories, and each one gives Ojo a single drop of light. When Ojo dims he does not scold. He waits, and the child decides what to do next.";
+window.GROWN = [
+ {
+  "n": 1,
+  "practice": "The light inside",
+  "term": "Ojas",
+  "note": "Put your child's hand on their own chest and wait for them to find the heartbeat. Do not hurry this. Children who can locate a physical sensation inside their own body find it far easier, later, to tell you that something hurts, or that they feel sick, or that they are frightened. That is the whole purpose of this first story."
+ },
+ {
+  "n": 2,
+  "practice": "Wake before the sun",
+  "term": "Brāhma-muhūrta",
+  "note": "The classical waking hour, brāhma-muhūrta, comes before sunrise, and for most families with school and work it is simply the hour you already wake. The usable instruction is not the clock. It is the first ten minutes. Whatever happens in them sets the rest. If a screen happens in them, that is what the day is built on."
+ },
+ {
+  "n": 3,
+  "practice": "Teeth and tongue",
+  "term": "Danta-dhāvana, jihvā-nirlekhana",
+  "note": "Ask your child to run their tongue along their teeth before brushing and again after. A two-year-old who cannot yet follow the sentence understands the difference completely, and brushing becomes a sensation they want rather than an instruction they resist. Tongue cleaning is classical dinacaryā and also simply reduces what causes bad breath. Use a child's tongue cleaner or the back of the brush, gently, never deep enough to gag."
+ },
+ {
+  "n": 4,
+  "practice": "Know the five senses",
+  "term": "Pañcendriya",
+  "note": "The five gates are the book's teaching centrepiece. In the story, tap each gate and name it together. Then play a game: close your eyes and take turns saying what you can hear, smell and feel. Being able to notice what is coming in through which sense is the beginning of being able to decide what to let in, and a great deal comes from that later."
+ },
+ {
+  "n": 5,
+  "practice": "Eat with the mind on the food",
+  "term": "Āhāra-vidhi",
+  "note": "The classical rule is to eat with the mind on the food, and the modern finding points the same way: children who eat while watching a screen eat without registering it, and the signal that says enough arrives too late or not at all. If there is one thing in this book worth changing in your house, it is this. Take the screen away from the plate and expect a difficult fortnight. The chewing-turns-sweet discovery in this story is real. Point it out to your child, because it gives them something to be curious about instead of something to obey."
+ },
+ {
+  "n": 6,
+  "practice": "Tell the truth",
+  "term": "Satya, from Sadvṛtta",
+  "note": "This story only works if what Amma does in it is what you do. She hugs her, thanks her for telling, and then they clear it up together. If owning up reliably produces a punishment, a child learns the lesson the story is trying to prevent: that the safest thing is to say nothing. The dimming is Ojo's, not an adult's. Keep it that way when you read it aloud."
+ },
+ {
+  "n": 7,
+  "practice": "Sleep when the sun sleeps",
+  "term": "Nidrā",
+  "note": "“Ojo grows at night” is not only a story. Growth hormone is largely released during deep sleep, and sleep is when the day's learning is consolidated, which makes sleep the single most underrated academic help there is, long before any of it looks academic. Hold the bedtime, hold the dark, and keep screens out of the last hour: the light itself delays sleep, and the content wakes the mind up. That includes this book. At bedtime, read the printed copy."
+ },
+ {
+  "n": 8,
+  "practice": "Leave room for the fire",
+  "term": "Mātrā and agni",
+  "note": "This is the story the grown-ups' section of this book exists for. The single most useful idea in Ayurvedic nutrition is that the correct quantity of food is set by the strength of the individual's digestion and not by the size of the serving, and the most common way adults override a child's own appetite is with love, at weddings, with a great-aunt's voice. Read “Myths worth letting go of” before the next function."
+ }
 ];
