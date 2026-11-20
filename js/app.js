@@ -202,10 +202,12 @@
     });
   }
   function speak(text) { voice({ text }); }
-  /* Lines from the stories always play. Other lines play by themselves under age 6; from 6, the child taps Ojo to hear them. */
+  /* Recorded lines and story lines always play by themselves. Lines that only the device's voice can say
+     play by themselves under age 6; from 6, the child taps Ojo to hear them. */
   const autoTalk = () => !settings.mute && (active() ? active().age : 5) < 6;
+  const recorded = x => !!(x && x.id && VOICE_FILES[x.id]);
   function say(...items) {
-    const list = items.flat().filter(x => x && (x.clip || autoTalk()));
+    const list = items.flat().filter(x => x && (x.clip || recorded(x) || autoTalk()));
     return list.length && !settings.mute ? voice(list) : Promise.resolve();
   }
   const storyLine = (stop, key) => { const c = stop && stop.voice && stop.voice[key]; return c ? { text: c.text || stop.title, clip: { n: stop.n, u: c.u, v: c.v } } : null; };
@@ -392,7 +394,7 @@
         ${n > 0 ? `<div class="cel-drops">${dropSvg()}<b>+${n}</b><span>Ojas drop${n > 1 ? "s" : ""}</span></div>` : ""}
         <button class="btn btn-big autofocus" data-close type="button">Yay!</button>
       </div>`, { onClose: then });
-    const spoken = msg.clip ? say(msg.lead, msg) : say(cheerLine(), msg);
+    const spoken = msg.clip || recorded(msg) ? say(msg.lead, msg) : say(cheerLine(), msg);
     bumpDrops();
     /* Close by itself once the voice has finished (at least ~3 seconds); a tap keeps it open. */
     let held = false;
@@ -738,11 +740,13 @@
     const engines = { sort: gameSort, sequence: gameSequence, choose: gameChoose, scrub: gameScrub, tummy: gameTummy, pairs: gamePairs };
     const win = () => later(() => finishGame(gameKey, stop, box), 700);
     engines[game.type](box, game, isSmall(), win, stop);
-    if (game.type !== "choose") say(intro, promptLn);
-    else if (intro) say(intro);
+    /* Ojo's recorded instruction starts the game; the story line is on screen to hear with 🔊. */
+    if (game.type !== "choose") say(recorded(promptLn) ? promptLn : [intro, promptLn]);
+    else if (intro && !recorded({ id: `game.${gameKey}.q1` })) say(intro);
   }
 
-  function praise() { setGuide(app, line("correct")); }
+  /* On the last step the celebration speaks, so the praise only shows (it would be cut off). */
+  function praise(last) { if (last) quietGuide(app, line("correct")); else setGuide(app, line("correct")); }
   function hint(ln) { setGuide(app, ln || line("wrong")); }
 
   function finishGame(gameKey, stop, box) {
@@ -751,11 +755,13 @@
     else if (prog.played[gameKey] !== dayKey()) { prog.played[gameKey] = dayKey(); earned = addDrops(DV.replay); }
     else markActive();
     saveProg();
-    const msg = storyLine(stop, "done") || line("gameDone");
+    const fromStory = storyLine(stop, "done"), praiseLn = line("gameDone");
+    const msg = recorded(praiseLn) || !fromStory ? praiseLn : fromStory;
     box.innerHTML = `
       <div class="center game-done">
         <div class="game-cover">🏆</div>
         <h2>${esc(msg.text)}</h2>
+        ${msg !== fromStory ? echoHtml(fromStory) : ""}
         ${earned ? `<p class="earned">${dropSvg()} +${earned} Ojas drop${earned > 1 ? "s" : ""}</p>` : `<p class="earned">You've already collected today's drops for this game.</p>`}
         <div class="row">
           ${stop ? `<a class="btn btn-big" href="#/do/${stop.n}">🌟 Now try it for real</a>` : ""}
@@ -763,6 +769,7 @@
         </div>
       </div>`;
     box.querySelector(".again").addEventListener("click", router);
+    if (msg !== fromStory) bindEcho(box, fromStory);
     const lead = storyLine(stop, "yay");
     if (earned) celebrate(earned, Object.assign({ lead }, msg), () => { if (stop) setGuide(app, line("taskInvite")); });
     else { quietGuide(app, msg); say(lead, msg); }
@@ -783,7 +790,7 @@
       if (it.ok) {
         b.classList.add("right"); found++;
         box.querySelector("#counter").textContent = `${found} of ${need} found`;
-        if (found === need) { praise(); win(); } else voice({ text: it.l, id: `game.${game.key}.item.${it.k + 1}` });
+        if (found === need) { praise(true); win(); } else voice({ text: it.l, id: `game.${game.key}.item.${it.k + 1}` });
       } else {
         b.classList.remove("wrong"); void b.offsetWidth; b.classList.add("wrong");
         hint(line("sortHint"));
@@ -808,7 +815,7 @@
         b.classList.add("used"); b.disabled = true;
         next++; misses = 0;
         box.querySelectorAll(".card-btn.glow").forEach(x => x.classList.remove("glow"));
-        if (next === steps.length) { praise(); win(); } else voice({ text: steps[k].l, id: `game.${game.key}.step.${steps[k].k + 1}` });
+        if (next === steps.length) { praise(true); win(); } else voice({ text: steps[k].l, id: `game.${game.key}.step.${steps[k].k + 1}` });
       } else {
         misses++;
         b.classList.remove("wrong"); void b.offsetWidth; b.classList.add("wrong");
@@ -833,7 +840,7 @@
       const qLn = { text: r.q, id: `game.${game.key}.q${i + 1}` };
       const optLns = r.options.map((o, k) => ({ text: o.replace(EMOJI, "").trim(), id: `game.${game.key}.q${i + 1}.opt${k + 1}` }));
       const ask = () => voice(qLn, optLns);
-      if (autoTalk()) ask();
+      if (autoTalk() || recorded(qLn)) ask();
       const hear = box.querySelector("#hear"); if (hear) hear.addEventListener("click", ask);
       let done = false;
       box.querySelectorAll(".option").forEach(b => b.addEventListener("click", () => {
@@ -859,7 +866,7 @@
       b.classList.remove("fuzzy"); b.classList.add("sparkle"); b.setAttribute("aria-label", "Clean tooth");
       left--;
       box.querySelector("#counter").textContent = left ? `${left} fuzzy spot${left > 1 ? "s" : ""} left` : "All sparkly!";
-      if (!left) { praise(); win(); }
+      if (!left) { praise(true); win(); }
     }));
   }
 
@@ -913,7 +920,7 @@
       const [a, c] = open; open = [];
       if (deck[+a.dataset.k] === deck[+c.dataset.k]) {
         a.classList.add("got"); c.classList.add("got"); matched++;
-        if (matched === faces.length) { praise(); win(); } else voice(line("pairMatch"));
+        if (matched === faces.length) { praise(true); win(); } else voice(line("pairMatch"));
       } else {
         busy = true;
         later(() => { a.classList.remove("up"); c.classList.remove("up"); a.setAttribute("aria-label", "Hidden card"); c.setAttribute("aria-label", "Hidden card"); busy = false; }, 900);
@@ -952,7 +959,8 @@
       </section>`;
     bindGuide(app, g, { silent: true });
     bindEcho(app, fromStory);
-    say(fromStory, doneToday ? g : taskLn);
+    if (recorded(taskLn)) say(doneToday ? g : [g, taskLn]);
+    else say(fromStory, doneToday ? g : taskLn);
     document.getElementById("hear-task").addEventListener("click", () => voice(taskLn));
     const will = document.getElementById("will-do");
     if (will) will.addEventListener("click", () => { prog.pending[n] = t; saveProg(); router(); });
@@ -1122,7 +1130,7 @@
         <p class="muted">When time is up, Ojo invites your child to go and try the habit for real. Only a grown-up can unlock more play.</p>
 
         <h2 class="section-title">Sound and motion</h2>
-        <label class="toggle"><input type="checkbox" id="mute" ${settings.mute ? "" : "checked"} /> <span>Ojo speaks aloud (under 6, every instruction is spoken)</span></label>
+        <label class="toggle"><input type="checkbox" id="mute" ${settings.mute ? "" : "checked"} /> <span>Ojo speaks aloud</span></label>
         <label class="toggle"><input type="checkbox" id="calm" ${settings.calm ? "checked" : ""} /> <span>Calm mode: less movement, no confetti</span></label>
 
         <h2 class="section-title">About the book</h2>
