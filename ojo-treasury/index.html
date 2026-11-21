@@ -1606,8 +1606,7 @@ const ICO = {
   pause:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4.5" width="4.2" height="15" rx="1.2" fill="#3a2408"/><rect x="13.8" y="4.5" width="4.2" height="15" rx="1.2" fill="#3a2408"/></svg>',
   bird:'<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="11" cy="14" rx="7" ry="5" fill="#ffd76a"/><circle cx="16" cy="10" r="4" fill="#ffd76a"/><path d="M19.5 9.5l3 1-3 1z" fill="#ff9e57"/><circle cx="16.8" cy="9.4" r="1" fill="#1b1220"/></svg>'
 };
-/* Children see plain words for Ojo's glow; the Ayurveda terms are kept for the grown-ups' pages. */
-const LV = ['almost dark','dim','dulled','a little dull','steady','warm','bright','shining bright'];
+const LV = ['kṣīṇa · almost dark','kṣīṇa · dim','mlāna · dulled','mlāna · a little dull','sthira · steady','sthira · warm','prasanna · bright','prasanna · radiant'];
 
 /* ================= sound ================= */
 const NOTES = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51]; // Bhupali: Sa Re Ga Pa Dha Sa Re Ga
@@ -2158,7 +2157,7 @@ function wireStory(n, sc, st, prevR, nextR, popDelay){
     document.querySelectorAll('.gbtn').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
     const [en, kan, sa, verb] = b.dataset.t.split('|');
     stage.dataset.gate = b.dataset.g;
-    gout.innerHTML = `<b>${en}</b> · <span class="kn" lang="kn">${kan}</span> — the gate for ${verb}.`;
+    gout.innerHTML = `<b>${en}</b> · <span class="kn" lang="kn">${kan}</span> · <i lang="sa-Latn">${sa}</i> — the gate for ${verb}.`;
     playStep(Number(b.dataset.g) + 1);
   }));
 

@@ -1249,7 +1249,7 @@
           <li><b>Play.</b> A short game repeats the story's one habit.</li>
           <li><b>Do it for real.</b> Your child tries the habit with you, and you tick it in Parent Corner.</li>
         </ol>
-        <p>Children hear plain words first: Ojo, a little light, golden drops. The Ayurveda name for each idea appears only on this page, so you can introduce it later, when your child is ready.</p>
+        <p>The app's own screens use plain words: Ojo, a little light, golden drops. The stories keep their Ayurveda words, such as the names of Ojo's glow on the light bar and the five gates, and this page gives the Ayurveda name behind each story.</p>
         <h2 class="section-title">What Ayu and Ojo mean</h2>
         <p>${esc(WHY_AYU_OJO)}</p>
         <h2 class="section-title">The eight stories and the idea behind each</h2>
