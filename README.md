@@ -13,7 +13,7 @@ A gentle, ad-free learning web app for children aged about 3–7, built around *
 - **Stories.** The eight stories of The Ojo Treasury, each opening the book at that story, with the golden drop the child has found in each. The book's back button returns to where the child came from.
 - **For grown-ups** (behind the parent check). How the app works, what Ayu and Ojo mean, and for each story the practice, its Ayurveda name, the author's note and something to try together; a link to the book's guide on reading by age, feeding myths and when to see a doctor.
 - **About the author.** Dr Shreenidhi Kalmath's photo, role, note to readers and work. Her name also appears on Meet Ayu and Ojo, Stories, For grown-ups and the Menu.
-- **Plain words first.** Children's screens use plain words (Ojo, a little light, golden drops). Ayurveda terms appear only in the grown-ups' pages, including in the book, where Ojo's glow and the five gates are named in English and Kannada.
+- **Plain words in the app, Ayurveda words in the stories.** The app's own screens use plain words (Ojo, a little light, golden drops). The stories keep their Ayurveda words: Ojo's light bar names each glow (kṣīṇa, mlāna, sthira, prasanna) and the five gates carry their Sanskrit names. The grown-ups' pages explain the Ayurveda idea behind each story.
 - **Sounds.** A soft tap for every button, a bright chime for a right answer and a gentle low tone for "try again", and a sparkle when drops are earned. Made by the browser, with no audio files; a grown-up can turn them off in Parent Corner.
 - **Ojo's Treasure Trail** (`#/trail`). Eight stops, one per story. Each stop has three steps:
   - 🎧 **Listen**: the story in The Ojo Treasury (2 drops)
