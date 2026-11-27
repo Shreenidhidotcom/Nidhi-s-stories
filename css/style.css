@@ -577,6 +577,13 @@ a.tab { text-decoration: none; }
 
 /* ---------- Stories ---------- */
 .story-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 12px; }
+.listen-card { display: flex; align-items: center; gap: 14px; margin-top: 18px; padding: 14px 16px; border-radius: 22px; text-decoration: none; color: #ece8ff; background: linear-gradient(135deg, #1b1845, #2f2a74); box-shadow: 0 5px 0 #120f33; }
+.listen-card:active { transform: translateY(3px); box-shadow: 0 2px 0 #120f33; }
+.listen-card .lc-moon { font-size: 2rem; flex: none; width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%; background: rgba(255, 255, 255, .08); }
+.listen-card .lc-txt { display: grid; gap: 2px; }
+.listen-card b { font-size: 1.2rem; color: #fff; }
+.listen-card .lc-txt span { font-size: .98rem; line-height: 1.4; color: #c9c2f2; }
+.move-tip { margin: 12px 0 0; padding: 10px 14px; border-radius: 16px; background: #fff6df; color: var(--ink); font-size: 1rem; line-height: 1.45; }
 .story-card { display: flex; align-items: center; gap: 14px; text-decoration: none; background: #fff; border-radius: 22px; padding: 12px 14px; box-shadow: 0 5px 0 color-mix(in srgb, var(--c) 45%, #ddd); border-left: 10px solid var(--c); }
 .story-card:active { transform: translateY(3px); }
 .sc-icon { font-size: 2.3rem; flex: none; }

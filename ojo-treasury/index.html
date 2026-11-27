@@ -562,8 +562,107 @@ svg .gate{transition:opacity .3s}
 .seal .src{font-size:.95rem;color:#b9b2e0;margin:16px 0 26px}
 .foot{text-align:center;color:rgba(255,255,255,.7);font-size:.92rem;padding:0 16px 30px}
 
+/* ===== Acting: Ayu does what the story says (stage gets data-do from the narration timings) ===== */
+.layer.front .foam,.layer.front .fuzz,.layer.front .shine,.layer.front .spit,.layer.front .cnt,.stage .mref{opacity:0;transition:opacity .35s ease}
+.stage[data-do~="foam"] .layer.front .foam,.stage[data-do~="fuzz"] .layer.front .fuzz,.stage[data-do~="shine"] .layer.front .shine,
+.stage[data-do~="spit"] .layer.front .spit,.stage[data-do~="mirror"] .layer.mid .mref,
+.stage[data-do~="c1"] .layer.front .cnt1,.stage[data-do~="c2"] .layer.front .cnt2,.stage[data-do~="c3"] .layer.front .cnt3{opacity:1}
+.mref .tongue{fill:#fbfbf6;transition:fill .6s ease}
+[data-do~="c1"] .mref .tongue{fill:#f8d3da}[data-do~="c2"] .mref .tongue{fill:#f4aab7}[data-do~="c3"] .mref .tongue{fill:#ee8499}
+[data-do~="c1"] .cnt1,[data-do~="c2"] .cnt2,[data-do~="c3"] .cnt3{animation:cntIn .4s ease-out}
+.spit .sd{opacity:0}
+[data-do~="spit"] .spit .sd{animation:spit .9s ease-in forwards}
+[data-do~="foam"] .foam g{animation:steam 1s ease-in-out infinite}
+[data-do~="b-up"] .armR{animation:bUp .34s ease-in-out infinite}
+[data-do~="b-down"] .armR{animation:bDown .34s ease-in-out infinite}
+[data-do~="b-round"] .armR,[data-do~="rub"] .armR{animation:bRound .7s linear infinite}
+[data-do~="b-front"] .armR{animation:bSide .3s ease-in-out infinite}
+[data-do~="b-back"] .armR{animation:bBack .36s ease-in-out infinite}
+[data-do~="lift"] .armR{animation:lift .7s cubic-bezier(.3,1.5,.6,1) both}
+[data-do~="sip"] .armR{animation:sip 1.6s ease-in-out both}
+[data-do~="wave"] .armR{animation:wave .8s ease-in-out infinite}
+[data-do~="pat"] .armR{animation:pat .5s ease-in-out infinite}
+[data-do~="shake"] .ayuBody{animation:shake .55s ease-in-out 2}
+[data-do~="swish"] .ayuBody{animation:swish .26s ease-in-out infinite}
+[data-do~="hop"] .ayuBody{animation:hopA .55s ease-in-out infinite}
+[data-do~="feel"] .ayuBody,[data-do~="idle"] .ayuBody,[data-do~="breathe"] .ayuBody{animation:breathe 3.6s ease-in-out infinite}
+[data-do~="stretch"] .ayuBody{animation:stretch 2.6s ease-in-out infinite}
+[data-do~="tall"] .ayuBody{animation:tall 3.6s ease-in-out infinite}
+[data-do~="chew"] .ayuBody{animation:chew .5s ease-in-out infinite}
+[data-do~="fuzz"] .fuzz circle{animation:tw 1.6s ease-in-out infinite}
+.stage.actpause[data-do] .layer.front *{animation-play-state:paused !important}
+@keyframes bUp{0%,100%{transform:translate(0,-2px)}50%{transform:translate(0,-8px)}}
+@keyframes bDown{0%,100%{transform:translate(0,2px)}50%{transform:translate(0,8px)}}
+@keyframes bRound{0%,100%{transform:translate(0,-5px)}25%{transform:translate(5px,0)}50%{transform:translate(0,5px)}75%{transform:translate(-5px,0)}}
+@keyframes bSide{0%,100%{transform:translate(-5px,0)}50%{transform:translate(5px,0)}}
+@keyframes bBack{0%,100%{transform:translate(4px,1px) rotate(-5deg)}50%{transform:translate(9px,-1px) rotate(5deg)}}
+@keyframes lift{from{transform:translate(0,16px) rotate(10deg)}}
+@keyframes sip{0%{transform:translate(0,10px)}40%,100%{transform:translate(0,0) rotate(-10deg)}}
+@keyframes wave{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(12deg)}}
+@keyframes pat{0%,100%{transform:translate(0,0)}50%{transform:translate(0,-6px)}}
+@keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-3.5deg)}75%{transform:rotate(3.5deg)}}
+@keyframes swish{0%,100%{transform:scale(1,1)}50%{transform:scale(1.025,.99)}}
+@keyframes hopA{0%,100%{transform:translateY(0)}45%{transform:translateY(-16px)}}
+@keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.025,1.03)}}
+@keyframes stretch{0%,100%{transform:scale(1,1)}50%{transform:scale(.97,1.07)}}
+@keyframes tall{0%,100%{transform:scale(1,1)}50%{transform:scale(1,1.05) translateY(-3px)}}
+@keyframes chew{0%,100%{transform:translateY(0)}50%{transform:translateY(2px) scale(1.01,.985)}}
+@keyframes spit{0%{opacity:0;transform:translate(0,0)}15%{opacity:1}100%{opacity:0;transform:translate(-6px,52px)}}
+@keyframes cntIn{from{transform:scale(.3);opacity:0}}
+.cnt{transform-box:fill-box;transform-origin:center}
+
+/* the line being read, under the picture on phones */
+.nowcap{display:flex;align-items:center;gap:10px;margin:10px 0 0;padding:8px 12px 8px 8px;border-radius:16px;background:#fff3d6;box-shadow:inset 0 0 0 2px rgba(244,181,44,.45)}
+.nowcap[hidden]{display:none}
+.nc-pp{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:linear-gradient(#ffd76a,#f4b52c);box-shadow:0 3px 0 #b7790f;display:grid;place-items:center;cursor:pointer}
+.nc-pp svg{width:18px;height:18px}
+.nc-tx{margin:0;font-size:1.12rem;line-height:1.4;color:var(--ink);text-wrap:pretty}
+.stage{scroll-margin-top:72px}
+.extra.screenless .lo{background:#2a2470;box-shadow:0 4px 0 #120f33}
+
+/* ===== Move with Ayu: a short break away from the screen ===== */
+.move{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:16px;background:rgba(18,14,48,.62);animation:mvIn .25s ease-out}
+.mv-card{position:relative;width:min(380px,100%);max-height:calc(100vh - 32px);overflow-y:auto;background:var(--paper) var(--noise);color:var(--ink);border-radius:26px;padding:18px 20px 16px;text-align:center;box-shadow:0 4px 0 #e6d6b6,0 30px 60px -18px rgba(0,0,0,.55)}
+.mv-kick{margin:0;font-family:var(--display);font-weight:800;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:#c2452c}
+.mv-card h2{margin:0;font-family:var(--display);font-weight:800;font-size:1.6rem;line-height:1.1;color:#2a2258}
+.mv-ayu{display:block;width:150px;height:180px;margin:4px auto 0}
+.mv-say{margin:6px 0 10px;font-size:1.18rem;line-height:1.45;text-wrap:pretty}
+.mv-ring{position:relative;width:62px;height:62px;margin:0 auto 12px}
+.mv-ring > svg{width:100%;height:100%;transform:rotate(-90deg)}
+.mv-track{fill:none;stroke:#efe2c4;stroke-width:4}
+.mv-fill{fill:none;stroke:var(--honey);stroke-width:4;stroke-linecap:round;stroke-dasharray:119.4;stroke-dashoffset:119.4;animation:mvRing var(--sec,20s) linear forwards}
+.mv-ring span{position:absolute;inset:13px;display:grid;place-items:center}
+.mv-ring .ojosvg{display:block;width:100%;height:100%;filter:drop-shadow(0 0 6px rgba(255,190,80,.7))}
+.move.ready .mv-ring span{animation:beat 1.2s ease-in-out}
+.move.ready #mvDone{animation:catchme 1.2s ease-in-out infinite}
+.mv-btns{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center}
+.mv-btns .btn2{justify-self:auto;min-height:48px}
+.mv-skip{min-height:44px;min-width:44px;border:0;background:none;padding:8px 10px;font-family:var(--display);font-weight:700;font-size:1rem;color:var(--muted);cursor:pointer;border-radius:12px}
+.mv-skip:hover{background:rgba(0,0,0,.05)}
+.mv-well{padding:24px 0 12px}
+.mv-well .ojosvg{display:block;width:84px;height:auto;margin:0 auto;filter:drop-shadow(0 0 18px rgba(255,190,80,.9));animation:bob 2.6s ease-in-out infinite}
+.mv-well p{margin:10px 0 0;font-family:var(--display);font-weight:800;font-size:1.35rem;color:#2a2258}
+@keyframes mvRing{to{stroke-dashoffset:0}}
+@keyframes mvIn{from{opacity:0}}
+
+/* ===== Listen only: a dark, quiet screen while the author reads ===== */
+html.lo-open,html.lo-open body{overflow:hidden}
+.lonly{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:24px;background:#07061a;color:#d9d3ff;text-align:center;animation:mvIn .4s ease-out}
+.lo-in{width:min(360px,100%);transition:opacity 1.2s ease}
+.lonly.dim .lo-in{opacity:.18}
+.lo-ojo{width:78px;margin:0 auto 16px;opacity:.8;animation:bob 4s ease-in-out infinite}
+.lo-ojo .ojosvg{width:100%;filter:drop-shadow(0 0 14px rgba(255,180,70,.55))}
+.lo-now{margin:0 0 8px;font-family:var(--display);font-weight:700;font-size:1.15rem;line-height:1.3;color:#efeaff;text-wrap:balance}
+.lo-tip{margin:0 0 22px;font-size:.98rem;line-height:1.45;color:#8f88bf}
+.lo-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.lo-b{min-height:50px;padding:10px 22px;border-radius:999px;border:1px solid #37336a;background:#15133a;color:#efeaff;font-family:var(--display);font-weight:800;font-size:1.05rem;cursor:pointer}
+.lo-b.main{min-width:120px;background:#332d82;border-color:#5a52b8}
+.lo-off{margin-top:26px;min-height:44px;padding:8px 12px;border:0;background:none;color:#8f88bf;font:inherit;font-size:.95rem;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none !important;transition:none !important}
+  .mv-fill{stroke-dashoffset:0}
+  [data-do~="spit"] .spit .sd{opacity:1}
 }
 </style>
 </head>
@@ -621,10 +720,14 @@ svg .gate{transition:opacity .3s}
 </div>
 <main id="view"></main>
 
+<script src="../js/content.js"></script>
+<script src="../js/voice-files.js"></script>
 <script>
 (() => {
 'use strict';
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const MOVE = window.MOVE || {}, VF = window.VOICE_FILES || {};
+const LISTEN = {on:false, el:null, pending:0, last:false, player:null, dim:0};
 const view = document.getElementById('view');
 const OJO = '<svg class="ojosvg" viewBox="0 0 100 115" aria-hidden="true"><use href="#ojo"/></svg>';
 const KN = ['೦','೧','೨','೩','೪','೫','೬','೭','೮','೯'];
@@ -655,12 +758,18 @@ function ayu(o = {}){
   g += `<path d="M-9,-99 Q0,-92 9,-99" fill="none" stroke="${COL.hem}" stroke-width="3" stroke-linecap="round"/>`;
   if (o.belly) g += `<circle cx="0" cy="-62" r="13" fill="#3b1c2a"/><circle cx="0" cy="-62" r="13" fill="none" stroke="#ffd76a" stroke-width="2" opacity=".7"/><g class="flick"><path d="M0,-74 C6,-66 8,-60 4,-54 C2,-51.5 -2,-51.5 -4,-54 C-8,-60 -6,-66 0,-74Z" fill="#ffb238"/><path d="M0,-66 C2.6,-62 3,-59 1.6,-57 C.8,-56 -.8,-56 -1.6,-57 C-3,-59 -2.6,-62 0,-66Z" fill="#fff3b0"/></g>`;
   const sh = [[-15,-93],[15,-93]];
+  let armR = '';
   hp.forEach((h, i) => {
     const side = i ? 1 : -1, [sx, sy] = sh[i], cx = side * Math.max(30, Math.abs(h[0]) + 7), cy = (sy + h[1]) / 2 + 6;
-    g += `<path d="M${sx},${sy} Q${cx},${cy} ${h[0]},${h[1]}" fill="none" stroke="${sk}" stroke-width="9" stroke-linecap="round"/><circle cx="${h[0]}" cy="${h[1]}" r="5.6" fill="${sk}"/>`;
+    const a = `<path d="M${sx},${sy} Q${cx},${cy} ${h[0]},${h[1]}" fill="none" stroke="${sk}" stroke-width="9" stroke-linecap="round"/><circle cx="${h[0]}" cy="${h[1]}" r="5.6" fill="${sk}"/>`;
+    if (i) armR += a; else g += a;
   });
-  if (o.hold === 'brush'){ const h = hp[1]; g += `<g transform="translate(${h[0]} ${h[1]}) rotate(-18)"><rect x="-3" y="-2.5" width="30" height="5" rx="2.5" fill="#3fa7d6"/><rect x="21" y="-7" width="8" height="5" rx="1" fill="#fff"/></g>`; }
-  if (o.hold === 'block'){ const h = hp[1]; g += `<rect x="${h[0] - 9}" y="${h[1] - 21}" width="18" height="18" rx="3" fill="#ef6f6c"/><rect x="${h[0] - 5}" y="${h[1] - 17}" width="10" height="10" rx="2" fill="#fff" opacity=".3"/>`; }
+  if (o.hold === 'brush'){ const h = hp[1]; armR += `<g transform="translate(${h[0]} ${h[1]}) rotate(-18)"><rect x="-3" y="-2.5" width="30" height="5" rx="2.5" fill="#3fa7d6"/><rect x="21" y="-7" width="8" height="5" rx="1" fill="#fff"/></g>`; }
+  if (o.hold === 'block'){ const h = hp[1]; armR += `<rect x="${h[0] - 9}" y="${h[1] - 21}" width="18" height="18" rx="3" fill="#ef6f6c"/><rect x="${h[0] - 5}" y="${h[1] - 17}" width="10" height="10" rx="2" fill="#fff" opacity=".3"/>`; }
+  if (o.hold === 'cleaner'){ const h = hp[1]; armR += `<g transform="translate(${h[0]} ${h[1]}) rotate(-12)"><path d="M-3,-4 Q-10,0 -3,4" fill="none" stroke="#9aa8b1" stroke-width="3"/><path d="M-3,-4 L24,-6 M-3,4 L24,6" stroke="#9aa8b1" stroke-width="3" stroke-linecap="round"/></g>`; }
+  if (o.hold === 'tumbler'){ const h = hp[1]; armR += `<g transform="translate(${h[0] + 3} ${h[1] + 3})"><path d="M-8,-15 L8,-15 L6,7 L-6,7Z" fill="#c9d3d9"/><ellipse cy="-15" rx="8" ry="2.4" fill="#eef3f6"/><path d="M-4.5,-11 L-3.6,4" stroke="#fff" stroke-width="1.8" opacity=".8"/></g>`; }
+  /* the right arm and what Ayu holds sit in their own group, turned about the shoulder, so a story can make them move */
+  g += `<g transform="translate(15 -93)"><g class="armR"><g transform="translate(-15 93)">${armR}</g></g></g>`;
   g += `<rect x="-5" y="-104" width="10" height="9" fill="${sk}"/><circle cx="0" cy="-124" r="25.5" fill="${sk}"/>`;
   g += `<path d="M-26,-126 C-26,-150 -12,-155 0,-155 C12,-155 26,-150 26,-126 C20,-138 10,-140 2,-137 C-6,-141 -18,-138 -26,-126Z" fill="${H}"/>`;
   g += `<ellipse cx="-27" cy="-104" rx="6.5" ry="13" fill="${H}"/><ellipse cx="27" cy="-104" rx="6.5" ry="13" fill="${H}"/><path d="M-27,-91 l-7,-5 l0,10z M-27,-91 l7,-5 l0,10z M27,-91 l-7,-5 l0,10z M27,-91 l7,-5 l0,10z" fill="${COL.ribbon}"/>`;
@@ -820,8 +929,37 @@ SC[3] = {mood:'day', floor:'#e2c38e', ox:82, oy:56, osz:13, def:2,
 SC[4] = {mood:'day', floor:'#d8eef9', ox:83, oy:50, osz:13, def:3,
   alt:'A bright bathroom. Ayu brushes her teeth, foam at her mouth, beside a basin and an oval mirror.',
   back(){ return `${tiles(400, 300, '#c7ecff', '#ffffff')}${at(36, 30, 1, win(64, 52, '#fff4c0', at(32, 26, .5, sun(22))))}<rect x="330" y="96" width="34" height="70" rx="6" fill="#ff9e57"/><rect x="330" y="150" width="34" height="8" fill="#e77f3a"/><circle cx="347" cy="94" r="5" fill="#8c99a3"/><rect y="244" width="400" height="56" fill="#aedcf2"/>`; },
-  mid(){ return `${at(132, 126, 1, mirror(40, 52))}${at(132, 292, 1, basin())}`; },
-  front(){ return `${ayu({x:256, y:300, s:.95, arms:'mouth', hold:'brush', mouth:'teeth', eyes:'open'})}${bubble(286, 186, 5)}${bubble(296, 197, 3.6)}${bubble(279, 201, 3)}`; }
+  mid(){ return `${at(132, 126, 1, mirror(40, 52))}<g class="mref" transform="translate(132 130)"><circle cy="-6" r="22" fill="${COL.hair}"/><circle r="18" fill="${COL.skinA}"/><path d="M-19,-4 C-19,-20 -9,-24 0,-24 C9,-24 19,-20 19,-4 C14,-13 7,-14 2,-12 C-4,-15 -13,-13 -19,-4Z" fill="${COL.hair}"/><circle cx="-6" cy="-3" r="2.4" fill="${COL.eye}"/><circle cx="6" cy="-3" r="2.4" fill="${COL.eye}"/><ellipse cy="9" rx="7" ry="6" fill="${COL.mouth}"/><ellipse class="tongue" cy="12" rx="5" ry="4"/></g>${at(132, 292, 1, basin())}`; },
+  front(p){
+    if (!p) return `${ayu({x:256, y:300, s:.95, arms:'mouth', hold:'brush', mouth:'teeth', eyes:'open'})}${bubble(286, 186, 5)}${bubble(296, 197, 3.6)}${bubble(279, 201, 3)}`;
+    const A = Object.assign({x:256, y:300, s:.95, arms:'mouth', hold:'brush', mouth:'teeth', eyes:'open'}, p);
+    const fuzz = [[-9,-109],[-3,-108],[3,-109],[8,-108],[-6,-106],[5,-106]].map(([x, y]) => `<circle cx="${256 + x * .95}" cy="${300 + y * .95}" r="1.7" fill="#9bbf5a"/>`).join('');
+    const shine = [[276, 178, .7], [236, 186, .5], [268, 204, .45]].map(([x, y, k], i) => `<g transform="translate(${x} ${y}) scale(${k})"><path class="tw" style="animation-delay:${i * .3}s" d="${STAR}" fill="#fff"/></g>`).join('');
+    const spit = [0, 1, 2, 3].map(i => `<g class="sd" style="animation-delay:${i * .07}s">${at(250 - i * 4, 198 + i * 3, 1.1, drop())}</g>`).join('');
+    const cnt = [1, 2, 3].map(i => `<g transform="translate(196 ${118 + (i - 1) * 30})"><g class="cnt cnt${i}"><circle r="13" fill="#fff" stroke="#ef6f6c" stroke-width="3"/><text y="5.5" text-anchor="middle" font-size="16" font-weight="800" fill="#ef6f6c" font-family="Baloo 2, sans-serif">${i}</text></g></g>`).join('');
+    return `<g transform="translate(${A.x} ${A.y})"><g class="ayuBody"><g transform="translate(${-A.x} ${-A.y})">${ayu(A)}</g></g></g><g class="foam">${bubble(286, 186, 5)}${bubble(296, 197, 3.6)}${bubble(279, 201, 3)}</g><g class="fuzz">${fuzz}</g><g class="shine">${shine}</g><g class="spit">${spit}</g>${cnt}`;
+  },
+  /* Ayu acts out each line as the author reads it: one entry per narrated part (0 = the title, 16 = the Kannada line).
+     a: Ayu's pose; k: what moves; s: [seconds into the line, what moves next, new pose]. Times are from the author's recording. */
+  act:{
+    0:{a:{arms:'down', hold:null, mouth:'smile'}, k:'idle'},
+    1:{a:{arms:'down', hold:null, mouth:'teeth', eyes:'side'}, k:'fuzz'},
+    2:{a:{arms:'down', hold:null, mouth:'teeth', eyes:'closed'}, k:'fuzz shake'},
+    3:{a:{arms:'down', hold:null, mouth:'o', eyes:'wide'}, k:'fuzz'},
+    4:{a:{arms:'up', hold:'brush', mouth:'smile'}, k:'lift'},
+    5:{a:{}, k:'foam b-up', s:[[.75, 'foam b-down'], [1.4, 'foam b-round']]},
+    6:{a:{}, k:'foam b-front', s:[[2.08, 'foam b-back']]},
+    7:{a:{arms:'down', hold:null, mouth:'o', eyes:'side', flip:true}, k:'mirror white'},
+    8:{a:{arms:'down', hold:null, mouth:'o', eyes:'wide', flip:true}, k:'mirror white shake'},
+    9:{a:{arms:'up', hold:'cleaner', mouth:'smile', flip:true}, k:'mirror white lift'},
+    10:{a:{hold:'cleaner', mouth:'o', flip:true}, k:'mirror white', s:[[2.17, 'mirror c1'], [3.17, 'mirror c1 c2'], [3.88, 'mirror c1 c2 c3']]},
+    11:{a:{hold:'tumbler', mouth:'flat'}, k:'sip', s:[[2.0, 'swish'], [3.3, 'spit', {arms:'down', hold:null, mouth:'o'}]]},
+    12:{a:{arms:'down', hold:null, mouth:'flat', eyes:'closed'}, k:'feel'},
+    13:{a:{arms:'down', hold:null, mouth:'teeth', eyes:'wide'}, k:'shine'},
+    14:{a:{arms:'down', hold:null, mouth:'teeth'}, k:'shine'},
+    15:{a:{arms:'bothup', hold:null, mouth:'grin', eyes:'closed'}, k:'hop shine'},
+    16:{a:{arms:'up', hold:null, mouth:'grin'}, k:'wave'}
+  }
 };
 SC[5] = {mood:'day', floor:'#d8c49a', ox:32, oy:50, osz:13, def:3,
   alt:'A sunny courtyard. Ayu splashes water on her face by the tap, drops flying. A very black crow sits on the wall and Ajji, in her red sari, waits nearby.',
@@ -1882,20 +2020,37 @@ try { READ_MODE = localStorage.getItem('ojo-mode') === 'listen' ? 'listen' : 'se
 const narr = {n:0, idx:0, playing:false, tok:0, audio:null, slow:false, T:null, Tsrc:'book', u:-1, raf:0, seek:null};
 try { narr.slow = localStorage.getItem('ojo-slow') === '1'; } catch (e) {}
 function setWho(msg){ const el = document.getElementById('who'); if (!el) return; const sc = narr.n && BOOK[narr.n - 1].script; el.textContent = msg || (NARR[narr.n] ? (narr.T && narr.Tsrc === 'local' ? 'Read by the author · trying your new timings, on this device only' : 'Read by the author') : !TTS ? 'Reading aloud is not available on this device yet' : sc ? 'A different voice for each character, using this device’s voices until the author’s recording is added' : 'Read by this device’s voice until the author’s recording is added'); }
-function setPP(){ const b = document.getElementById('ppBtn'); if (!b) return; b.innerHTML = narr.playing ? ICO.pause : ICO.play; b.setAttribute('aria-label', narr.playing ? 'Pause the story' : 'Play the story'); }
+function setPP(){ if (LISTEN.el) listenUpdate(); ['ppBtn', 'ncPP'].forEach(id => { const b = document.getElementById(id); if (!b) return; b.innerHTML = narr.playing ? ICO.pause : ICO.play; b.setAttribute('aria-label', narr.playing ? 'Pause the story' : 'Play the story'); }); }
+/* On a phone the picture and the words cannot both fit, so while the author reads, the picture stays in view
+   with the line being read just under it (Ayu acts it out), instead of the page scrolling down to the text. */
+const NARROW = () => innerWidth <= 880;
+function capShow(el){
+  const c = document.getElementById('nowCap'); if (!c) return;
+  const on = !!el && NARROW() && READ_MODE === 'listen';
+  c.hidden = !on; if (on) c.querySelector('.nc-tx').textContent = (el.querySelector('.bub p') || el).textContent.replace(/\s+/g, ' ').trim();
+}
+function stageView(){
+  const s = document.getElementById('stage'); if (!s || !NARROW()) return;
+  const r = s.getBoundingClientRect();
+  if (r.top < 56 || r.top > innerHeight * .4) s.scrollIntoView({block:'start', behavior:RM ? 'auto' : 'smooth'});
+}
 function mark(i){
   const el = i == null ? null : i === 'k' ? document.querySelector('.refrain') : document.querySelector(`.story-body [data-i="${i}"]`);
   if (el && el.classList.contains('now')) return;
+  capShow(el);
   document.querySelectorAll('.story-body .now, .refrain.now').forEach(x => x.classList.remove('now'));
-  if (el){ el.classList.add('now'); el.scrollIntoView({block:'center', behavior:RM ? 'auto' : 'smooth'}); }
+  if (el){ el.classList.add('now'); if (!NARROW()) el.scrollIntoView({block:'center', behavior:RM ? 'auto' : 'smooth'}); }
 }
 function duck(on){ if (AMBBUS && AC) AMBBUS.gain.setTargetAtTime(SND.ambVol * .7 * (on ? .3 : 1), AC.currentTime, .2); }
-function narrStop(){ narr.tok++; narr.playing = false; speaker(null); try { if (TTS) TTS.cancel(); } catch (e) {} if (narr.audio) narr.audio.pause(); duck(false); setPP(); }
-function narrEnd(){ narr.tok++; narr.playing = false; narr.idx = 0; narr.u = -1; mark(null); speaker(null); hideBubble(); duck(false); setPP(); const f = document.getElementById('fl-h'); if (f) f.scrollIntoView({block:'center', behavior:RM ? 'auto' : 'smooth'}); }
+function narrStop(){ actPause(true); narr.tok++; narr.playing = false; speaker(null); try { if (TTS) TTS.cancel(); } catch (e) {} if (narr.audio) narr.audio.pause(); duck(false); setPP(); }
+function narrEnd(){ narr.tok++; narr.playing = false; narr.idx = 0; narr.u = -1; mark(null); speaker(null); hideBubble(); duck(false); setPP(); actReset();
+  if (LISTEN.on){ listenNext(); return; }
+  const f = document.getElementById('fl-h'); if (f) f.scrollIntoView({block:'center', behavior:RM ? 'auto' : 'smooth'});
+  moveOpen(narr.n, true); }
 function narrPlay(){
   if (!SND.on){ setWho('Sound is off. Turn it on in Sounds, at the top of the page.'); return; }
   if (!NARR[narr.n] && !TTS){ setWho(); return; }
-  gestured = true; ac(); narr.playing = true; setPP(); duck(true); setWho();
+  gestured = true; ac(); narr.playing = true; setPP(); duck(true); setWho(); actPause(false); if (!LISTEN.on) stageView();
   if (NARR[narr.n]) audioPlay(); else if (BOOK[narr.n - 1].script) scriptFrom(narr.idx); else ttsFrom(narr.idx);
 }
 const narrToggle = () => { narr.playing ? narrStop() : narrPlay(); };
@@ -1933,10 +2088,27 @@ function lineFx(o = {}, rec){
   if (o.fx === 'flicker'){ const oj = document.getElementById('ojo'); if (oj){ oj.classList.remove('flicker'); void oj.offsetWidth; oj.classList.add('flicker'); } }
   if (o.glow != null && narr.glow) narr.glow(o.glow);
 }
+/* ===== Acting: Ayu does what the narrator says, in time with the author's voice (stories with an `act` list) ===== */
+const ACT = {steps:[]};
+function actEls(){ const sc = narr.n && BOOK[narr.n - 1].sc; const stage = document.getElementById('stage'); const svg = stage && stage.querySelector('.layer.front svg'); return sc && sc.act && svg ? {sc, stage, svg} : null; }
+function actShow(e, pose, k){ if (pose !== undefined) e.svg.innerHTML = e.sc.front(pose); e.stage.dataset.do = k || ''; }
+function actEnter(u){
+  const e = actEls(); if (!e || !narr.T) return;
+  const a = e.sc.act[u]; ACT.steps = [];
+  if (!a) return;
+  const t0 = narr.T[u];
+  ACT.steps = (a.s || []).map(([dt, k, pose]) => ({t:t0 + dt, k, pose, done:false}));
+  actShow(e, a.a || {}, a.k);
+}
+function actTick(t){ let e = null; for (const s of ACT.steps) if (!s.done && t >= s.t){ s.done = true; e = e || actEls(); if (e) actShow(e, s.pose, s.k); } }
+function actReset(){ ACT.steps = []; const e = actEls(); if (e){ e.svg.innerHTML = e.sc.front(); delete e.stage.dataset.do; e.stage.classList.remove('actpause'); } }
+function actPause(on){ const st = document.getElementById('stage'); if (st) st.classList.toggle('actpause', on); }
+
 /* the author's recording: the lines, faces and speech bubbles follow her voice, part by part */
 function unitAt(T, t){ let u = 0; for (let k = 0; k < T.length; k++) if (T[k] <= t + .03) u = k; return u; }
 function enterUnit(u){
   const st = BOOK[narr.n - 1], T = narr.T, last = T.length - 1, prevU = narr.u; narr.u = u;
+  actEnter(u);
   if (u !== prevU + 1 && st.talk && narr.glow){ let g = null; for (let j = 0; j < Math.min(u - 1, st.talk.length); j++){ const o = st.talk[j][3]; if (o && o.glow != null) g = o.glow; } if (g != null) narr.glow(g); }
   if (u === 0){ narr.idx = 0; mark(null); speaker('n'); hideBubble(); return; }
   if (u === last){ narr.idx = last - 1; mark('k'); speaker('n'); hideBubble(); return; }
@@ -1947,14 +2119,19 @@ function enterUnit(u){
 }
 function audioTick(){
   if (!narr.playing || !narr.audio) return;
-  if (narr.T){ const u = unitAt(narr.T, narr.audio.currentTime); if (u !== narr.u) enterUnit(u); }
+  if (narr.T){ const u = unitAt(narr.T, narr.audio.currentTime); if (u !== narr.u) enterUnit(u); actTick(narr.audio.currentTime); }
   narr.raf = requestAnimationFrame(audioTick);
 }
 function audioPlay(){
   if (!narr.audio){
-    const a = new Audio(narrSrc(narr.n)); a.preload = 'auto'; narr.audio = a; narr.u = -1;
-    a.addEventListener('ended', narrEnd);
-    a.addEventListener('error', () => { narr.audio = null; delete NARR[narr.n]; narr.T = null; setWho(); if (narr.playing && TTS){ if (BOOK[narr.n - 1].script) scriptFrom(0); else ttsFrom(0); } });
+    const fresh = !(LISTEN.on && LISTEN.player);
+    const a = fresh ? new Audio() : LISTEN.player;
+    a.src = narrSrc(narr.n); a.preload = 'auto'; narr.audio = a; narr.u = -1;
+    if (fresh){
+      a.addEventListener('ended', () => { if (a === narr.audio) narrEnd(); });
+      a.addEventListener('error', () => { if (a !== narr.audio) return; narr.audio = null; delete NARR[narr.n]; narr.T = null; setWho(); if (narr.playing && TTS){ if (BOOK[narr.n - 1].script) scriptFrom(0); else ttsFrom(0); } });
+      if (LISTEN.on) LISTEN.player = a;
+    }
   }
   const a = narr.audio;
   if (narr.seek != null){ const go = () => { if (narr.seek != null){ a.currentTime = narr.seek; narr.seek = null; narr.u = -1; } }; if (a.readyState >= 1) go(); else a.addEventListener('loadedmetadata', go, {once:true}); }
@@ -1968,7 +2145,7 @@ function setMode(m){
   document.querySelectorAll('.segb').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
   if (m === 'self'){ narrStop(); mark(null); } else narrPlay();
 }
-document.addEventListener('visibilitychange', () => { if (document.hidden && narr.playing) narrStop(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && narr.playing && !LISTEN.on) narrStop(); });
 
 /* ================= sky ================= */
 (() => { const sky = document.getElementById('sky'), r = rng(42); let h = ''; for (let i = 0; i < 70; i++) h += `<i style="left:${(r() * 100).toFixed(2)}%;top:${(r() * 100).toFixed(2)}%;animation-delay:${(r() * 3).toFixed(2)}s;transform:scale(${(.5 + r()).toFixed(2)})"></i>`; sky.innerHTML = h; })();
@@ -2037,6 +2214,7 @@ function renderStory(n, popDelay = 380){
   let extra = '';
   if (st.extra === 'heart') extra = `<div class="extra"><button class="btn2" id="heartBtn">${ICO.heart} Press your heart and listen</button><p class="hint">Put your hand flat on your chest. Can you feel it? Thum, thum.</p></div>`;
   if (st.extra === 'birds') extra = `<div class="extra"><button class="btn2" id="birdBtn">${ICO.bird} Listen to the birds</button></div>`;
+  const moveBox = `<div class="extra screenless">${MOVE[st.id] ? `<button class="btn2" id="moveBtn"><span aria-hidden="true">🤸</span> Move with Ayu</button><p class="hint">Screen down, body up! Copy Ayu for a few seconds.</p>` : ''}<button class="btn2 lo" id="loBtn"><span aria-hidden="true">🌙</span> Listen only</button><p class="hint">The author reads story after story with a dark screen. For bedtime or the car.</p></div>`;
   if (st.extra === 'gates'){
     const G = [['Eye','ಕಣ್ಣು','cakṣus','seeing','#3fa7d6',GI.eye],['Ear','ಕಿವಿ','śrotra','hearing','#59c08f',GI.ear],['Nose','ಮೂಗು','ghrāṇa','smelling','#f2b233',GI.nose],['Tongue','ನಾಲಿಗೆ','rasanā','tasting','#ef6f6c',GI.tongue],['Skin','ಚರ್ಮ','tvak','touching','#c47ad8',GI.hand]];
     extra = `<div class="extra"><h2 class="mini" style="margin:0">Tap a gate</h2><div class="gates" role="group" aria-label="The five gates">${G.map((g, i) => `<button class="gbtn" data-g="${i + 1}" data-t="${g[0]}|${g[1]}|${g[2]}|${g[3]}" aria-pressed="false" aria-label="${g[0]}" style="background:${g[4]}"><svg viewBox="-20 -20 40 40" aria-hidden="true">${g[5]}</svg></button>`).join('')}</div><p class="gout" id="gout" aria-live="polite">Five gates, and everything in the world comes in through one of them.</p></div>`;
@@ -2058,6 +2236,7 @@ function renderStory(n, popDelay = 380){
         <div class="sbub" id="sbub" hidden><span class="sb-av av"></span><span class="sb-tx"><b class="sb-nm"></b><span class="sb-say"></span></span><i class="sb-tail"></i></div>
         <div class="stage-tools">${sc.tap ? `<span class="tapnote">${sc.tap}</span>` : '<span></span>'}<button class="replay" id="replay">${ICO.replay} Pop it up again</button></div>
       </div>
+      <div class="nowcap" id="nowCap" hidden><button class="nc-pp" id="ncPP" aria-label="Pause the story">${ICO.pause}</button><p class="nc-tx" aria-hidden="true"></p></div>
       ${st.talk && st.talk.some(l => l[0] !== 'n') ? `<div class="talkbar" role="group" aria-label="Show each speech bubble in the picture"><span class="tb-l">Who’s talking?</span><button class="tb" id="tbPrev" aria-label="Previous speech bubble"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span class="tb-n" id="tbN" aria-live="polite"></span><button class="tb" id="tbNext" aria-label="Next speech bubble"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>` : ''}
       <div class="tabslot">
         <div class="tabhead"><span class="tablabel" id="tabl">Pull the tab to light Ojo</span><span class="tabstate" id="tabstate"></span></div>
@@ -2079,7 +2258,7 @@ function renderStory(n, popDelay = 380){
       </div>
       <div class="story-body" id="storyBody">${paras}</div>
       <figure class="refrain"><figcaption>${st.kt === 'p' ? '<span lang="kn">ಗಾದೆ</span> · A Kannada proverb' : '<span lang="kn">ಕನ್ನಡದಲ್ಲಿ ಹೇಳೋಣ</span> · Say it in Kannada'}</figcaption><p class="kn" lang="kn">${st.kl}</p><p class="rom">${esc(st.kr)}</p><p class="en">${fmt(st.ke)}</p></figure>
-      ${extra}${flaps}
+      ${extra}${moveBox}${flaps}
       <section class="catch" aria-labelledby="cat-h"><h2 class="mini" id="cat-h" style="margin:0">Ojo’s drop</h2>
         <button class="catchbtn${DROPS.has(n) ? ' got' : ''}" id="catchBtn"${DROPS.has(n) ? ' aria-disabled="true"' : ''}>${DROPSVG}<span id="catchTxt">${DROPS.has(n) ? `You caught drop ${n} of ${TOTAL}!` : `Catch drop ${n} of ${TOTAL}`}</span></button>
         <div class="mdrops" id="mdrops" aria-hidden="true">${dropsRow('md', false)}</div>
@@ -2178,6 +2357,10 @@ function wireStory(n, sc, st, prevR, nextR, popDelay){
   tp.addEventListener('touchend', e => { const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy; if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.6) navigate(dx < 0 ? nextR : prevR, dx < 0 ? 1 : -1); }, {passive:true});
 
   narr.n = n; narr.idx = 0; narr.audio = null; narr.playing = false; narr.u = -1; narr.seek = null; narr.T = NARR[n] ? narrT(n) : null; setWho(); setPP();
+  actReset();
+  document.getElementById('moveBtn')?.addEventListener('click', () => moveOpen(n));
+  document.getElementById('loBtn')?.addEventListener('click', () => { gestured = true; listenOpen(true); });
+  listenResume(n);
   narr.glow = l => { clearTimeout(springT); setLevel(l, 'nostep'); };
   SB.n = n; SB.i = -1; SB.step = -1; SB.speech = st.talk ? st.talk.map((l, i) => l[0] !== 'n' ? i : -1).filter(i => i >= 0) : []; updTalk();
   const tbStep = d => { if (!SB.speech.length) return; SB.step = SB.step < 0 ? (d > 0 ? 0 : SB.speech.length - 1) : (SB.step + d + SB.speech.length) % SB.speech.length; showBubble(SB.speech[SB.step]); };
@@ -2211,6 +2394,7 @@ function wireStory(n, sc, st, prevR, nextR, popDelay){
   }));
   tp.querySelectorAll('.segb').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
   document.getElementById('ppBtn').addEventListener('click', narrToggle);
+  document.getElementById('ncPP')?.addEventListener('click', narrToggle);
   document.getElementById('rsBtn').addEventListener('click', narrRestart);
   document.getElementById('slBtn').addEventListener('click', e => { narr.slow = !narr.slow; e.currentTarget.setAttribute('aria-pressed', String(narr.slow)); try { localStorage.setItem('ojo-slow', narr.slow ? '1' : '0'); } catch (x) {} if (narr.playing){ narrStop(); narrPlay(); } });
   document.getElementById('storyBody').addEventListener('click', e => {
@@ -2644,9 +2828,108 @@ addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft') document.getElementById('prevBtn')?.click();
 });
 
+/* ===== Move with Ayu: after a story, the child puts the screen down and copies Ayu for a few seconds ===== */
+let moveEl = null, moveTimer = 0;
+const moveOf = n => (BOOK[n - 1] ? MOVE[BOOK[n - 1].id] : null);
+function moveSay(n){
+  const m = moveOf(n); if (!m || !SND.on) return;
+  const f = VF['move.' + BOOK[n - 1].id + '.1'];
+  if (f){ const a = new Audio('../' + f); a.play().catch(() => sayAs('o', 'warm', m.say)); return; }
+  sayAs('o', 'warm', m.say);
+}
+function moveClose(){ clearTimeout(moveTimer); if (moveEl){ moveEl.remove(); moveEl = null; } try { if (TTS) TTS.cancel(); } catch (e) {} }
+function moveOpen(n){
+  const m = moveOf(n); if (!m || LISTEN.on) return;
+  moveClose();
+  const pose = Object.assign({x:100, y:232, s:1.12, arms:'down', mouth:'smile', eyes:'open'}, m.pose);
+  moveEl = document.createElement('div');
+  moveEl.className = 'move';
+  moveEl.setAttribute('role', 'dialog'); moveEl.setAttribute('aria-modal', 'true'); moveEl.setAttribute('aria-labelledby', 'mvH');
+  moveEl.innerHTML = `<div class="mv-card" data-do="${m.k || 'breathe'}" style="--sec:${m.sec || 20}s">
+    <p class="mv-kick">Screen down, body up!</p>
+    <h2 id="mvH">Move with Ayu</h2>
+    <svg class="mv-ayu" viewBox="0 0 200 240" aria-hidden="true"><g transform="translate(${pose.x} ${pose.y})"><g class="ayuBody"><g transform="translate(${-pose.x} ${-pose.y})">${ayu(pose)}</g></g></g></svg>
+    <p class="mv-say">${fmt(m.say)}</p>
+    <div class="mv-ring" aria-hidden="true"><svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="19" class="mv-track"/><circle cx="22" cy="22" r="19" class="mv-fill"/></svg><span>${OJO}</span></div>
+    <div class="mv-btns"><button class="btn2" id="mvDone">We did it!</button><button class="mv-skip" id="mvHear" aria-label="Hear it again">🔊</button><button class="mv-skip" id="mvSkip">Not now</button></div>
+  </div>`;
+  document.body.appendChild(moveEl);
+  const el = moveEl;
+  el.querySelector('.mv-fill').addEventListener('animationend', () => el.classList.add('ready'));
+  el.querySelector('#mvSkip').addEventListener('click', moveClose);
+  el.querySelector('#mvHear').addEventListener('click', () => moveSay(n));
+  el.querySelector('#mvDone').addEventListener('click', () => {
+    playGlow();
+    el.querySelector('.mv-card').innerHTML = `<div class="mv-well">${OJO}<p>Well done! Ojo is glowing.</p></div>`;
+    moveTimer = setTimeout(moveClose, 1800);
+  });
+  el.addEventListener('keydown', e => { if (e.key === 'Escape') moveClose(); });
+  el.querySelector('#mvDone').focus({preventScroll:true});
+  moveSay(n);
+}
+
+/* ===== Listen only: the author's voice with a dark screen, story after story, for bedtime or a car ride ===== */
+function listenOpen(startNow){
+  moveClose(); listenClose(true);
+  LISTEN.on = true; LISTEN.last = false; if (narr.audio) LISTEN.player = narr.audio;
+  const el = document.createElement('div');
+  el.className = 'lonly'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-label', 'Listen only');
+  el.innerHTML = `<div class="lo-in"><div class="lo-ojo">${OJO}</div><p class="lo-now" id="loNow"></p>
+    <p class="lo-tip" id="loTip">You can put the phone down. The stories keep playing, one after another.</p>
+    <div class="lo-btns"><button class="lo-b main" id="loPP"></button><button class="lo-b" id="loNext">Next story</button></div>
+    <button class="lo-off" id="loOff">Turn the screen back on</button></div>`;
+  document.body.appendChild(el); LISTEN.el = el; document.documentElement.classList.add('lo-open');
+  ['pointerdown', 'keydown'].forEach(ev => el.addEventListener(ev, listenWake)); listenWake();
+  el.querySelector('#loPP').addEventListener('click', () => { gestured = true; if (LISTEN.last){ LISTEN.last = false; LISTEN.pending = 1; navigate({v:'story', n:1}); return; } narrToggle(); listenUpdate(); });
+  el.querySelector('#loNext').addEventListener('click', () => { narrStop(); listenNext(); });
+  el.querySelector('#loOff').addEventListener('click', () => listenClose());
+  el.addEventListener('keydown', e => { if (e.key === 'Escape') listenClose(); });
+  if (startNow) narrPlay();
+  listenUpdate(); el.querySelector('#loPP').focus({preventScroll:true});
+}
+function listenWake(){
+  const el = LISTEN.el; if (!el) return;
+  el.classList.remove('dim'); clearTimeout(LISTEN.dim);
+  LISTEN.dim = setTimeout(() => { if (LISTEN.el === el) el.classList.add('dim'); }, 9000);
+}
+function listenMedia(st){
+  if (!('mediaSession' in navigator)) return;
+  try {
+    if (st && 'MediaMetadata' in window) navigator.mediaSession.metadata = new MediaMetadata({title:st.title, artist:'Dr Shreenidhi Kalmath', album:'The Ojo Treasury'});
+    navigator.mediaSession.setActionHandler('play', () => { if (LISTEN.on) { narrPlay(); listenUpdate(); } });
+    navigator.mediaSession.setActionHandler('pause', () => { if (LISTEN.on) { narrStop(); listenUpdate(); } });
+    navigator.mediaSession.setActionHandler('nexttrack', narr.n < TOTAL ? () => { if (LISTEN.on) { narrStop(); listenNext(); } } : null);
+  } catch (e) {}
+}
+function listenUpdate(){
+  const el = LISTEN.el; if (!el) return;
+  const st = narr.n ? BOOK[narr.n - 1] : null;
+  listenMedia(st);
+  el.querySelector('#loNow').textContent = LISTEN.last ? 'That was the last story. Sleep well!' : st ? `Story ${narr.n} of ${TOTAL} · ${st.title}` : '';
+  el.querySelector('#loPP').textContent = LISTEN.last ? 'Start again' : narr.playing ? 'Pause' : 'Play';
+  el.querySelector('#loNext').hidden = LISTEN.last || narr.n >= TOTAL;
+}
+function listenNext(){
+  if (narr.n >= TOTAL){ LISTEN.last = true; listenUpdate(); return; }
+  LISTEN.pending = narr.n + 1;
+  navigate({v:'story', n:narr.n + 1});
+}
+function listenResume(n){
+  if (!LISTEN.on) return;
+  if (LISTEN.pending === n){ LISTEN.pending = 0; narrPlay(); setTimeout(listenUpdate, 700); setTimeout(listenUpdate, 2000); }
+  else listenUpdate();
+}
+function listenClose(quiet){
+  LISTEN.on = false; LISTEN.pending = 0; clearTimeout(LISTEN.dim); document.documentElement.classList.remove('lo-open');
+  if (LISTEN.el){ LISTEN.el.remove(); LISTEN.el = null; }
+  if (!quiet){ narrStop(); LISTEN.player = null; try { navigator.mediaSession.metadata = null; } catch (e) {} }
+}
+
 const start = data => {
   if (!location.hash && data && data.h){ location.hash = '#' + data.h; return; }
   show(parse(location.hash));
+  /* opened from the app's "Listen only" button: show the dark screen, ready to start with one tap */
+  try { if (sessionStorage.getItem('ojo-listen') === '1'){ sessionStorage.removeItem('ojo-listen'); setTimeout(() => { if (current && current.v === 'story') listenOpen(false); }, 500); } } catch (e) {}
 };
 window.claude?.hot?.snapshot?.(() => ({h: current ? hashOf(current) : 'cover'}));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});

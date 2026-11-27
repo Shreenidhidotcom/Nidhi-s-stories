@@ -1,6 +1,6 @@
 # Recording script, batch C: new lines
 
-These 16 lines are new in the app and have no recording yet. Until they are recorded, the device's voice reads them.
+These 24 lines are new in the app and have no recording yet. Until they are recorded, the device's voice reads them.
 
 ## How to record
 
@@ -34,3 +34,16 @@ Slow and warm, like the start of a story.
 14. Ojo is the light of good health inside you.
 15. When you sleep well, eat good food, and are kind and truthful, Ojo shines bright.
 16. Every story gives Ojo one golden drop. Can you find all eight?
+
+## C2 · Move with Ayu (8 lines, Ojo's voice)
+
+Cheerful and inviting, a little slower than usual, so the child can follow along. Smile as you read.
+
+1. Put your hand on your heart. Breathe in slowly, and breathe out. Can you feel your little light?
+2. Stretch up tall, like the morning sun! Now flap your arms like a little bird. Flap, flap, flap!
+3. Let's brush in the air! Up and down, round and round. Now show me your big, shiny smile!
+4. Touch your eyes, your ears, your nose, your tongue and your skin. Hello, five friends!
+5. Pretend to eat slowly. Chew, chew, chew, ten times. Then pat your happy tummy!
+6. Stand up tall and brave, like Ayu. Take a big breath. Now give someone you love a hug!
+7. Stretch your arms up high and give a big, sleepy yawn. Now lie down, still as the sleeping sun.
+8. Rub your tummy round and round, and say: thank you, tummy!

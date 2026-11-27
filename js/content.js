@@ -256,6 +256,20 @@ window.AUTHOR = {
 
 /* ================= For grown-ups: the idea behind each story (Ayurveda terms live here, not in children's screens) ================= */
 window.WHY_AYU_OJO = "\u0100yu means life. It is the word \u0100yurveda is built on. Ojas is the essence that keeps life strong. The classical texts describe it as seated in the heart and golden like honey, growing with truthfulness, good food and good sleep, and wasting with anger, grief and exhaustion (Caraka Sa\u1e43hit\u0101, S\u016btrasth\u0101na 17). Ayu is the child who lives; Ojo is the light that keeps her well. The finest ojas, seated in the heart, is described as eight drops in measure (a\u1e63\u1e6da-bindu). So this first edition has eight stories, and each one gives Ojo a single drop of light. When Ojo dims he does not scold. He waits, and the child decides what to do next.";
+/* "Move with Ayu": a short off-screen movement break after each story, keyed by story number in The Ojo Treasury.
+   say: what Ojo says (recorded as move.<id>.1, otherwise the device voice); pose and k: how Ayu shows it on the card;
+   sec: how long the little ring takes to fill. The child does the movement, not the screen. */
+window.MOVE = {
+  1:  { say: "Put your hand on your heart. Breathe in slowly, and breathe out. Can you feel your little light?", pose: { arms: "chest", eyes: "closed", mouth: "smile" }, k: "breathe", sec: 15 },
+  2:  { say: "Stretch up tall, like the morning sun! Now flap your arms like a little bird. Flap, flap, flap!", pose: { arms: "bothup", eyes: "closed", mouth: "grin" }, k: "stretch", sec: 20 },
+  4:  { say: "Let's brush in the air! Up and down, round and round. Now show me your big, shiny smile!", pose: { arms: "mouth", hold: "brush", mouth: "teeth" }, k: "b-round", sec: 20 },
+  7:  { say: "Touch your eyes, your ears, your nose, your tongue and your skin. Hello, five friends!", pose: { arms: "ears", mouth: "grin", eyes: "wide" }, k: "pat", sec: 20 },
+  9:  { say: "Pretend to eat slowly. Chew, chew, chew, ten times. Then pat your happy tummy!", pose: { arms: "mouth", mouth: "flat", eyes: "closed" }, k: "chew", sec: 20 },
+  11: { say: "Stand up tall and brave, like Ayu. Take a big breath. Now give someone you love a hug!", pose: { arms: "down", mouth: "smile" }, k: "tall", sec: 15 },
+  12: { say: "Stretch your arms up high and give a big, sleepy yawn. Now lie down, still as the sleeping sun.", pose: { arms: "bothup", eyes: "closed", mouth: "o" }, k: "stretch", sec: 20 },
+  13: { say: "Rub your tummy round and round, and say: thank you, tummy!", pose: { arms: "belly", mouth: "grin" }, k: "rub", sec: 15 }
+};
+
 window.GROWN = [
  {
   "n": 1,

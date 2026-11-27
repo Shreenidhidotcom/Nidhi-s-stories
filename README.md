@@ -11,6 +11,9 @@ A gentle, ad-free learning web app for children aged about 3–7, built around *
 - **A menu of every part of the app.** The bottom bar has Home, Stories, Trail, Games and Menu, with drawn icons. The Menu lists everything: for children, Meet Ayu and Ojo, Stories, Treasure Trail, Games, My golden drops and Me; for grown-ups, the readings for grown-ups, About the author and Parent Corner.
 - **Meet Ayu and Ojo.** Who they are and why they matter, in short, plain sentences with a 🔊 Listen button, Ayu's family, and a fold for grown-ups explaining the names (Āyu, ojas, the eight drops). New children see it straight after Ojo first says hello.
 - **Stories.** The eight stories of The Ojo Treasury, each opening the book at that story, with the golden drop the child has found in each. The book's back button returns to where the child came from.
+- **Ayu acts out the story (pilot: Story 3, "Brush, Brush, Brush!").** While the author reads, Ayu does what each line says, in time with her voice: she brushes up, down and round, the front teeth and the back, looks at her white tongue in the mirror, cleans it one, two, three times, rinses and spits, then hops with a shiny smile. On a phone the picture stays on screen with the line being read just under it, instead of the page scrolling down to the text. Research on picture books for young children finds that animation which shows what the words say helps them understand and remember the story, while extra games and hotspots distract.
+- **Move with Ayu.** When a story ends, a card asks the child to put the screen down and copy Ayu for a few seconds: breathe with a hand on the heart, stretch like the sun, brush in the air, chew slowly. A ring fills while they move, and "We did it!" makes Ojo glow. It can also be opened from the button below each story.
+- **Listen only.** From the Stories page, or below any story, the author reads the stories one after another with a dark screen, for bedtime, the car or with the phone face down. It keeps playing with the screen locked, shows the story on the lock screen with pause and next, and ends with "Sleep well" after the last story.
 - **For grown-ups** (behind the parent check). How the app works, what Ayu and Ojo mean, and for each story the practice, its Ayurveda name, the author's note and something to try together; a link to the book's guide on reading by age, feeding myths and when to see a doctor.
 - **About the author.** Dr Shreenidhi Kalmath's photo, role, note to readers and work. Her name also appears on Meet Ayu and Ojo, Stories, For grown-ups and the Menu.
 - **Plain words in the app, Ayurveda words in the stories.** The app's own screens use plain words (Ojo, a little light, golden drops). The stories keep their Ayurveda words: Ojo's light bar names each glow (kṣīṇa, mlāna, sthira, prasanna) and the five gates carry their Sanskrit names. The grown-ups' pages explain the Ayurveda idea behind each story.
@@ -46,6 +49,7 @@ Everything a child sees or hears outside the book is in `js/content.js`:
 | Ojo's lines (`{name}` becomes the child's name) | `GUIDE` |
 | Avatar parts, shop prices, chest stickers | `AVATAR`, `CHEST_STICKERS` |
 | Meet Ayu and Ojo (children's words) | `INTRO` |
+| Move with Ayu: what Ojo says after each story and how Ayu shows it | `MOVE` |
 | The author: name, role, photo, note | `AUTHOR` |
 | For grown-ups: what the names mean, and each story's practice, Ayurveda term and note | `WHY_AYU_OJO`, `GROWN` |
 
@@ -61,7 +65,7 @@ The app plays recorded voices, in this order:
 2. **Lines from The Ojo Treasury narration**, cut from the story recordings using the book's timings (`STORY_AUDIO` in `js/content.js`): the story title when a Trail stop opens, and Ayu's "Thank you, tummy!" in the tummy game. The story line linked to each game and Do screen is shown on screen with a 🔊 button, and plays by itself only if that screen's own line has no recording.
 3. **The device's voice** for any line without a recording. These lines play by themselves under age 6; older children tap Ojo to hear them.
 
-All 106 lines in `RECORDING-SCRIPT.md` (sections A and B) are recorded. Two of them were shortened when the garden became the jar: "I missed you, my friend!" and "Welcome back!" play the first sentence of A1-13 and A1-14. The new lines on Meet Ayu and Ojo are in `RECORDING-SCRIPT-C.md` and use the device's voice until they are recorded.
+All 106 lines in `RECORDING-SCRIPT.md` (sections A and B) are recorded. Two of them were shortened when the garden became the jar: "I missed you, my friend!" and "Welcome back!" play the first sentence of A1-13 and A1-14. The new lines on Meet Ayu and Ojo (C1) and the eight Move with Ayu lines in Ojo's voice (C2) are in `RECORDING-SCRIPT-C.md` and use the device's voice until they are recorded.
 
 When lines are added to the app, `node tools/make-recording-script.js` writes a script of only the lines without a recording, as a new batch with the next free letter (`RECORDING-SCRIPT-D.md`, then E ...), so new files never replace earlier ones. `--all` rebuilds the complete script, for a full re-recording such as Kannada.
 
