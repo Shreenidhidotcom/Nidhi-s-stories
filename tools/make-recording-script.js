@@ -53,6 +53,11 @@ const C1 = section("C1", "Meet Ayu and Ojo", "Narrator", "Slow and warm, like th
 const { INTRO } = ctx.window;
 ["ayu", "ojo", "why"].forEach(k => INTRO[k].forEach((t, i) => add(C1, t, `intro.${k}.${i + 1}`)));
 
+/* Ojo: the "Move with Ayu" break after each story (window.MOVE, keyed by story number) */
+const C2 = section("C2", "Move with Ayu", "Ojo", "Cheerful and inviting, a little slower than usual, so the child can follow along. Smile as you read.");
+const { MOVE } = ctx.window;
+Object.keys(MOVE || {}).sort((a, b) => a - b).forEach(id => add(C2, MOVE[id].say, `move.${id}.1`));
+
 /* Default: a script of only the lines that have no recording yet, as a new batch with the next free letter,
    so its files never overwrite earlier ones (A and B were the first batch).
    --all: rebuild the complete script (RECORDING-SCRIPT.md); only for starting a full re-recording, such as Kannada. */

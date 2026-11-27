@@ -100,5 +100,59 @@
         ]
       }
     ]
+  },
+  {
+    "code": "C2",
+    "voice": "Ojo",
+    "lines": [
+      {
+        "text": "Put your hand on your heart. Breathe in slowly, and breathe out. Can you feel your little light?",
+        "ids": [
+          "move.1.1"
+        ]
+      },
+      {
+        "text": "Stretch up tall, like the morning sun! Now flap your arms like a little bird. Flap, flap, flap!",
+        "ids": [
+          "move.2.1"
+        ]
+      },
+      {
+        "text": "Let's brush in the air! Up and down, round and round. Now show me your big, shiny smile!",
+        "ids": [
+          "move.4.1"
+        ]
+      },
+      {
+        "text": "Touch your eyes, your ears, your nose, your tongue and your skin. Hello, five friends!",
+        "ids": [
+          "move.7.1"
+        ]
+      },
+      {
+        "text": "Pretend to eat slowly. Chew, chew, chew, ten times. Then pat your happy tummy!",
+        "ids": [
+          "move.9.1"
+        ]
+      },
+      {
+        "text": "Stand up tall and brave, like Ayu. Take a big breath. Now give someone you love a hug!",
+        "ids": [
+          "move.11.1"
+        ]
+      },
+      {
+        "text": "Stretch your arms up high and give a big, sleepy yawn. Now lie down, still as the sleeping sun.",
+        "ids": [
+          "move.12.1"
+        ]
+      },
+      {
+        "text": "Rub your tummy round and round, and say: thank you, tummy!",
+        "ids": [
+          "move.13.1"
+        ]
+      }
+    ]
   }
 ]

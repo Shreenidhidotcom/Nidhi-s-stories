@@ -1232,8 +1232,14 @@
             <span class="sc-txt"><small>Story ${s.n}</small><b>${esc(s.title)}</b><span>${esc(s.hook)}</span></span>
             <span class="sc-drop ${found.has(s.n) ? "got" : ""}" title="${found.has(s.n) ? "Golden drop found" : "Golden drop still to find"}">${dropSvg()}<span class="sr-only">${found.has(s.n) ? "Golden drop found" : "Golden drop still to find"}</span></span></a>`).join("")}
         </div>
+        <a class="listen-card" id="listenOnly" href="ojo-treasury/index.html#story-1">
+          <span class="lc-moon" aria-hidden="true">🌙</span>
+          <span class="lc-txt"><b>Listen only</b><span>The author reads the stories one after another. The screen stays dark, so little eyes can rest. Good for bedtime or the car.</span></span>
+        </a>
+        <p class="move-tip"><span aria-hidden="true">🤸</span> After each story, Ayu asks your child to <b>Move with Ayu</b>: screen down, body up!</p>
         <div class="cta-row"><a class="btn btn-alt" href="ojo-treasury/index.html#cover">Open the whole book</a><a class="btn btn-ghost" href="#/intro">Meet Ayu and Ojo</a></div>
       </section>`;
+    app.querySelector("#listenOnly").addEventListener("click", () => { try { sessionStorage.setItem("ojo-listen", "1"); } catch (e) { /* ignore */ } });
   }
 
   /* ================= For grown-ups (behind the grown-up check) ================= */
@@ -1249,6 +1255,13 @@
           <li><b>Play.</b> A short game repeats the story's one habit.</li>
           <li><b>Do it for real.</b> Your child tries the habit with you, and you tick it in Parent Corner.</li>
         </ol>
+        <h2 class="section-title">Less screen, more doing</h2>
+        <p>The WHO advises no more than one hour of sitting screen time a day for children aged 2 to 4, and less is better. The American Academy of Pediatrics suggests about one hour a day of good programmes for ages 2 to 5, watched together, and no screens in the hour before bed. The app is built to fit inside that.</p>
+        <ul class="steps">
+          <li><b>Ayu moves with the story.</b> In “Brush, Brush, Brush!” Ayu brushes, cleans her tongue and rinses in time with the author's voice, so the picture shows exactly what the words say.</li>
+          <li><b>Move with Ayu.</b> After each story a short card asks your child to put the screen down and copy one movement: brush in the air, stretch like the sun, chew slowly.</li>
+          <li><b>Listen only.</b> On the Stories page, “Listen only” plays the author's readings one after another with a dark screen. Use it at bedtime, in the car, or with the phone face down.</li>
+        </ul>
         <p>The app's own screens use plain words: Ojo, a little light, golden drops. The stories keep their Ayurveda words, such as the names of Ojo's glow on the light bar and the five gates, and this page gives the Ayurveda name behind each story.</p>
         <h2 class="section-title">What Ayu and Ojo mean</h2>
         <p>${esc(WHY_AYU_OJO)}</p>
